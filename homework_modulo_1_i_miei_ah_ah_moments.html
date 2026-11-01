@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 1 - I Miei "Ah-Ah!" Moments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .step-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-old {
+            background-color: #ffe4e6;
+            border-color: #f43f5e;
+            color: #9f1239;
+            font-weight: 600;
+        }
+        .selectable-chip.active-new {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+            font-weight: 600;
+        }
+        .selectable-chip.active-ctx {
+            background-color: #e0e7ff;
+            border-color: #6366f1;
+            color: #3730a3;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli step e bussola di ripasso aperti)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .step-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .step-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Sensory-Friendly -->
+    <header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-teal-700 text-white px-4 py-5 shadow-md no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm">
+                    <i class="fa-solid fa-lightbulb text-amber-300 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-indigo-100 font-bold">Homework • Modulo 1 di 15</span>
+                        <span class="text-[11px] text-indigo-200 hidden sm:inline">• Rilettura Neuro-Affermativa</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold mt-0.5">I Miei "Ah-Ah!" Moments</h1>
+                </div>
+            </div>
+            <!-- Azioni Rapide: Indicatore Salvataggio + Esportazione PDF Completa -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-indigo-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il PDF con tutte le sezioni dell'homework aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-indigo-600 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-indigo-600">Programma Clinico Modulare di Psicoeducazione (15 Moduli) • Modulo 1</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework 1: I Miei "Ah-Ah!" Moments (Scheda Completa)</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rilettura non giudicante del passato e del presente alla luce delle Schede 1 e 2 (Migliarese et al., 2023).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Anti-Perfezionismo (Sempre visibile in alto) -->
+        <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-feather-pointed"></i>
+            </span>
+            <div class="text-xs md:text-sm text-amber-950 leading-relaxed flex-1">
+                <strong class="font-bold">Regola Zero: Mettiamo in pausa il perfezionismo!</strong> 
+                Questa non è una prova da superare e non esiste un modo "giusto" di compilarla. Se oggi hai poca energia mentale o senti il blocco da pagina bianca, <strong>ti basta toccare le etichette pronte in cui ti riconosci</strong>, senza bisogno di scrivere testi lunghi.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Ripasso 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Ripasso Rapido Schede 1 e 2 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-indigo-500 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-indigo-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-indigo-600"></i> Bussola Rapida del Modulo 1 (Schede 1 e 2)
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Regolazione, non Volontà</div>
+                    <p class="text-slate-600 text-xs">Il sistema attentivo ADHD si accende per <strong>Interesse, Novità o Urgenza</strong>, non per semplice dovere astratto. I blocchi sono paralisi da sovraccarico, non pigrizia.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Motore e Scrivania Mentale</div>
+                    <p class="text-slate-600 text-xs">Un ragionamento rapido e potente può convivere con una <strong>Memoria di Lavoro</strong> che si satura in fretta quando ci sono troppi passaggi simultanei.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Iperattività nell'Adulto</div>
+                    <p class="text-slate-600 text-xs">In età adulta l'iperattività è spesso interna e invisibile all'esterno: flusso incessante di pensieri (<em>brain spinning</em>), tensione somatica e irrequietezza.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigazione a Step Leggeri -->
+        <nav class="grid grid-cols-2 sm:grid-cols-4 gap-2 no-print">
+            <button onclick="goToStep(1)" id="nav-step-1" class="step-nav-btn bg-indigo-600 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                <i class="fa-solid fa-clock-rotate-left"></i> 1. Flash dal Passato
+            </button>
+            <button onclick="goToStep(2)" id="nav-step-2" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-magnifying-glass"></i> 2. Questa Settimana
+            </button>
+            <button onclick="goToStep(3)" id="nav-step-3" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-gauge-high"></i> 3. Check Settimanale
+            </button>
+            <button onclick="goToStep(4)" id="nav-step-4" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-paper-plane"></i> 4. Riepilogo e PDF
+            </button>
+        </nav>
+
+
+        <!-- ==========================================
+             STEP 1: RILETTURA DEL PASSATO
+             ========================================== -->
+        <section id="step-1" class="step-section active space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Parte 1 • De-colpevolizzare la propria storia</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Un Flash dal Passato (Infanzia, Scuola, Università o Prime Esperienze)</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Ripensa a un episodio o a una situazione ricorrente del passato in cui hai provato la sensazione di "avere qualcosa che non va", "mancare di volontà" o "non avere costanza", e proviamo a rileggerlo attraverso la lente del funzionamento neurobiologico.
+                    </p>
+                </div>
+
+                <!-- 1A. Contesto rapido -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. In quale situazione accadeva più spesso? <span class="text-xs font-normal text-slate-500">(Tocca uno o più tag)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3" id="past-context-chips">
+                        <button type="button" onclick="toggleChip(this, 'pastContext')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Studio o consegne ridotte all'ultimo minuto</button>
+                        <button type="button" onclick="toggleChip(this, 'pastContext')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Mente altrove durante le lezioni o riunioni</button>
+                        <button type="button" onclick="toggleChip(this, 'pastContext')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Camera, scrivania o zaino nel caos</button>
+                        <button type="button" onclick="toggleChip(this, 'pastContext')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Ottimi risultati esterni ma esaurimento interno</button>
+                        <button type="button" onclick="toggleChip(this, 'pastContext')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Interessi o progetti totalizzanti e poi interrotti</button>
+                        <button type="button" onclick="toggleChip(this, 'pastContext')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Dimenticanze, smarrimento di oggetti o ritardi</button>
+                    </div>
+                    <textarea id="pastEventText" oninput="saveData()" rows="2" placeholder="Altro / Se ti va, aggiungi due parole sull'episodio che ti è venuto in mente (opzionale)..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none transition-all"></textarea>
+                </div>
+
+                <!-- 1B. Confronto Vecchia Lente vs Nuova Lente -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Vecchia Lente -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200/70 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-rose-900 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-glasses text-rose-500"></i> La "Vecchia Lente" (Il Giudizio Morale)
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Quale etichetta ti davi allora (o ti veniva attribuita dall'esterno)?</p>
+                            <div class="flex flex-wrap gap-1.5" id="past-old-chips">
+                                <button type="button" onclick="toggleChip(this, 'pastOld', 'active-old')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Avrei le capacità, ma non mi applico"</button>
+                                <button type="button" onclick="toggleChip(this, 'pastOld', 'active-old')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"È pigrizia / mancanza di forza di volontà"</button>
+                                <button type="button" onclick="toggleChip(this, 'pastOld', 'active-old')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Non ho costanza né disciplina"</button>
+                                <button type="button" onclick="toggleChip(this, 'pastOld', 'active-old')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Me la prendo troppo / ho troppa ansia"</button>
+                                <button type="button" onclick="toggleChip(this, 'pastOld', 'active-old')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Perché alle altre persone riesce facile e a me no?"</button>
+                            </div>
+                        </div>
+                        <input type="text" id="pastOldOtherText" oninput="saveData()" placeholder="Altro giudizio del passato (opzionale)..." class="w-full rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-rose-500 focus:outline-none">
+                    </div>
+
+                    <!-- Nuova Lente -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/70 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-microscope text-emerald-600"></i> La "Nuova Lente" (Lettura Neurobiologica)
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Come puoi rileggere oggi quello stesso episodio?</p>
+                            <div class="flex flex-wrap gap-1.5" id="past-new-chips">
+                                <button type="button" onclick="toggleChip(this, 'pastNew', 'active-new')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Compensavo con il ragionamento spendendo il triplo di energia</button>
+                                <button type="button" onclick="toggleChip(this, 'pastNew', 'active-new')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Serviva l'urgenza della scadenza per attivare la dopamina</button>
+                                <button type="button" onclick="toggleChip(this, 'pastNew', 'active-new')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">La memoria di lavoro andava in sovraccarico esecutivo</button>
+                                <button type="button" onclick="toggleChip(this, 'pastNew', 'active-new')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Nascondevo la fatica per non deludere le aspettative (Masking)</button>
+                            </div>
+                        </div>
+                        <input type="text" id="pastNewOtherText" oninput="saveData()" placeholder="Altra rilettura consapevole (opzionale)..." class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Un pensiero gentile e validante per la versione di te di allora (opzionale):</label>
+                    <input type="text" id="pastKindThought" oninput="saveData()" placeholder="Es. Non era pigrizia: stavi facendo uno sforzo enorme senza avere il manuale d'istruzioni della tua mente..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-800 focus:bg-white focus:border-emerald-500 focus:outline-none">
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToStep(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa all'Osservazione della Settimana <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             STEP 2: OSSERVAZIONE NELLA SETTIMANA ATTUALE
+             ========================================== -->
+        <section id="step-2" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-600">Parte 2 • Osservazione nel Presente</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Un "Ah-Ah! Moment" di Questa Settimana</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Senza giudicarti né forzarti a cambiare subito, individua un momento di questi giorni (nello studio, nel lavoro, a casa o nel riposo) in cui hai riconosciuto in diretta le caratteristiche del funzionamento ADHD.
+                    </p>
+                </div>
+
+                <!-- 2A. Cosa si è attivato -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. Quale segnale del tuo funzionamento hai notato? <span class="text-xs font-normal text-slate-500">(Tocca ciò che hai osservato)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3" id="present-signal-chips">
+                        <button type="button" onclick="toggleChip(this, 'presentSignal')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Blocco nell'avviare un compito (Task Paralysis)</button>
+                        <button type="button" onclick="toggleChip(this, 'presentSignal')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Perfezionismo bloccante ("O tutto impeccabile o niente")</button>
+                        <button type="button" onclick="toggleChip(this, 'presentSignal')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Iperattività mentale / Vortice di pensieri serale</button>
+                        <button type="button" onclick="toggleChip(this, 'presentSignal')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Dieci parentesi mentali aperte contemporaneamente</button>
+                        <button type="button" onclick="toggleChip(this, 'presentSignal')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Iperfocalizzazione assorbente su un interesse</button>
+                        <button type="button" onclick="toggleChip(this, 'presentSignal')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Alterazione della percezione del tempo (Time Blindness)</button>
+                        <button type="button" onclick="toggleChip(this, 'presentSignal')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Impazienza nelle attese o nelle conversazioni</button>
+                    </div>
+                    <textarea id="presentEventText" oninput="saveData()" rows="2" placeholder="Altro / Descrivi in breve il momento, se vuoi (es. 'Dovevo iniziare un'attività ma continuavo ad aprire altre schede o a pensare da dove partire')..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none transition-all"></textarea>
+                </div>
+
+                <!-- 2B. Traduzione Funzionale -->
+                <div class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-3">
+                    <label class="block text-sm font-bold text-indigo-950">
+                        2. Di cosa aveva davvero bisogno il tuo sistema nervoso in quel momento?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="present-need-chips">
+                        <button type="button" onclick="toggleChip(this, 'presentNeed', 'active-new')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Scomporre il compito in un micro-passo da 5 minuti</button>
+                        <button type="button" onclick="toggleChip(this, 'presentNeed', 'active-new')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Scrivere tutto fuori dalla testa per svuotare la memoria di lavoro</button>
+                        <button type="button" onclick="toggleChip(this, 'presentNeed', 'active-new')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Un piccolo stimolo piacevole / novità per avviare il motore</button>
+                        <button type="button" onclick="toggleChip(this, 'presentNeed', 'active-new')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Silenzio e riduzione delle distrazioni intorno</button>
+                        <button type="button" onclick="toggleChip(this, 'presentNeed', 'active-new')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Una pausa vera e autorizzata, senza senso di colpa</button>
+                    </div>
+                    <input type="text" id="presentNeedOtherText" oninput="saveData()" placeholder="Altro bisogno individuato (specifica)..." class="w-full rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none">
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(3)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Check Settimanale <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             STEP 3: CHECK RAPIDO DEL MOTORE E DELLA NUOVA LENTE (30 SECONDI)
+             ========================================== -->
+        <section id="step-3" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Parte 3 • Termometro Veloce (30 secondi)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Come ha girato il Tuo "Motore Mentale" questa settimana?</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Sposta i due cursori per fotografare come hai vissuto mediamente questi giorni:
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Slider 1: Velocità Pensieri / Spinning -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-500"></i> 1. Iperattività Mentale / Inquietudine Interna ("Brain Spinning")
+                            </label>
+                            <span id="spinningValLabel" class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">5 / 10</span>
+                        </div>
+                        <input type="range" id="spinningSlider" min="1" max="10" value="5" oninput="updateSliders()" class="w-full accent-indigo-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Mente calma e silenziosa)</span>
+                            <span>10 (Motore su di giri anche a riposo)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Auto-comprensione vs Giudizio -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-heart text-emerald-500"></i> 2. Livello di Auto-Comprensione (vs Senso di Colpa)
+                            </label>
+                            <span id="kindnessValLabel" class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="kindnessSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-emerald-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Giudizio interiore molto severo)</span>
+                            <span>10 (Ho usato la nuova lente neurobiologica)</span>
+                        </div>
+                    </div>
+
+                    <!-- Domanda flash per il prossimo incontro -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                            C'è un dubbio, una riflessione o una curiosità emersa in settimana di cui ti piacerebbe parlare nel prossimo incontro?
+                        </label>
+                        <input type="text" id="questionNextSession" oninput="saveData()" placeholder="Scrivi qui una domanda o una parola chiave per tenerne traccia..." class="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(4)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera il Riepilogo e PDF <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             STEP 4: RIEPILOGO ED ESPORTAZIONE PDF
+             ========================================== -->
+        <section id="step-4" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-500">
+                
+                <!-- Barra Azioni Esportazione (Non stampata nel PDF) -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Step Finale • Condivisione</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Esporta il tuo Homework 1 in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il file PDF completo (con tutte le sezioni aperte) o la sintesi pronta per il colloquio.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica solo il box di riepilogo sintetico">
+                            <i class="fa-solid fa-file-lines"></i> PDF Solo Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all" title="Copia come testo">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali per personalizzare l'intestazione del PDF -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-indigo-600"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-5 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-indigo-600 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-indigo-600">Percorso Modulare di Psicoeducazione • Modulo 1</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 1: I Miei "Ah-Ah!" Moments</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Contenuto dinamico iniettato da renderSummary() -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Modulo 1 • Schede 1 e 2 (Migliarese et al., 2023)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame Google Sites -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToStep(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Chiave per salvataggio automatico in localStorage
+        const STORAGE_KEY = 'audhd_homework_1_general_v2';
+
+        // Stato dell'applicazione
+        let appState = {
+            patientName: '',
+            pastContext: [],
+            pastOld: [],
+            pastOldOtherText: '',
+            pastNew: [],
+            pastNewOtherText: '',
+            pastEventText: '',
+            pastKindThought: '',
+            presentSignal: [],
+            presentNeed: [],
+            presentNeedOtherText: '',
+            presentEventText: '',
+            spinningLevel: 5,
+            kindnessLevel: 6,
+            questionNextSession: ''
+        };
+
+        // Caricamento iniziale dei dati salvati
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        // Navigazione tra gli step
+        function goToStep(stepNumber) {
+            document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-step-${i}`);
+                if (i === stepNumber) {
+                    btn.className = 'step-nav-btn bg-indigo-600 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stepNumber === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Mostra/Nascondi il cassetto di ripasso rapido
+        function toggleQuickRecap() {
+            const drawer = document.getElementById('quickRecapDrawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        // Gestione clic sui chip (tag rapidi)
+        function toggleChip(btn, stateArrayKey, activeClass = 'active-ctx') {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-ctx', 'active-old', 'active-new');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        // Aggiornamento cursori Step 3
+        function updateSliders() {
+            const spinVal = document.getElementById('spinningSlider').value;
+            const kindVal = document.getElementById('kindnessSlider').value;
+
+            document.getElementById('spinningValLabel').textContent = `${spinVal} / 10`;
+            document.getElementById('kindnessValLabel').textContent = `${kindVal} / 10`;
+
+            appState.spinningLevel = spinVal;
+            appState.kindnessLevel = kindVal;
+            saveData();
+        }
+
+        // Salvataggio dati in localStorage
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+            appState.pastEventText = document.getElementById('pastEventText').value;
+            appState.pastOldOtherText = document.getElementById('pastOldOtherText').value;
+            appState.pastNewOtherText = document.getElementById('pastNewOtherText').value;
+            appState.pastKindThought = document.getElementById('pastKindThought').value;
+            appState.presentEventText = document.getElementById('presentEventText').value;
+            appState.presentNeedOtherText = document.getElementById('presentNeedOtherText').value;
+            appState.questionNextSession = document.getElementById('questionNextSession').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                const statusEl = document.getElementById('saveStatusText');
+                statusEl.textContent = 'Salvato pochi istanti fa';
+            } catch (e) {
+                // Ignora errori se lo storage è ristretto nell'iframe
+            }
+        }
+
+        // Ripristina lo stato visivo dei pulsanti e campi testo al caricamento
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+            document.getElementById('pastEventText').value = appState.pastEventText || '';
+            document.getElementById('pastOldOtherText').value = appState.pastOldOtherText || '';
+            document.getElementById('pastNewOtherText').value = appState.pastNewOtherText || '';
+            document.getElementById('pastKindThought').value = appState.pastKindThought || '';
+            document.getElementById('presentEventText').value = appState.presentEventText || '';
+            document.getElementById('presentNeedOtherText').value = appState.presentNeedOtherText || '';
+            document.getElementById('questionNextSession').value = appState.questionNextSession || '';
+
+            document.getElementById('spinningSlider').value = appState.spinningLevel || 5;
+            document.getElementById('kindnessSlider').value = appState.kindnessLevel || 6;
+            document.getElementById('spinningValLabel').textContent = `${appState.spinningLevel || 5} / 10`;
+            document.getElementById('kindnessValLabel').textContent = `${appState.kindnessLevel || 6} / 10`;
+
+            restoreChipGroup('past-context-chips', appState.pastContext, 'active-ctx');
+            restoreChipGroup('past-old-chips', appState.pastOld, 'active-old');
+            restoreChipGroup('past-new-chips', appState.pastNew, 'active-new');
+            restoreChipGroup('present-signal-chips', appState.presentSignal, 'active-ctx');
+            restoreChipGroup('present-need-chips', appState.presentNeed, 'active-new');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        // Genera il riepilogo nello Step 4 e aggiorna l'area PDF
+        function renderSummary() {
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '') 
+                    ? appState.patientName.trim() 
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const pastCtx = appState.pastContext.length ? appState.pastContext.join(', ') : '<em>Nessun tag selezionato</em>';
+            const pastOld = appState.pastOld.length ? appState.pastOld.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const pastNew = appState.pastNew.length ? appState.pastNew.join(' • ') : '<em>Nessun tag selezionato</em>';
+
+            const presSig = appState.presentSignal.length ? appState.presentSignal.join(', ') : '<em>Nessun segnale selezionato</em>';
+            const presNeed = appState.presentNeed.length ? appState.presentNeed.join(' • ') : '<em>Nessun bisogno selezionato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-700">1. Rilettura del Passato ("Ah-Ah! Moment" Storico)</div>
+                    <p><strong>Ambito / Situazione:</strong> ${pastCtx}</p>
+                    ${appState.pastEventText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.pastEventText)}"</p>` : ''}
+                    <p><strong class="text-rose-700">Vecchia Lente (Giudizio):</strong> ${pastOld}</p>
+                    ${appState.pastOldOtherText ? `<p class="text-rose-900 bg-rose-50 p-2 rounded-lg border border-rose-200 text-xs"><strong>Altro giudizio:</strong> ${escapeHtml(appState.pastOldOtherText)}</p>` : ''}
+                    <p><strong class="text-emerald-700">Nuova Lente (Lettura Neurobiologica):</strong> ${pastNew}</p>
+                    ${appState.pastNewOtherText ? `<p class="text-emerald-900 bg-emerald-50 p-2 rounded-lg border border-emerald-200 text-xs"><strong>Altra rilettura:</strong> ${escapeHtml(appState.pastNewOtherText)}</p>` : ''}
+                    ${appState.pastKindThought ? `<p class="text-emerald-950 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200 text-xs"><strong>Pensiero gentile per allora:</strong> "${escapeHtml(appState.pastKindThought)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-700">2. Episodio Osservato Questa Settimana</div>
+                    <p><strong>Segnale del funzionamento notato:</strong> ${presSig}</p>
+                    ${appState.presentEventText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.presentEventText)}"</p>` : ''}
+                    <p><strong class="text-indigo-700">Bisogno reale del sistema nervoso:</strong> ${presNeed}</p>
+                    ${appState.presentNeedOtherText ? `<p class="text-indigo-950 bg-indigo-50 p-2 rounded-lg border border-indigo-200 text-xs"><strong>Altro bisogno:</strong> ${escapeHtml(appState.presentNeedOtherText)}</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">3. Termometro della Settimana</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Iperattività Mentale / Brain Spinning</span>
+                                <span class="text-amber-700 font-bold">${appState.spinningLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-amber-500 h-2 rounded-full" style="width: ${appState.spinningLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Auto-comprensione (Nuova Lente)</span>
+                                <span class="text-emerald-700 font-bold">${appState.kindnessLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: ${appState.kindnessLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    ${appState.questionNextSession ? `<p class="text-indigo-950 bg-indigo-50 p-3 rounded-lg border border-indigo-200 text-xs"><strong>Domanda / Spunto per il prossimo incontro:</strong> ${escapeHtml(appState.questionNextSession)}</p>` : ''}
+                </div>
+            `;
+        }
+
+        // SCARICA SOLO IL BOX DI SINTESI IN PDF
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_1_Sintesi_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF di sintesi scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        // ESPORTA L'INTERA SCHEDA HOMEWORK CON TUTTE LE SEZIONI E BUSSOLA APERTE E STATICHE
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_1_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        // Stampa nativa pulita con tutte le sezioni aperte
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        // Copia negli appunti
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 1: I MIEI AH-AH! MOMENTS ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. FLASH DAL PASSATO",
+                "• Ambito: " + (appState.pastContext.join(', ') || '-'),
+                appState.pastEventText ? "• Episodio: " + appState.pastEventText : null,
+                "• Vecchia Lente (Giudizio): " + (appState.pastOld.join(', ') || '-'),
+                appState.pastOldOtherText ? "• Altro giudizio: " + appState.pastOldOtherText : null,
+                "• Nuova Lente (Neurobiologia): " + (appState.pastNew.join(', ') || '-'),
+                appState.pastNewOtherText ? "• Altra rilettura: " + appState.pastNewOtherText : null,
+                appState.pastKindThought ? "• Pensiero gentile per allora: " + appState.pastKindThought : null,
+                "",
+                "2. OSSERVAZIONE QUESTA SETTIMANA",
+                "• Segnale notato: " + (appState.presentSignal.join(', ') || '-'),
+                appState.presentEventText ? "• Cosa è successo: " + appState.presentEventText : null,
+                "• Bisogno reale del sistema nervoso: " + (appState.presentNeed.join(', ') || '-'),
+                appState.presentNeedOtherText ? "• Altro bisogno: " + appState.presentNeedOtherText : null,
+                "",
+                "3. CHECK SETTIMANALE",
+                "• Iperattività mentale / Brain Spinning: " + appState.spinningLevel + "/10",
+                "• Auto-comprensione (Nuova Lente): " + appState.kindnessLevel + "/10",
+                appState.questionNextSession ? "• Domanda/Spunto per il prossimo incontro: " + appState.questionNextSession : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        // Svuota scheda
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                pastContext: [],
+                pastOld: [],
+                pastOldOtherText: '',
+                pastNew: [],
+                pastNewOtherText: '',
+                pastEventText: '',
+                pastKindThought: '',
+                presentSignal: [],
+                presentNeed: [],
+                presentNeedOtherText: '',
+                presentEventText: '',
+                spinningLevel: 5,
+                kindnessLevel: 6,
+                questionNextSession: ''
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-ctx', 'active-old', 'active-new');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToStep(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

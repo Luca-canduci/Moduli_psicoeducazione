@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 2A - Fenotipo Internalizzante, Camouflaging e Sensorialità</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+        }
+        .resonance-chip.selected {
+            background-color: #f0fdf4;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(13, 148, 136, 0.15);
+        }
+        .sensory-tag.active-tag {
+            background-color: #f3e8ff;
+            border-color: #9333ea;
+            color: #581c87;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le sezioni e sotto-sezioni aperte)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #appWrapper {
+            overflow: visible !important;
+            display: block !important;
+        }
+        body.pdf-export-mode #mainScrollArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode .tab-content {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.5rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .masking-subpanel {
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #appWrapper {
+                display: block !important;
+                overflow: visible !important;
+            }
+            #mainScrollArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            /* Forza l'apertura di tutte le 4 schede principali e di tutte le sotto-schede */
+            .tab-content {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .masking-subpanel {
+                display: block !important;
+                margin-bottom: 12px !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-teal-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Principale (Visibile a schermo) -->
+    <header class="bg-gradient-to-r from-teal-800 via-teal-700 to-indigo-800 text-white px-6 py-4 shadow-md z-20 shrink-0 no-print">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm">
+                    <i class="fa-solid fa-masks-theater text-xl text-teal-100"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-teal-100">Modulo 2A</span>
+                        <span class="text-[11px] text-teal-200 hidden sm:inline">• Percorso Modulare Neuro-Affermativo</span>
+                    </div>
+                    <h1 class="text-lg md:text-2xl font-bold tracking-tight mt-0.5">Fenotipo Autistico Internalizzante, Camouflaging e Sensorialità</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Contatore Risonanze + Stampa/PDF Completo -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-teal-950/50 border border-teal-400/30 px-3.5 py-2 rounded-xl text-xs md:text-sm">
+                    <i class="fa-solid fa-bookmark text-amber-300"></i>
+                    <span>Spunti selezionati: <strong id="resonanceCount" class="text-white font-bold">0</strong></span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica un PDF con tutte le schede aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Principale -->
+    <div id="appWrapper" class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl mx-auto w-full">
+        
+        <!-- Sidebar Navigation (Nascosta in stampa) -->
+        <nav class="md:w-72 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 overflow-x-auto md:overflow-y-auto shrink-0 flex md:flex-col gap-2 no-print">
+            <div class="hidden md:block text-xs font-bold uppercase tracking-wider text-slate-400 px-3 mb-1">Fasi del Modulo 2A</div>
+            
+            <button onclick="switchTab('tab1', this)" class="tab-btn active text-left px-4 py-3.5 rounded-xl w-full transition-all bg-teal-50 text-teal-800 font-semibold border border-teal-200 flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-compass"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">1. Introduzione</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Inquadramento e pilastri chiave</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab2', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-masks-theater"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">2. Profilo e Camouflaging</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Modello CAT-Q e compensazione</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab3', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center gap-3 justify-center shrink-0">
+                    <i class="fa-solid fa-wave-square"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">3. Profilo Sensoriale</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Modello AASP, Overload e Routine</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab4', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-list-check"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">4. Sintesi e Quiz</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Riepilogo spunti e verifica</div>
+                </div>
+            </button>
+
+            <!-- Box guida interattiva nel menu laterale -->
+            <div class="hidden md:block mt-auto pt-4 border-t border-slate-100 space-y-3">
+                <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand-pointer text-teal-700"></i> Lettura Interattiva
+                    </div>
+                    <p class="leading-relaxed">
+                        Durante l'esplorazione, tocca i pulsanti <span class="text-teal-700 font-semibold">"Mi ci rivedo"</span> e i tag sensoriali che senti più vicini alla tua esperienza.
+                    </p>
+                </div>
+                <div class="bg-teal-50/70 rounded-xl p-3.5 border border-teal-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-teal-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf text-teal-700"></i> Esportazione PDF Statica
+                    </div>
+                    <p class="leading-relaxed">
+                        Cliccando su <strong>"Scarica PDF Completo"</strong> o <strong>"Stampa Tutto"</strong> in alto, tutte le 4 schede si apriranno in un unico documento A4.
+                    </p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area (Contenitore esportabile in PDF) -->
+        <main id="mainScrollArea" class="flex-1 p-4 md:p-8 overflow-y-auto relative space-y-6">
+            
+            <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+            <div class="print-only-header hidden border-b-2 border-teal-700 pb-4 mb-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-teal-700">Programma Clinico Modulare di Psicoeducazione</div>
+                        <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 2A: Fenotipo Autistico Internalizzante, Camouflaging e Sensorialità</h1>
+                        <p class="text-xs text-slate-500 mt-1">Dispensa clinica completa (Rif. Hull et al., 2019, 2020 • Bargiela et al., 2016 • Young et al., 2020 • Dunn, 2001) con tutte le sezioni aperte.</p>
+                    </div>
+                    <div class="text-xs text-slate-500 text-right">
+                        <div id="printDateLabel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================================================
+                 TAB 1: INTRODUZIONE AUTONOMA AL MODULO 2A E CHECK-IN INIZIALE
+                 ========================================================================= -->
+            <div id="tab1" class="tab-content active max-w-4xl mx-auto space-y-6">
+                
+                <!-- Card Introduzione Autonoma -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-t-4 border-t-teal-600">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-800 text-xs font-semibold mb-4">
+                        <i class="fa-solid fa-compass"></i> Fase 1 • Orientamento e Inquadramento Clinico
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Comprendere lo Spettro Autistico di Livello 1 e il Profilo Internalizzante</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                        In età adulta, molte caratteristiche dello Spettro Autistico senza disabilità intellettiva (Livello 1) non si manifestano con comportamenti visibili dall'esterno, ma attraverso un intenso lavoro interno di <strong>adattamento sociale (Camouflaging)</strong>, una marcata <strong>sensibilità agli stimoli sensoriali</strong> e un profondo <strong>bisogno di prevedibilità e routine</strong> per regolare il sistema nervoso.
+                    </p>
+
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200/80 mb-6">
+                        <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-teal-600"></i> Check-in Iniziale: Quali di questi vissuti senti più vicini?
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mb-3">
+                            Tocca gli aspetti che risuonano maggiormente con la tua esperienza quotidiana:
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Apparire a proprio agio in pubblico, ma sentire un crollo di energie appena si torna a casa
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Sentire il bisogno di preparare prima le conversazioni o rianalizzarle a lungo dopo
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Provare forte affaticamento in ambienti rumorosi, affollati o con luci intense
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Trovare profonda calma nella prevedibilità, nelle routine e nei propri interessi assorbenti
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- I 4 Pilastri del Funzionamento Autistico di Livello 1 -->
+                    <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-indigo-600"></i> I 4 Nuclei del Funzionamento Esplorati in questo Modulo
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        La letteratura clinica contemporanea descrive la presentazione internalizzante attraverso quattro dimensioni chiave strettamente interconnesse:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80">
+                            <div class="font-bold text-amber-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt-lightning text-amber-600"></i> Sensory Overload
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Sistema nervoso che registra luci, suoni, consistenze e stimoli ambientali con un'intensità amplificata.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80">
+                            <div class="font-bold text-teal-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-calendar-check text-teal-600"></i> Bisogno di Prevedibilità
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">La routine non è rigidità fine a se stessa, ma una struttura che riduce l'incertezza e regola il sistema nervoso.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200/80">
+                            <div class="font-bold text-indigo-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-house-chimney-heart text-indigo-600"></i> Interessi Assorbenti
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Focus monotropico profondo su tematiche specifiche che funge da spazio di ricarica cognitiva ed emotiva.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-purple-50/70 border border-purple-200/80">
+                            <div class="font-bold text-purple-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-microchip text-purple-600"></i> Social Camouflaging
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Decodifica dei segnali sociali impliciti attraverso l'analisi logica e il mimetismo attivo.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6 no-print">
+                        <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                            Esplora Profilo Internalizzante e Camouflaging <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 2: SCHEDA CLINICA 2A - PROFILO INTERNALIZZANTE, LOGICA SOCIALE E CAT-Q
+                 ========================================================================= -->
+            <div id="tab2" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Introduzione Fenotipo Internalizzante -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-teal-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold uppercase tracking-wide">
+                            Scheda Clinica 2A.1 • Il Fenotipo Autistico Internalizzante
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Bargiela et al. (2016) • Hull et al. (2020) • Young et al. (2020)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Perché questo profilo resta spesso a lungo non riconosciuto?</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Storicamente, i criteri nosografici per lo Spettro Autistico sono stati costruiti osservando prevalentemente manifestazioni comportamentali esternalizzanti in età pediatrica. La ricerca scientifica più recente (<em>Bargiela et al., 2016; Hull et al., 2020; Young et al., 2020</em>) ha delineato un <strong>fenotipo internalizzante</strong> — ampiamente studiato nella popolazione femminile e nelle persone che adottano strategie di iper-adattamento relazionale — in cui le caratteristiche autistiche vengono compensate attivamente fino all'età adulta.
+                    </p>
+
+                    <!-- Tabella comparativa Stereotipo Classico vs Profilo Internalizzante -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lo Stereotipo Tradizionale</div>
+                            <ul class="space-y-2 text-xs md:text-sm text-slate-600">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Apparente disinteresse per le relazioni sociali o isolamento evidente fin dall'infanzia.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Assenza totale di contatto oculare e mimica facciale visibilmente ridotta.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Presunta mancanza di empatia o incapacità di cogliere le emozioni altrui.</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 rounded-xl bg-teal-50/60 border border-teal-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-teal-700 mb-2">Il Profilo Internalizzante ad Alto Compenso</div>
+                            <ul class="space-y-2 text-xs md:text-sm text-slate-700">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-teal-600 mt-1"></i> <strong>Motivazione relazionale presente</strong>, ma elevato dispendio energetico nel gestire le dinamiche implicite e i contesti di gruppo.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-teal-600 mt-1"></i> <strong>Mimetismo attivo:</strong> apprendimento per osservazione e imitazione di sguardi, postura, prosodia ed espressioni.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-teal-600 mt-1"></i> <strong>Empatia affettiva intatta o iper-responsiva</strong> (tendenza ad assorbire intensamente gli stati emotivi altrui) e interessi profondi spesso rivolti a ambiti umanistici, psicologici, artistici, relazionali o creativi.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IL MECCANISMO COGNITIVO: INTUIZIONE AUTOMATICA VS CALCOLO LOGICO -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-indigo-600"></i> Pilota Automatico vs Elaborazione Cognitiva Consapevole
+                    </h3>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Come evidenziato dagli studi sul <em>compensatory social-cognitive processing</em> (<em>Livingston et al., 2019</em>), molte persone adulte nello Spettro di Livello 1 mostrano buone competenze relazionali esteriori, ma utilizzano circuiti cognitivi differenti rispetto al funzionamento neurotipico:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-slate-800 text-sm">Decodifica Intuitiva (Automatica)</span>
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-xs font-bold">Costo Energetico: Basso</span>
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                                Elabora in modo subconscio i sottintesi, i turni di parola, il contatto visivo e le convenzioni della conversazione informale (<em>small talk</em>) senza richiedere attenzione esecutiva.
+                            </p>
+                        </div>
+
+                        <div class="p-5 rounded-xl bg-indigo-50/60 border border-indigo-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-indigo-950 text-sm">Decodifica Analitica (Compensatoria)</span>
+                                <span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-xs font-bold">Costo Energetico: Molto Alto</span>
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                Il cervello impiega le funzioni esecutive e il <strong>ragionamento logico cosciente</strong> per monitorare in tempo reale ogni variabile: <em>"Quando devo intervenire? Sto mantenendo la giusta espressione? Cosa intendeva dire l'altra persona?"</em>. Dall'esterno l'interazione appare fluida, ma le risorse mentali lavorano al 100%.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button onclick="toggleResonance(this, 'Decodifica sociale basata sull\'auto-monitoraggio costante e sul ragionamento analitico anziché sull\'automatismo')" class="resonance-chip py-2 px-4 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center gap-2">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo: monitoro costantemente il mio comportamento nelle situazioni sociali
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CAMOUFLAGING / MASKING SOCIALE (MODELLO CAT-Q) -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-bold text-slate-800">Il Social Camouflaging: Il Modello Scientifico CAT-Q</h3>
+                            <p class="text-xs md:text-sm text-slate-500">Le 3 dimensioni validate da Hull et al. (2019) e le ricadute sul benessere psicologico (Cook et al., 2021)</p>
+                        </div>
+                    </div>
+
+                    <!-- Sintesi dalla Letteratura Scientifica sui Costi del Camouflaging -->
+                    <div class="bg-gradient-to-r from-indigo-900 to-teal-900 text-white p-5 rounded-2xl mb-6 shadow-md">
+                        <div class="flex items-start gap-3.5">
+                            <i class="fa-solid fa-book-medical text-2xl text-teal-300 opacity-90 mt-0.5"></i>
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-teal-300 mb-1">Evidenza Clinica • Hull et al. (2017, 2019) • Cook et al. (2021)</div>
+                                <p class="text-sm md:text-base font-medium leading-relaxed text-teal-50">
+                                    Le revisioni sistematiche sul <em>Camouflaging</em> evidenziano che l'iper-adattamento cronico alle aspettative sociali neurotipiche comporta tre costi principali: <strong>(1) esaurimento cognitivo e fisico acuto</strong> dopo le interazioni, <strong>(2) incertezza identitaria</strong> (fatica a distinguere i propri bisogni autentici dal ruolo recitato per compiacere gli altri) e <strong>(3) aumento dello stress internalizzato</strong> con necessità di periodi di ritiro solitario per recuperare.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Le 3 Dimensioni del CAT-Q -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- 1. Compensazione -->
+                        <div class="masking-subpanel p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-book-atlas"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1.5">1. Compensazione (Script)</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                    Utilizzare strategie cognitive per compensare le fatiche socio-comunicative: preparare mentalmente copioni (<em>script</em>) prima di una conversazione, osservare e imitare lo stile comunicativo altrui o rianalizzare a lungo i dialoghi avvenuti.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Compensazione (CAT-Q): preparare mentalmente i discorsi prima o rianalizzare a lungo le conversazioni avute')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 2. Masking Attivo -->
+                        <div class="masking-subpanel p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-mask"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1.5">2. Masking Attivo</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                    Regolare intenzionalmente la propria immagine pubblica: monitorare l'espressione facciale e il tono di voce, forzare il contatto oculare, trattenere i movimenti di auto-regolazione (<em>stimming</em>) e nascondere il sovraccarico sensoriale.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Masking attivo (CAT-Q): controllare espressione e postura o nascondere il disagio per apparire a proprio agio')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 3. Assimilazione & Compiacenza -->
+                        <div class="masking-subpanel p-5 rounded-xl bg-rose-50/50 border border-rose-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-people-arrows"></i>
+                                </div>
+                                <h4 class="font-bold text-rose-950 text-base mb-1.5">3. Assimilazione Sociale</h4>
+                                <p class="text-xs text-slate-700 leading-relaxed mb-4">
+                                    Sforzarsi di fondersi con il contesto per evitare l'esclusione o il conflitto: assecondare le richieste altrui mettendo in secondo piano i propri limiti energetici (<em>people pleasing</em>) e recitare un ruolo fino a sentirsi disconnessi da sé.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Assimilazione (CAT-Q): assecondare le aspettative altrui mettendo in secondo piano i propri limiti ed energie')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIMULATORE INTERATTIVO: LA BATTERIA DEL CAMOUFLAGING -->
+                    <div class="bg-slate-900 text-white p-6 rounded-2xl border border-slate-700">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                            <h4 class="font-bold text-teal-300 text-sm md:text-base flex items-center gap-2">
+                                <i class="fa-solid fa-battery-half"></i> Simulatore: Il Bilancio Energetico del Camouflaging
+                            </h4>
+                            <span id="maskingBatteryBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                Riserva Energetica: 90%
+                            </span>
+                        </div>
+
+                        <div class="w-full bg-slate-800 rounded-full h-4 mb-3 overflow-hidden p-0.5 border border-slate-700">
+                            <div id="maskingBatteryBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 90%"></div>
+                        </div>
+
+                        <p id="maskingExplanation" class="text-xs md:text-sm text-slate-300 mb-4 min-h-[2.2rem]">
+                            All'inizio della giornata parti con una riserva di energia cognitiva e sensoriale. Clicca sulle situazioni tipiche per osservare l'impatto del Camouflaging rispetto al recupero ecologico:
+                        </p>
+
+                        <div class="flex flex-wrap gap-2 no-print">
+                            <button onclick="drainBattery(25, 'Assecondare una richiesta ignorando i propri segnali di stanchezza (Assimilazione): -25% di riserva energetica.')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-minus text-rose-400 mr-1"></i> Ignorare i propri limiti per adattarsi (-25%)
+                            </button>
+                            <button onclick="drainBattery(30, 'Interazione prolungata in gruppo rumoroso con auto-monitoraggio costante di postura e parole (-30%).')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-minus text-rose-400 mr-1"></i> Socialità in gruppo con Masking attivo (-30%)
+                            </button>
+                            <button onclick="drainBattery(25, 'Cambio imprevisto di programma che richiede una riorganizzazione cognitiva immediata (-25%).')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-minus text-rose-400 mr-1"></i> Imprevisto / Cambio di programma (-25%)
+                            </button>
+                            <button onclick="rechargeBattery()" class="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs font-semibold text-white transition-all ml-auto">
+                                <i class="fa-solid fa-plug-circle-bolt mr-1"></i> Decompressione solitaria + Routine + Interessi (+Ricarica)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab1', document.querySelectorAll('.tab-btn')[0])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna all'Introduzione
+                    </button>
+                    <button onclick="switchTab('tab3', document.querySelectorAll('.tab-btn')[2])" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Passa al Profilo Sensoriale (AASP) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 3: SCHEDA CLINICA 2A.2 - PROFILO SENSORIALE (AASP), ROUTINE E DECOMPRESSIONE
+                 ========================================================================= -->
+            <div id="tab3" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Introduzione Profilo Sensoriale AASP -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-purple-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wide">
+                            Scheda Clinica 2A.2 • Profilo Sensoriale in Età Adulta (Modello AASP di Dunn, 2001)
+                        </span>
+                        <span class="text-xs text-slate-400">Neurobiologia della Percezione</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Come il Sistema Nervoso Elabora gli Stimoli</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-4">
+                        La reattività sensoriale nello Spettro Autistico dipende dal <strong>filtraggio neurologico centrale</strong> con cui il cervello amplifica o attenua gli stimoli ambientali e corporei. Secondo il modello quadrantico di <strong>Winnie Dunn (<em>Adult/Adolescent Sensory Profile - AASP</em>, 2001)</strong>, una stessa persona può presentare una soglia neurologica molto bassa per alcuni stimoli esterni e, contemporaneamente, una ridotta registrazione dei segnali corporei interni.
+                    </p>
+                </div>
+
+                <!-- I 4 QUADRANTI DELL'AASP -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <!-- Quadrante 1: Ipersensibilità Sensoriale -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-rose-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-rose-600">1. Soglia Bassa • Risposta Passiva</span>
+                                <i class="fa-solid fa-volume-high text-rose-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Sensibilità Sensoriale (Ipersensibilità)</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Il sistema nervoso ha una soglia di attivazione molto bassa: registra micro-dettagli, rumori di fondo, luci artificiali/neon, odori, cuciture dei tessuti o specifiche <strong>consistenze alimentari (texture)</strong> con un'intensità amplificata.
+                            </p>
+                            <div class="bg-rose-50/70 p-3 rounded-xl border border-rose-100 text-xs text-rose-900 mb-4">
+                                <strong>Effetto clinico:</strong> In presenza di stimoli simultanei (es. voci sovrapposte in un ambiente chiuso), il cervello fatica a filtrare il rumore di fondo, andando rapidamente incontro a <em>Sensory Overload</em>.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Sensibilità sensoriale (AASP): affaticamento rapido per rumori sovrapposti, luci intense, odori, tessuti o consistenze alimentari')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Quadrante 2: Evitamento Sensoriale -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-amber-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-600">2. Soglia Bassa • Regolazione Attiva</span>
+                                <i class="fa-solid fa-shield-halved text-amber-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Evitamento Sensoriale</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                È il comportamento attivo con cui la persona <strong>limita l'esposizione agli stimoli</strong> per proteggere il proprio sistema nervoso: usare cuffie a cancellazione del rumore, abbassare le luci, preferire ambienti tranquilli o scegliere alimenti prevedibili.
+                            </p>
+                            <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-100 text-xs text-amber-900 mb-4">
+                                <strong>Rilettura clinica:</strong> Spesso il bisogno di ritirarsi da un ambiente caotico viene frainteso come chiusura sociale; rappresenta invece una <strong>strategia fisiologica di autoregolazione</strong> per prevenire l'esaurimento.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Evitamento sensoriale (AASP): bisogno fisiologico di limitare gli stimoli e ritirarsi in ambienti calmi per prevenire il sovraccarico')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Quadrante 3: Bassa Registrazione e Interocezione -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-indigo-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">3. Soglia Alta • Segnali Interni</span>
+                                <i class="fa-solid fa-heart-circle-exclamation text-indigo-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Bassa Registrazione & Interocezione</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Accanto all'ipersensibilità verso l'ambiente esterno, può coesistere una <strong>bassa registrazione</strong> verso altri input o una ridotta consapevolezza interocettiva (la percezione dei segnali interni del corpo).
+                            </p>
+                            <div class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900 mb-4">
+                                <strong>Cosa comporta:</strong> Faticare ad accorgersi tempestivamente di fame, sete, tensione muscolare o stanchezza finché il sovraccarico non raggiunge una soglia critica.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Bassa registrazione / Interocezione: fatica ad accorgersi in tempo di fame, sete o stanchezza finché non si raggiunge il limite')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Quadrante 4: Ricerca Sensoriale e Stimming -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-teal-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-teal-600">4. Auto-Regolazione • Stimming</span>
+                                <i class="fa-solid fa-compact-disc text-teal-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Ricerca Sensoriale & Stimming</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Ricerca attiva di input sensoriali scelti autonomamente, prevedibili e ritmici per modulare il livello di attivazione interna: ascoltare una traccia musicale familiare in ripetizione, dondolarsi lievemente, manipolare oggetti o cercare pressioni profonde.
+                            </p>
+                            <div class="bg-teal-50/70 p-3 rounded-xl border border-teal-100 text-xs text-teal-900 mb-4">
+                                <strong>Monotropismo e Interessi Assorbenti (Murray et al., 2005):</strong> Immergersi nei propri interessi speciali convoglia l'attenzione in un flusso ordinato che decomprime il sistema nervoso.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Ricerca sensoriale e auto-regolazione tramite stimoli familiari ripetitivi, stimming o immersione negli interessi assorbenti')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- APPROFONDIMENTO CLINICO: PREVEDIBILITÀ, SOVRACCARICO CUMULATIVO E DECOMPRESSIONE -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 bg-gradient-to-br from-slate-50 to-indigo-50/40">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Regolazione Neurobiologica: Routine, Sovraccarico Cumulativo e Decompressione
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Il ruolo neurobiologico della Routine -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">Prevedibilità e Risparmio Cognitivo</div>
+                                <h4 class="font-bold text-slate-800 text-base mb-2">Perché la Routine Regola il Sistema Nervoso</h4>
+                                <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                    Per un cervello che elabora un'alta densità di dettagli sensoriali e contestuali, ogni imprevisto richiede un ricalcolo attivo. <strong>Le routine e gli ambienti familiari riducono l'errore di predizione</strong>: sapere cosa avverrà e in quale sequenza abbassa l'allerta dell'amigdala e preserva energia esecutiva.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'La prevedibilità e le routine quotidiane riducono il carico di allerta e favoriscono la calma')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- Sovraccarico Cumulativo, Iper-Arousal e Shutdown -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-1">Sovraccarico Cumulativo (Raymaker et al., 2020)</div>
+                                <h4 class="font-bold text-slate-800 text-base mb-2">Iper-Arousal Serale, Shutdown e Burnout</h4>
+                                <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                    Quando durante il giorno si sommano <strong>stimolazione sensoriale intensa + Camouflaging sociale</strong> senza pause di recupero, il sistema nervoso può andare incontro a due risposte: restare bloccato in uno stato di <em>iper-arousal</em> serale che ostacola l'addormentamento, oppure attivare uno spegnimento protettivo (<em>Shutdown</em>) con esaurimento delle energie.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Difficoltà a spegnere l\'attivazione nervosa a fine giornata o bisogno di spegnimento protettivo (Shutdown) dopo un alto carico sociale/sensoriale')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAPPA RAPIDA INTERATTIVA DEI TRIGGER E DELLE ANCORE DI REGOLAZIONE (CON BOX "ALTRO") -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <h3 class="text-lg md:text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-purple-600"></i> Mappatura Personale: Cosa Sovraccarica vs Cosa Regola?
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        Seleziona le etichette in cui ti riconosci oppure utilizza i campi <strong>"Altro"</strong> per annotare elementi specifici del tuo profilo sensoriale (verranno inclusi nel riepilogo finale e nel PDF):
+                    </p>
+
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200/80 mb-6">
+                        <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-teal-600"></i> Spazio di Apertura: Cosa hai osservato durante la settimana?
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mb-3">
+                            Quale aspetto dell'Homework 1 (<em>I Miei "Ah-Ah!" Moments</em>) o della tua quotidianità è emerso con più nitidezza?
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Ho notato quante volte mi giudicavo con severità per i blocchi esecutivi
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Ho riconosciuto la "scrivania mentale" satura davanti a compiti ampi
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Ho osservato l'iperattività mentale / Brain Spinning serale
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-teal-500 transition-all">
+                                Ho percepito la fatica del dover mostrare che "va tutto bene"
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- I 4 Pilastri dello Spicchio Autistico -->
+                    <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-indigo-600"></i> I 4 Nuclei del Funzionamento Autistico di Livello 1
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        In questo <strong>Modulo 2A</strong> esploriamo la presentazione <strong>internalizzante</strong> dello Spettro Autistico (studiata in letteratura soprattutto nelle donne, nelle persone assegnate femmine alla nascita - AFAB - e nelle persone non binarie o <em>gender-diverse</em>), articolata attorno a quattro dimensioni:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80">
+                            <div class="font-bold text-amber-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt-lightning text-amber-600"></i> Sensory Overload
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Sistema nervoso che registra luci, suoni, consistenze e stimoli ambientali con un'intensità amplificata.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80">
+                            <div class="font-bold text-teal-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-calendar-check text-teal-600"></i> Needs Routine
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">La routine non è "rigidità capricciosa", ma un'ancora di prevedibilità che calma il sistema nervoso.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200/80">
+                            <div class="font-bold text-indigo-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-house-chimney-heart text-indigo-600"></i> Seeks Familiarity
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Ricerca di ciò che è noto, sicuro e familiare per riposare la mente dall'imprevedibilità esterna.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-purple-50/70 border border-purple-200/80">
+                            <div class="font-bold text-purple-900 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-microchip text-purple-600"></i> Camouflaging Sociale
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Decodifica dei segnali sociali impliciti attraverso l'analisi logica e il mimetismo anziché in automatico.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6 no-print">
+                        <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                            Esplora Profilo Internalizzante e Camouflaging <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 2: SCHEDA CLINICA 2A - PROFILO INTERNALIZZANTE, LOGICA SOCIALE E CAT-Q
+                 ========================================================================= -->
+            <div id="tab2" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Introduzione Fenotipo Internalizzante e Differenze di Genere -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-teal-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold uppercase tracking-wide">
+                            Scheda Clinica 2A.1 • Il Fenotipo Autistico Internalizzante (Livello 1)
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Hull et al. (2020) • Young et al. (2020) • Warrier et al. (2020)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Perché questo profilo resta così a lungo invisibile?</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Storicamente, gli strumenti diagnostici per l'autismo sono stati tarati su campioni quasi esclusivamente pediatrici e maschili con manifestazioni esternalizzanti. La ricerca scientifica più recente (*Hull et al., 2020; Young et al., 2020*) ha dimostrato l'esistenza di un <strong>fenotipo internalizzante</strong> — particolarmente frequente nelle <strong>donne, nelle persone AFAB e nelle persone non binarie o <em>gender-diverse</em></strong> ( ma riscontrabile indipendentemente dal genere) — in cui le caratteristiche autistiche vengono mascherate attraverso un intenso lavoro cognitivo e relazionale.
+                    </p>
+
+                    <!-- Tabella comparativa Stereotipo Classico vs Profilo Internalizzante -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Lo Stereotipo Tradizionale</div>
+                            <ul class="space-y-2 text-xs md:text-sm text-slate-600">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Apparente disinteresse per le relazioni sociali o isolamento visibile fin dall'infanzia.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Assenza totale di contatto oculare e mimica facciale visibilmente inespressiva.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Presunta mancanza di empatia o incapacità di cogliere le emozioni altrui.</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 rounded-xl bg-teal-50/60 border border-teal-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-teal-700 mb-2">Il Profilo Internalizzante ad AltoCompenso</div>
+                            <ul class="space-y-2 text-xs md:text-sm text-slate-700">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-teal-600 mt-1"></i> <strong>Elevata motivazione relazionale</strong>, ma forte affaticamento nel gestire le regole sociali implicite e i gruppi.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-teal-600 mt-1"></i> <strong>Mimetismo attivo:</strong> apprendimento per studio e imitazione di sguardi, postura, sorrisi e toni di voce.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-teal-600 mt-1"></i> <strong>Empatia affettiva intatta o iper-responsiva</strong> (<em>"sentire troppo"</em>) e interessi assorbenti su temi relazionali, artistici, psicologici, letterari o creativi.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Focus Scientifico: Intersezione tra Neurodivergenza e Identità Non Binarie / Gender-Diverse -->
+                    <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-200/80 text-xs md:text-sm text-slate-700 leading-relaxed">
+                        <div class="font-bold text-indigo-950 mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-users-rays text-indigo-600"></i> Evidenza Scientifica: Neurodivergenza e Varianza di Genere (Warrier et al., 2020)
+                        </div>
+                        <p>
+                            Ampie ricerche internazionali (es. <em>Warrier et al., 2020, Nature Communications</em> su oltre $600.000$ partecipanti) evidenziano che le persone <strong>non binarie, transgender e <em>gender-diverse</em></strong> presentano una probabilità da $3$ a $6$ volte maggiore di trovarsi nello Spettro Autistico o nel profilo AuDHD. Chi vive fuori dagli schemi binari sperimenta spesso una minor adesione spontanea alle aspettative sociali convenzionali di genere, ma al tempo stesso può affrontare un <strong>"doppio masking"</strong> (mimetizzare sia il proprio funzionamento neurodivergente sia la propria identità), con un costo energetico particolarmente elevato.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- IL MECCANISMO COGNITIVO: INTUIZIONE AUTOMATICA VS CALCOLO LOGICO -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-indigo-600"></i> Pilota Automatico vs "Calcolo Logico" Sociale
+                    </h3>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Avere una buona <strong>Teoria della Mente</strong> (comprendere concettualmente gli stati mentali altrui) e buone risorse cognitive permette di muoversi con apparente disinvoltura nelle situazioni sociali, ma con una differenza invisibile fondamentale rispetto al funzionamento neurotipico: <strong>la via cerebrale utilizzata</strong>.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-slate-800 text-sm">Decodifica Neurotipica (Intuitiva)</span>
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-xs font-bold">Costo Energetico: Basso</span>
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                                Funziona in automatico: filtra senza sforzo i sottintesi, regola quanto parlare, quando guardare negli occhi e come rispondere alle conversazioni informali (<em>small talk</em>) senza doverci riflettere.
+                            </p>
+                        </div>
+
+                        <div class="p-5 rounded-xl bg-indigo-50/60 border border-indigo-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-indigo-950 text-sm">Decodifica tramite Logica e Analisi</span>
+                                <span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-xs font-bold">Costo Energetico: Altissimo</span>
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                Il cervello usa il <strong>ragionamento cosciente</strong> per calcolare ogni variabile: <em>"Cosa si aspettano che dica ora? Sto parlando troppo? Quale espressione devo mostrare? Ho risposto nel modo giusto?"</em>. Dall'esterno tutto appare fluido, ma dentro la CPU lavora al $100\%$.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button onclick="toggleResonance(this, 'Decodifica sociale guidata dal ragionamento logico e dall\'auto-monitoraggio costante anziché dall\'intuito automatico')" class="resonance-chip py-2 px-4 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center gap-2">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo: analizzo tutto con la testa quando sono con altre persone
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CAMOUFLAGING / MASKING SOCIALE (MODELLO CAT-Q) E PEOPLE PLEASING -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-bold text-slate-800">Il Social Camouflaging: Il Modello Scientifico CAT-Q</h3>
+                            <p class="text-xs md:text-sm text-slate-500">Le 3 dimensioni validate da Hull et al. (2019) e il legame con il People Pleasing</p>
+                        </div>
+                    </div>
+
+                    <!-- Box Vissuto Clinico -->
+                    <div class="bg-gradient-to-r from-indigo-900 to-teal-900 text-white p-5 rounded-2xl mb-6 shadow-md">
+                        <div class="flex items-start gap-3.5">
+                            <i class="fa-solid fa-quote-left text-2xl text-teal-300 opacity-80 mt-0.5"></i>
+                            <div>
+                                <p class="text-base md:text-lg font-semibold italic leading-snug text-teal-50">
+                                    «Se porto avanti il Masking troppo a lungo sento di smarrire chi sono davvero. Tendo a fare people pleasing e a mettermi in secondo piano, fino a dover evitare o isolarmi del tutto per recuperare.»
+                                </p>
+                                <p class="text-xs text-teal-200 mt-2">
+                                    <strong>Lettura Clinica (*Cook et al., 2021*):</strong> Quando ci si adatta costantemente alle aspettative esterne per evitare critiche, rifiuti o conflitti, il sistema nervoso perde il contatto con i propri bisogni autentici. Il ritiro successivo non è "chiusura caratteriale", ma <strong>decompressione protettiva d'emergenza</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Le 3 Dimensioni del CAT-Q (Tutte visibili in griglia così in stampa sono sempre aperte) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- 1. Compensazione -->
+                        <div class="masking-subpanel p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-book-atlas"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1.5">1. Compensazione (Script)</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                    Preparare mentalmente i copioni (<em>script</em>) prima di una telefonata o di un incontro; studiare e imitare il linguaggio del corpo altrui; rianalizzare in loop un dialogo per ore dopo che è avvenuto (<em>replay post-sociale</em>).
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Compensazione (CAT-Q): preparare i discorsi prima o ripensare in loop alle conversazioni avute')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 2. Masking Attivo -->
+                        <div class="masking-subpanel p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-mask"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1.5">2. Masking Attivo</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                    Monitorare costantemente la propria espressione facciale e il tono di voce; forzare il contatto visivo anche quando distrae dall'ascolto; nascondere i segnali di stanchezza o sovraccarico sensoriale e trattenere lo <em>stimming</em>.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Masking attivo (CAT-Q): nascondere il disagio o la stanchezza per apparire sempre a proprio agio')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 3. Assimilazione & People Pleasing -->
+                        <div class="masking-subpanel p-5 rounded-xl bg-rose-50/50 border border-rose-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-people-arrows"></i>
+                                </div>
+                                <h4 class="font-bold text-rose-950 text-base mb-1.5">3. Assimilazione & People Pleasing</h4>
+                                <p class="text-xs text-slate-700 leading-relaxed mb-4">
+                                    Mettersi sistematicamente in secondo piano; dire "sì" quando si vorrebbe dire "no" per timore del rifiuto; recitare un ruolo per integrarsi nel gruppo fino a non sapere più cosa piace o serve davvero a sé.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Assimilazione e People Pleasing: mettermi in secondo piano per non deludere, fino a smarrire il contatto con i miei bisogni')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo profondamente
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIMULATORE INTERATTIVO: LA BATTERIA DEL MASKING E IL RITIRO COMPENSATORIO -->
+                    <div class="bg-slate-900 text-white p-6 rounded-2xl border border-slate-700">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                            <h4 class="font-bold text-teal-300 text-sm md:text-base flex items-center gap-2">
+                                <i class="fa-solid fa-battery-half"></i> Simulatore: Il Costo Energetico del Camouflaging (Batteria Sociale)
+                            </h4>
+                            <span id="maskingBatteryBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                Energia Autentica: 90%
+                            </span>
+                        </div>
+
+                        <div class="w-full bg-slate-800 rounded-full h-4 mb-3 overflow-hidden p-0.5 border border-slate-700">
+                            <div id="maskingBatteryBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 90%"></div>
+                        </div>
+
+                        <p id="maskingExplanation" class="text-xs md:text-sm text-slate-300 mb-4 min-h-[2.2rem]">
+                            Al mattino parti con la tua riserva di energia. Prova a cliccare sulle situazioni tipiche per osservare quanto consuma il Camouflaging rispetto a uno spazio sicuro:
+                        </p>
+
+                        <div class="flex flex-wrap gap-2 no-print">
+                            <button onclick="drainBattery(25, 'Hai detto di sì a una richiesta pur avendo poca energia (People Pleasing): -25% di riserva e aumento della tensione interna.')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-minus text-rose-400 mr-1"></i> Dire "Sì" mettendosi in 2° piano (-25%)
+                            </button>
+                            <button onclick="drainBattery(30, 'Socialità in gruppo numeroso/rumoroso simulando disinvoltura: la mente calcola ogni frase e filtra il rumore (-30%).')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-minus text-rose-400 mr-1"></i> Conversazione di gruppo con Masking (-30%)
+                            </button>
+                            <button onclick="drainBattery(25, 'Imprevisto dell\'ultimo minuto che altera la struttura mentale della giornata (-25%).')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-minus text-rose-400 mr-1"></i> Cambio di programma improvviso (-25%)
+                            </button>
+                            <button onclick="rechargeBattery()" class="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs font-semibold text-white transition-all ml-auto">
+                                <i class="fa-solid fa-plug-circle-bolt mr-1"></i> Solitudine scelta + Routine + Special Interest (+Ricarica)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab1', document.querySelectorAll('.tab-btn')[0])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna al Ponte Clinico
+                    </button>
+                    <button onclick="switchTab('tab3', document.querySelectorAll('.tab-btn')[2])" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Passa al Profilo Sensoriale (AASP) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 3: SCHEDA CLINICA 2A.2 - PROFILO SENSORIALE (AASP), SPINNING E ROUTINE
+                 ========================================================================= -->
+            <div id="tab3" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Introduzione Profilo Sensoriale AASP -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-purple-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wide">
+                            Scheda Clinica 2A.2 • Profilo Sensoriale in Età Adulta (Modello AASP di Dunn, 2001)
+                        </span>
+                        <span class="text-xs text-slate-400">Neurobiologia della Percezione</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Come il Tuo Sistema Nervoso Filtra il Mondo</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-4">
+                        La reattività sensoriale nello Spettro Autistico non dipende dagli organi di senso periferici, ma dal <strong>filtro talamico e corticale</strong> con cui il cervello amplifica o attenua gli stimoli in entrata. Secondo il modello scientifico di <strong>Winnie Dunn (AASP)</strong>, il profilo sensoriale adulto può combinare soglie molto basse per alcuni stimoli esterni con una ridotta registrazione dei segnali corporei interni.
+                    </p>
+                </div>
+
+                <!-- I 4 QUADRANTI DELL'AASP (Tutti aperti e leggibili) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <!-- Quadrante 1: Ipersensibilità Sensoriale -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-rose-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-rose-600">1. Soglia Bassa • Risposta Passiva</span>
+                                <i class="fa-solid fa-volume-high text-rose-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Ipersensibilità Sensoriale</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Il sistema nervoso ha una "soglia di attivazione" molto bassa: registra micro-dettagli, rumori di fondo, luci artificiali/neon, odori, cuciture dei tessuti o specifiche <strong>consistenze alimentari (texture del cibo)</strong> che altre persone non notano.
+                            </p>
+                            <div class="bg-rose-50/70 p-3 rounded-xl border border-rose-100 text-xs text-rose-900 mb-4">
+                                <strong>Effetto clinico:</strong> In presenza di stimoli simultanei (es. voci sovrapposte con musica di sottofondo), il cervello li elabora tutti allo stesso volume, portando rapidamente a <em>Sensory Overload</em>, tensione e ansia.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Ipersensibilità sensoriale (AASP): fastidio intenso per rumori sovrapposti, luci forti, tessuti o specifiche consistenze alimentari')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Quadrante 2: Evitamento Sensoriale -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-amber-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-600">2. Soglia Bassa • Strategia Attiva</span>
+                                <i class="fa-solid fa-shield-halved text-amber-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Evitamento Sensoriale</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                È la strategia attiva con cui il sistema nervoso <strong>si protegge dal sovraccarico</strong>: bisogno di rientrare presto a casa, indossare cuffie, abbassare le luci, scegliere cibi prevedibili (<em>safe foods</em>) o sottrarsi a contesti caotici.
+                            </p>
+                            <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-100 text-xs text-amber-900 mb-4">
+                                <strong>Rilettura non giudicante:</strong> Spesso l'evitamento viene frainteso come "chiusura" o "scarsa socievolezza". In realtà è una <strong>misura fisiologica di igiene neuro-sensoriale</strong> per prevenire lo shutdown o il burnout.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Evitamento sensoriale (AASP): bisogno fisiologico di ritirarmi in ambienti silenziosi e prevedibili per prevenire il sovraccarico')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Quadrante 3: Bassa Registrazione e Interocezione -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-indigo-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">3. Soglia Alta • Interocezione</span>
+                                <i class="fa-solid fa-heart-circle-exclamation text-indigo-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Bassa Registrazione & Interocezione</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Accanto all'ipersensibilità verso l'esterno, può esserci una <strong>bassa registrazione</strong> per altri stimoli (es. non sentire che qualcuno chiama mentre si è in iperfocalizzazione) o una fatica nell'<strong>Interocezione</strong> (decodificare i segnali interni del corpo).
+                            </p>
+                            <div class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-900 mb-4">
+                                <strong>Cosa comporta:</strong> Non accorgersi di avere sete, fame, bisogno di una pausa o di aver superato la soglia di stanchezza finché l'energia non "crolla" di colpo o la risposta emotiva diventa acuta.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Bassa registrazione / Interocezione: fatica ad accorgermi in tempo di fame, sete, tensione o stanchezza finché non arrivo al limite')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Quadrante 4: Ricerca Sensoriale e Stimming -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-teal-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-teal-600">4. Auto-Regolazione • Stimming</span>
+                                <i class="fa-solid fa-compact-disc text-teal-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Ricerca Sensoriale & Stimming</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Quando il sistema nervoso è scarico di dopamina (lato ADHD) o in tensione (lato Autistico), cerca stimoli sensoriali ripetitivi e scelti autonomamente per auto-regolarsi: riascoltare la stessa traccia musicale in loop, muoversi ritmicamente, cercare pressioni profonde o tessuti morbidi.
+                            </p>
+                            <div class="bg-teal-50/70 p-3 rounded-xl border border-teal-100 text-xs text-teal-900 mb-4">
+                                <strong>Il ruolo degli Special Interests:</strong> Immergersi nei propri interessi assorbenti agisce come una "camera di decompressione" che restituisce ordine cognitivo e recupero energetico.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Ricerca sensoriale e auto-regolazione tramite ripetizione (musica in loop, stimming, immersione negli interessi speciali)')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- APPROFONDIMENTO CLINICO: ROUTINE CHE CALMA & "SPINNING" CON OCCHI CHIUSI -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 bg-gradient-to-br from-slate-50 to-indigo-50/40">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-moon text-indigo-600"></i> Due Fenomeni Chiave: La Routine che Calma e lo "Spinning" Serale
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Perché la routine dà calma -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">Prevedibilità e Sicurezza Neurobiologica</div>
+                                <h4 class="font-bold text-slate-800 text-base mb-2">La Routine come Risparmio Energetico</h4>
+                                <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                    Per un sistema nervoso che registra ogni micro-variazione ambientale, ogni novità richiede elaborazione attiva. <strong>Le routine e la familiarità abbassano la reattività dell'amigdala</strong>: sapere cosa accadrà e in quale sequenza consente al cervello di sospendere la scansione dell'ambiente, restituendo un senso profondo di calma.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'La routine e la prevedibilità mi danno profonda calma perché riducono il carico decisionale e sensoriale')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- Lo Spinning ad occhi chiusi -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-1">Iper-Arousal Serale</div>
+                                <h4 class="font-bold text-slate-800 text-base mb-2">L'Inerzia Neuro-Sensoriale Notturna ("Spinning")</h4>
+                                <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                    Quando durante la giornata si sommano <strong>sovraccarico sensoriale + Camouflaging + iperattività ideativa</strong> senza pause di decompressione, la sera il sistema nervoso resta in <em>iper-arousal</em>. Chiudendo gli occhi al buio, il cervello continua a scaricare l'eccesso di stimolazione sotto forma di vortice visivo o mentale (<em>spinning</em>).
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Spinning visivo o mentale a occhi chiusi la sera dopo giornate di alto carico sensoriale, sociale o emotivo')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAPPA RAPIDA INTERATTIVA DEI TRIGGER E CALMANTI SENSORIALI (CON BOX "ALTRO") -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <h3 class="text-lg md:text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-purple-600"></i> Mappatura Veloce: Cosa ti Sovraccarica vs Cosa ti Regola?
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        Tocca le etichette in cui ti riconosci oppure scrivi liberamente nei campi <strong>"Altro"</strong> (tutto verrà riportato nel riepilogo della Scheda 4 e nel PDF completo):
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Colonna 1: Trigger di Sovraccarico -->
+                        <div class="p-4 rounded-xl bg-purple-50/50 border border-purple-200 flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="font-bold text-purple-950 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation text-purple-600"></i> Principali Trigger di Sovraccarico
+                                </div>
+                                <div id="triggerTagsContainer" class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700 transition-all">Luci forti / Neon</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700 transition-all">Voci sovrapposte / Locali affollati</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700 transition-all">Specifiche consistenze del cibo</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700 transition-all">Etichette / Cuciture / Tessuti</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700 transition-all">Cambi di programma improvvisi</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700 transition-all">Socialità prolungata senza pause</button>
+                                </div>
+                            </div>
+
+                            <!-- Box Altro per Trigger di Sovraccarico -->
+                            <div class="pt-3 border-t border-purple-200/70 space-y-2">
+                                <label for="customTriggerText" class="block text-xs font-bold text-purple-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pen-to-square text-purple-600"></i> Altro (indica cos'altro ti sovraccarica):
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="customTriggerInputTag" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCustomSensoryTag('trigger');}" placeholder="Aggiungi un'etichetta rapida..." class="no-print flex-1 rounded-lg border border-purple-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none">
+                                    <button type="button" onclick="addCustomSensoryTag('trigger')" class="no-print px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shrink-0 transition-all">
+                                        + Aggiungi
+                                    </button>
+                                </div>
+                                <textarea id="customTriggerText" oninput="updateResonanceUI()" rows="2" placeholder="Oppure descrivi liberamente qui altri stimoli, odori, suoni o contesti specifici..." class="w-full rounded-lg border border-purple-200 bg-white p-2.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none transition-all"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Colonna 2: Ancore di Decompressione -->
+                        <div class="p-4 rounded-xl bg-teal-50/50 border border-teal-200 flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="font-bold text-teal-950 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-spa text-teal-600"></i> Ancore di Decompressione e Calma
+                                </div>
+                                <div id="anchorTagsContainer" class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700 transition-all">Silenzio / Cuffie antirumore</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700 transition-all">Luci soffuse / Penombra</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700 transition-all">Seguire la mia routine serale</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700 transition-all">Immergermi nei miei interessi speciali</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700 transition-all">Cibi familiari / Comfort food</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700 transition-all">Tempo in solitudine senza richieste</button>
+                                </div>
+                            </div>
+
+                            <!-- Box Altro per Ancore di Decompressione -->
+                            <div class="pt-3 border-t border-teal-200/70 space-y-2">
+                                <label for="customAnchorText" class="block text-xs font-bold text-teal-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pen-to-square text-teal-600"></i> Altro (indica cos'altro ti calma o regola):
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="customAnchorInputTag" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCustomSensoryTag('anchor');}" placeholder="Aggiungi un'ancora rapida..." class="no-print flex-1 rounded-lg border border-teal-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-teal-500 focus:outline-none">
+                                    <button type="button" onclick="addCustomSensoryTag('anchor')" class="no-print px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shrink-0 transition-all">
+                                        + Aggiungi
+                                    </button>
+                                </div>
+                                <textarea id="customAnchorText" oninput="updateResonanceUI()" rows="2" placeholder="Oppure descrivi liberamente qui altre attività, rituali, oggetti o ambienti che ti ricaricano..." class="w-full rounded-lg border border-teal-200 bg-white p-2.5 text-xs text-slate-800 focus:border-teal-500 focus:outline-none transition-all"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna a Profilo e Camouflaging
+                    </button>
+                    <button onclick="switchTab('tab4', document.querySelectorAll('.tab-btn')[3])" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Vai alla Sintesi e Mini-Quiz <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 4: SINTESI PERSONALIZZATA, MINI-QUIZ ED ESPORTAZIONE PDF COMPLETA
+                 ========================================================================= -->
+            <div id="tab4" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Box Riepilogo Dinamico degli Spunti Risonanti -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl border-t-4 border-t-amber-500">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-bookmark text-amber-500"></i> Lo Specchio del Modulo 2A
+                            </h3>
+                            <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                                Gli aspetti del Profilo Internalizzante, del Camouflaging (CAT-Q) e del Profilo Sensoriale selezionati durante l'incontro:
+                            </p>
+                        </div>
+                        <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                            <i class="fa-solid fa-file-pdf"></i> Esporta Tutta la Scheda in PDF
+                        </button>
+                    </div>
+
+                    <div id="resonanceSummaryList" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-600">
+                        <em>Non sono ancora stati selezionati spunti con il pulsante "Mi ci rivedo" o nella Mappatura Sensoriale.</em>
+                    </div>
+                </div>
+
+                <!-- Mini-Quiz di Consolidamento Modulo 2A (4 Domande) -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Mini-Quiz di Consolidamento (Modulo 2A)</h2>
+                    <p class="text-slate-600 text-sm md:text-base mb-6 pb-4 border-b border-slate-200">
+                        Fissiamo i concetti chiave sul profilo autistico internalizzante, sul costo del Camouflaging e sulla sensorialità.
+                    </p>
+                    
+                    <form id="quizForm" class="space-y-6">
+                        <!-- Q1 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q1-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">1. Come mai una persona con profilo autistico internalizzante (Livello 1) può apparire molto competente nelle relazioni sociali, pur uscendone esausta?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="A" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">A) Perché non ha alcuna sensibilità relazionale e recita per puro passatempo.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="B" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">B) Perché utilizza il ragionamento logico-analitico e l'empatia per decodificare consapevolmente le regole sociali (Camouflaging/CAT-Q), spendendo però un'enorme quantità di batteria mentale.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="C" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">C) Perché l'esaurimento dipende solo da scarso allenamento fisico.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q2 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q2-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">2. Qual è il rischio principale del protrarre a lungo il "Camouflaging" e il "People Pleasing" (mettersi sempre in secondo piano)?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="A" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">A) Nessuno, più ci si adatta alle aspettative altrui più il sistema nervoso si riposa.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="B" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">B) Sentire di smarrire il contatto con la propria identità e i propri veri bisogni, andando incontro a esaurimento energetico (Burnout) e necessità di isolamento compensatorio.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="C" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">C) Diventare eccessivamente rigidi con gli altri.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q3 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q3-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">3. Cosa significa avere un profilo sensoriale (Modello AASP di Dunn) con alta ipersensibilità e alto evitamento sensoriale?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="A" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">A) Esagerare volontariamente le proprie reazioni per capriccio.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="B" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">B) Avere una soglia neurologica bassa che registra intensamente luci, suoni o consistenze, rendendo necessario proteggersi dal sovraccarico (Sensory Overload) attraverso ambienti calmi e prevedibili.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="C" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">C) Avere un difetto agli organi di senso periferici (occhi o orecchie).</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q4 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q4-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">4. Perché mantenere delle routine e dedicarsi ad ambienti o attività familiari dona così tanta calma a questo tipo di sistema nervoso?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="A" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">A) Perché la prevedibilità riduce gli stimoli imprevisti da elaborare, facendo risparmiare energia preziosa al cervello e abbassando il livello di allerta dell'amigdala.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="B" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">B) Perché manca qualsiasi forma di curiosità intellettuale.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="C" class="mt-1 w-4 h-4 text-teal-600">
+                                    <span class="text-sm text-slate-700">C) Perché le routine servono solo a svolgere più compiti contemporaneamente.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 text-center no-print">
+                            <button type="button" onclick="checkQuiz()" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-teal-200">
+                                Verifica le Risposte <i class="fa-solid fa-check ml-2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Risultati Quiz -->
+                    <div id="quizResults" class="hidden mt-6 p-6 rounded-xl border transition-all"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Stato globale per gli spunti selezionati
+        const selectedResonances = new Set();
+        let currentBattery = 90;
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+        };
+
+        // Cambio Tab principale
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-teal-50', 'text-teal-800', 'font-semibold', 'border-teal-200');
+                btn.classList.add('text-slate-600', 'border-transparent');
+                const iconBox = btn.querySelector('span');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-teal-100', 'text-teal-700');
+                    iconBox.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            if (btnElement) {
+                btnElement.classList.remove('text-slate-600', 'border-transparent');
+                btnElement.classList.add('bg-teal-50', 'text-teal-800', 'font-semibold', 'border-teal-200');
+                const activeIconBox = btnElement.querySelector('span');
+                if (activeIconBox) {
+                    activeIconBox.classList.remove('bg-slate-100', 'text-slate-600');
+                    activeIconBox.classList.add('bg-teal-100', 'text-teal-700');
+                }
+            }
+
+            const mainArea = document.getElementById('mainScrollArea');
+            if (mainArea) mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Toggle chip apertura Tab 1
+        function toggleCheckinChip(btn) {
+            btn.classList.toggle('ring-2');
+            btn.classList.toggle('ring-teal-600');
+            btn.classList.toggle('bg-teal-50');
+            btn.classList.toggle('font-semibold');
+        }
+
+        // Toggle tag sensoriali Tab 3
+        function toggleSensoryTag(btn) {
+            btn.classList.toggle('active-tag');
+            updateResonanceUI();
+        }
+
+        // Aggiunge un tag personalizzato in "Trigger" o "Ancore" e lo seleziona subito
+        function addCustomSensoryTag(type) {
+            const inputId = type === 'trigger' ? 'customTriggerInputTag' : 'customAnchorInputTag';
+            const containerId = type === 'trigger' ? 'triggerTagsContainer' : 'anchorTagsContainer';
+            const itemClass = type === 'trigger' ? 'trigger-item border-purple-200' : 'anchor-item border-teal-200';
+
+            const inputEl = document.getElementById(inputId);
+            const value = inputEl.value.trim();
+            if (!value) return;
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `sensory-tag ${itemClass} active-tag px-3 py-1.5 rounded-lg border bg-white text-xs text-slate-700 transition-all`;
+            btn.textContent = value;
+            btn.onclick = function() { toggleSensoryTag(this); };
+
+            document.getElementById(containerId).appendChild(btn);
+            inputEl.value = '';
+            updateResonanceUI();
+        }
+
+        // Gestione "Mi ci rivedo"
+        function toggleResonance(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedResonances.has(textLabel)) {
+                selectedResonances.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) {
+                    icon.classList.remove('fa-solid', 'fa-check');
+                    icon.classList.add('fa-regular', 'fa-bookmark');
+                }
+            } else {
+                selectedResonances.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) {
+                    icon.classList.remove('fa-regular', 'fa-bookmark');
+                    icon.classList.add('fa-solid', 'fa-check');
+                }
+            }
+            updateResonanceUI();
+        }
+
+        function updateResonanceUI() {
+            document.getElementById('resonanceCount').textContent = selectedResonances.size;
+            const summaryContainer = document.getElementById('resonanceSummaryList');
+            
+            const selectedTriggers = Array.from(document.querySelectorAll('.trigger-item.active-tag')).map(el => el.textContent.trim());
+            const selectedAnchors = Array.from(document.querySelectorAll('.anchor-item.active-tag')).map(el => el.textContent.trim());
+            const customTriggerNote = (document.getElementById('customTriggerText')?.value || '').trim();
+            const customAnchorNote = (document.getElementById('customAnchorText')?.value || '').trim();
+
+            const hasSensoryData = selectedTriggers.length > 0 || selectedAnchors.length > 0 || customTriggerNote !== '' || customAnchorNote !== '';
+
+            if (selectedResonances.size === 0 && !hasSensoryData) {
+                summaryContainer.innerHTML = '<em>Non sono ancora stati selezionati spunti con il pulsante "Mi ci rivedo" o nella Mappatura Sensoriale.</em>';
+                return;
+            }
+
+            let html = '<div class="space-y-4">';
+
+            if (selectedResonances.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedResonances.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-lg border border-teal-200 shadow-sm">
+                            <i class="fa-solid fa-circle-check text-teal-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (hasSensoryData) {
+                html += `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                        <div class="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-purple-900 mb-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-purple-600 mr-1"></i> Trigger di Sovraccarico Indicati
+                            </div>
+                            <p class="text-xs text-slate-700">${selectedTriggers.length ? selectedTriggers.join(' • ') : '<em>Nessun tag predefinito</em>'}</p>
+                            ${customTriggerNote ? `<p class="text-xs text-purple-950 bg-white p-2 rounded border border-purple-100 mt-2"><strong>Altro (specificato):</strong> ${customTriggerNote}</p>` : ''}
+                        </div>
+                        <div class="bg-teal-50/70 p-3.5 rounded-xl border border-teal-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-teal-900 mb-1.5">
+                                <i class="fa-solid fa-spa text-teal-600 mr-1"></i> Ancore di Decompressione Indicate
+                            </div>
+                            <p class="text-xs text-slate-700">${selectedAnchors.length ? selectedAnchors.join(' • ') : '<em>Nessun tag predefinito</em>'}</p>
+                            ${customAnchorNote ? `<p class="text-xs text-teal-950 bg-white p-2 rounded border border-teal-100 mt-2"><strong>Altro (specificato):</strong> ${customAnchorNote}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            summaryContainer.innerHTML = html;
+        }
+
+        // Simulatore Batteria del Camouflaging
+        function drainBattery(amount, message) {
+            currentBattery = Math.max(5, currentBattery - amount);
+            renderBatteryState(message);
+        }
+
+        function rechargeBattery() {
+            currentBattery = 85;
+            renderBatteryState('Togliendo la maschera in uno spazio sicuro, silenzioso e prevedibile, il sistema nervoso spegne l\'allerta e recupera energia autentica!');
+        }
+
+        function renderBatteryState(message) {
+            const bar = document.getElementById('maskingBatteryBar');
+            const badge = document.getElementById('maskingBatteryBadge');
+            const explanation = document.getElementById('maskingExplanation');
+
+            bar.style.width = currentBattery + '%';
+            explanation.textContent = message;
+
+            bar.classList.remove('bg-emerald-500', 'bg-amber-500', 'bg-rose-500');
+            badge.className = 'px-3 py-1 rounded-full text-xs font-bold border ';
+
+            if (currentBattery >= 60) {
+                bar.classList.add('bg-emerald-500');
+                badge.classList.add('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500/30');
+                badge.textContent = `Energia Autentica: ${currentBattery}%`;
+            } else if (currentBattery >= 30) {
+                bar.classList.add('bg-amber-500');
+                badge.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/30');
+                badge.textContent = `Affaticamento da Camouflaging: ${currentBattery}%`;
+            } else {
+                bar.classList.add('bg-rose-500');
+                badge.classList.add('bg-rose-500/20', 'text-rose-300', 'border-rose-500/30');
+                badge.textContent = `ESAURIMENTO / Rischio Shutdown (${currentBattery}%): Bisogno di Decompressione`;
+            }
+        }
+
+        // Logica Verifica Mini-Quiz
+        function checkQuiz() {
+            const answers = {
+                q1: 'B',
+                q2: 'B',
+                q3: 'B',
+                q4: 'A'
+            };
+            
+            let score = 0;
+            const form = document.getElementById('quizForm');
+            const resultsDiv = document.getElementById('quizResults');
+            
+            document.querySelectorAll('.quiz-question').forEach(q => {
+                q.classList.remove('border-l-4', 'border-l-emerald-500', 'border-l-rose-500', 'bg-emerald-50/40', 'bg-rose-50/40');
+            });
+
+            for (let [question, correctAnswer] of Object.entries(answers)) {
+                const selected = form.querySelector(`input[name="${question}"]:checked`);
+                const container = document.getElementById(`${question}-container`);
+                
+                if (selected && selected.value === correctAnswer) {
+                    score++;
+                    container.classList.add('border-l-4', 'border-l-emerald-500', 'bg-emerald-50/40');
+                } else {
+                    container.classList.add('border-l-4', 'border-l-rose-500', 'bg-rose-50/40');
+                }
+            }
+
+            resultsDiv.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-amber-50', 'border-amber-200');
+            
+            if (score === 4) {
+                resultsDiv.classList.add('bg-emerald-50', 'border-emerald-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-emerald-600"></i> Ottimo lavoro! (${score}/4 risposte corrette)
+                    </h4>
+                    <p class="text-emerald-800 text-sm md:text-base leading-relaxed">
+                        I pilastri del Modulo 2A sono chiari: il Camouflaging, la sensibilità sensoriale e il bisogno di routine non sono difetti o debolezze, ma il modo in cui il sistema nervoso gestisce un mondo ad alta intensità di stimoli.
+                    </p>
+                `;
+            } else {
+                resultsDiv.classList.add('bg-amber-50', 'border-amber-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600"></i> Rivediamo insieme i punti chiave (${score}/4 corrette)
+                    </h4>
+                    <ul class="list-disc pl-5 text-xs md:text-sm text-slate-700 space-y-1.5 bg-white p-4 rounded-xl border border-amber-200">
+                        <li><strong>Domanda 1 (B):</strong> La competenza sociale nel profilo internalizzante poggia spesso su un intenso calcolo logico consapevole che consuma molta batteria mentale.</li>
+                        <li><strong>Domanda 2 (B):</strong> Mettersi sempre in secondo piano (People Pleasing) e fare Camouflaging prolungato porta a smarrire il contatto con i propri bisogni e alla necessità di isolamento per recuperare.</li>
+                        <li><strong>Domanda 3 (B):</strong> Il sovraccarico sensoriale nasce da una soglia neurologica bassa agli stimoli (luci, suoni, consistenze).</li>
+                        <li><strong>Domanda 4 (A):</strong> La routine e la familiarità calmano il sistema nervoso perché riducono gli imprevisti da elaborare.</li>
+                    </ul>
+                `;
+            }
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // =========================================================================
+        // FUNZIONE DI ESPORTAZIONE PDF CON TUTTE LE SEZIONI APERTE E STATICHE
+        // =========================================================================
+        function exportFullStaticPDF() {
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_2A_Fenotipo_Internalizzante_Camouflaging_Sensorialita.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 2A generato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+    </script>
+</body>
+</html>

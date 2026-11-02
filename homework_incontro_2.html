@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 2A - Monitoraggio del Camouflaging e del Profilo Sensoriale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .step-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-mask {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+        .selectable-chip.active-cost {
+            background-color: #ffe4e6;
+            border-color: #f43f5e;
+            color: #9f1239;
+            font-weight: 600;
+        }
+        .selectable-chip.active-sensory {
+            background-color: #f3e8ff;
+            border-color: #9333ea;
+            color: #581c87;
+            font-weight: 600;
+        }
+        .selectable-chip.active-calm {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le sezioni e bussola aperte e statiche)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .step-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            /* Forza l'apertura della Bussola di Ripasso e di tutti e 4 gli Step */
+            #quickRecapDrawer,
+            .step-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica (nessun alert browser) -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-teal-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Sensory-Friendly -->
+    <header class="bg-gradient-to-r from-teal-800 via-teal-700 to-indigo-800 text-white px-4 py-5 shadow-md no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm">
+                    <i class="fa-solid fa-masks-theater text-teal-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-teal-100 font-bold">Homework • Modulo 2A</span>
+                        <span class="text-[11px] text-teal-200 hidden sm:inline">• Osservazione Ecologica</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold mt-0.5">Monitoraggio del Camouflaging e del Profilo Sensoriale</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Indicatore Salvataggio + Esportazione PDF Completa -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-teal-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il PDF con tutte le sezioni dell'homework aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-teal-700 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-teal-700">Programma Clinico Modulare di Psicoeducazione • Modulo 2A</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 2A: Monitoraggio del Camouflaging e del Profilo Sensoriale</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Osservazione ecologica basata sul modello CAT-Q (Hull et al., 2019; Cook et al., 2021) e sul Profilo Sensoriale AASP (Dunn, 2001).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Anti-Perfezionismo -->
+        <div class="bg-teal-50/90 border border-teal-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-feather-pointed"></i>
+            </span>
+            <div class="text-xs md:text-sm text-teal-950 leading-relaxed flex-1">
+                <strong class="font-bold">Un'osservazione leggera, senza diari giornalieri rigidi:</strong> 
+                Non occorre compilare questa scheda ogni giorno. È sufficiente osservare <strong>un episodio significativo di Camouflaging sociale</strong> e <strong>un momento di carico o regolazione sensoriale</strong> avvenuti durante la settimana, selezionando le etichette corrispondenti.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Ripasso 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 2A -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-teal-600 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-teal-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-teal-600"></i> Bussola Rapida del Modulo 2A (Camouflaging, Sensorialità e Prevedibilità)
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Social Camouflaging (CAT-Q)</div>
+                    <p class="text-slate-600 text-xs">Include <strong>Compensazione</strong> (preparare script), <strong>Masking</strong> (monitorare espressioni e tono) e <strong>Assimilazione</strong> (adattarsi agli altri ignorando i propri limiti energetici).</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Profilo Sensoriale (AASP)</div>
+                    <p class="text-slate-600 text-xs">Una bassa soglia neurologica amplifica luci, suoni o consistenze. L'<strong>evitamento sensoriale</strong> è una strategia fisiologica per prevenire il sovraccarico.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Decompressione e Routine</div>
+                    <p class="text-slate-600 text-xs">Il sovraccarico cumulativo può causare <em>iper-arousal</em> serale o <em>shutdown</em>; la prevedibilità e le routine riducono l'allerta del sistema nervoso.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigazione a 4 Step -->
+        <nav class="grid grid-cols-2 sm:grid-cols-4 gap-2 no-print">
+            <button onclick="goToStep(1)" id="nav-step-1" class="step-nav-btn bg-teal-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                <i class="fa-solid fa-mask"></i> 1. Camouflaging
+            </button>
+            <button onclick="goToStep(2)" id="nav-step-2" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-wave-square"></i> 2. Sensorialità
+            </button>
+            <button onclick="goToStep(3)" id="nav-step-3" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-battery-half"></i> 3. Bilancio Energia
+            </button>
+            <button onclick="goToStep(4)" id="nav-step-4" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-file-pdf"></i> 4. Riepilogo e PDF
+            </button>
+        </nav>
+
+
+        <!-- =========================================================================
+             STEP 1: MONITORAGGIO DEL SOCIAL CAMOUFLAGING (MODELLO CAT-Q)
+             ========================================================================= -->
+        <section id="step-1" class="step-section active space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Parte 1 • Modello CAT-Q (Hull et al., 2019)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Osservazione del Social Camouflaging</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Ripensa a un'interazione o situazione sociale della settimana in cui hai notato l'attivazione di strategie di compensazione, mascheramento o iper-adattamento alle aspettative altrui.
+                    </p>
+                </div>
+
+                <!-- 1A. Strategie di Camouflaging attivate -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. Quali meccanismi di Camouflaging hai riconosciuto? <span class="text-xs font-normal text-slate-500">(Tocca uno o più elementi)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3" id="masking-behavior-chips">
+                        <button type="button" onclick="toggleChip(this, 'maskingBehaviors', 'active-mask')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Compensazione: preparare mentalmente i discorsi prima dell'incontro</button>
+                        <button type="button" onclick="toggleChip(this, 'maskingBehaviors', 'active-mask')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Compensazione: rianalizzare a lungo la conversazione dopo che si è conclusa</button>
+                        <button type="button" onclick="toggleChip(this, 'maskingBehaviors', 'active-mask')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Masking: monitorare consapevolmente espressione, tono di voce o contatto visivo</button>
+                        <button type="button" onclick="toggleChip(this, 'maskingBehaviors', 'active-mask')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Masking: nascondere segnali di stanchezza o disagio sensoriale</button>
+                        <button type="button" onclick="toggleChip(this, 'maskingBehaviors', 'active-mask')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Assimilazione: dire "sì" o assecondare richieste ignorando i propri limiti energetici</button>
+                        <button type="button" onclick="toggleChip(this, 'maskingBehaviors', 'active-mask')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Assimilazione: forzare la partecipazione sociale per timore di deludere</button>
+                    </div>
+                    <textarea id="maskingOtherText" oninput="saveData()" rows="2" placeholder="Altro / Se lo desideri, annota brevemente il contesto in cui si è verificato (opzionale)..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-800 focus:bg-white focus:border-teal-600 focus:outline-none transition-all"></textarea>
+                </div>
+
+                <!-- 1B. Costo Energetico vs Bisogno Autentico -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Il Costo Pagato -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200/70 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-rose-900 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-battery-quarter text-rose-500"></i> Costo Energetico Post-Interazione
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Quale effetto hai percepito subito dopo o a fine giornata?</p>
+                            <div class="flex flex-wrap gap-1.5" id="masking-cost-chips">
+                                <button type="button" onclick="toggleChip(this, 'maskingCosts', 'active-cost')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Esaurimento cognitivo e fisico</button>
+                                <button type="button" onclick="toggleChip(this, 'maskingCosts', 'active-cost')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Sensazione di disconnessione dai propri bisogni</button>
+                                <button type="button" onclick="toggleChip(this, 'maskingCosts', 'active-cost')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Bisogno immediato di ritiro solitario</button>
+                                <button type="button" onclick="toggleChip(this, 'maskingCosts', 'active-cost')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Tensione muscolare o irritabilità da stanchezza</button>
+                                <button type="button" onclick="toggleChip(this, 'maskingCosts', 'active-cost')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Difficoltà a spegnere il flusso dei pensieri (Replay)</button>
+                            </div>
+                        </div>
+                        <input type="text" id="maskingCostOtherText" oninput="saveData()" placeholder="Altro costo percepito (specifica)..." class="w-full rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-rose-500 focus:outline-none">
+                    </div>
+
+                    <!-- Il Bisogno Autentico -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/70 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-heart-circle-check text-emerald-600"></i> Bisogno Autentico Sacrificato
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Quale sarebbe stato il tuo bisogno reale senza il peso delle aspettative?</p>
+                            <div class="flex flex-wrap gap-1.5" id="masking-need-chips">
+                                <button type="button" onclick="toggleChip(this, 'maskingTrueNeeds', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Ridurre la durata della permanenza / rientrare prima</button>
+                                <button type="button" onclick="toggleChip(this, 'maskingTrueNeeds', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Rimandare l'impegno per recuperare energie</button>
+                                <button type="button" onclick="toggleChip(this, 'maskingTrueNeeds', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Poter fare pause di silenzio senza dover conversare</button>
+                                <button type="button" onclick="toggleChip(this, 'maskingTrueNeeds', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Mantenere i propri tempi e la propria routine</button>
+                            </div>
+                        </div>
+                        <input type="text" id="maskingNeedOtherText" oninput="saveData()" placeholder="Altro bisogno autentico (specifica)..." class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToStep(2)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa al Profilo Sensoriale <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 2: PROFILO SENSORIALE (AASP), PREVEDIBILITÀ E SOVRACCARICO CUMULATIVO
+             ========================================================================= -->
+        <section id="step-2" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Parte 2 • Modello AASP (Dunn, 2001) e Sovraccarico Cumulativo</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Fattori di Sovraccarico Sensoriale e Ancore di Regolazione</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Individua quali stimoli ambientali o imprevisti hanno affaticato maggiormente il tuo sistema nervoso in settimana e quali strategie hanno favorito la decompressione.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Colonna 1: Trigger di Sovraccarico della settimana -->
+                    <div class="p-4 rounded-2xl bg-purple-50/50 border border-purple-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-purple-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-purple-600"></i> 1. Fattori di Sovraccarico (Sensory Overload)
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Tocca gli stimoli che hanno generato maggiore affaticamento:</p>
+                            <div class="flex flex-wrap gap-1.5" id="sensory-trigger-chips">
+                                <button type="button" onclick="toggleChip(this, 'sensoryTriggers', 'active-sensory')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700">Voci sovrapposte / Rumore di fondo</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryTriggers', 'active-sensory')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700">Luci artificiali intense / Esposizione prolungata a schermi</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryTriggers', 'active-sensory')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700">Variazioni impreviste di programma o di orario</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryTriggers', 'active-sensory')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700">Specifiche consistenze alimentari / Tessuti fastidiosi</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryTriggers', 'active-sensory')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700">Impegni sociali ravvicinati senza pause intermedie</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryTriggers', 'active-sensory')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-700">Ridotta percezione interocettiva della stanchezza fino al limite</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-purple-200/60">
+                            <label class="block text-xs font-bold text-purple-950 mb-1">Altro (indica ulteriori fattori di sovraccarico):</label>
+                            <textarea id="sensoryTriggerOtherText" oninput="saveData()" rows="2" placeholder="Annota qui altri stimoli uditivi, visivi, olfattivi o contestuali..." class="w-full rounded-lg border border-purple-200 bg-white p-2 text-xs text-slate-800 focus:border-purple-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Colonna 2: Ancore di Calma e Routine -->
+                    <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-teal-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-spa text-teal-600"></i> 2. Ancore di Regolazione e Decompressione
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Tocca gli elementi che hanno favorito il recupero del sistema nervoso:</p>
+                            <div class="flex flex-wrap gap-1.5" id="sensory-anchor-chips">
+                                <button type="button" onclick="toggleChip(this, 'sensoryAnchors', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Mantenere routine prevedibili e strutturate</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryAnchors', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Schermatura sensoriale (silenzio, cuffie, luci soffuse)</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryAnchors', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Immersione monotropica nei propri interessi assorbenti</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryAnchors', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Alimentazione prevedibile e familiare</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryAnchors', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Tempo in solitudine privo di richieste esterne</button>
+                                <button type="button" onclick="toggleChip(this, 'sensoryAnchors', 'active-calm')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Stimolazione sensoriale ritmica o familiare scelta autonomamente</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-teal-200/60">
+                            <label class="block text-xs font-bold text-teal-950 mb-1">Altro (indica ulteriori strategie di regolazione):</label>
+                            <textarea id="sensoryAnchorOtherText" oninput="saveData()" rows="2" placeholder="Annota qui altre attività, rituali o ambienti che hanno favorito la calma..." class="w-full rounded-lg border border-teal-200 bg-white p-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Risposta al Sovraccarico Cumulativo a Fine Giornata -->
+                <div class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-200 space-y-3">
+                    <label class="block text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <i class="fa-solid fa-moon text-indigo-600"></i> 3. Effetti del Carico Cumulativo a Fine Giornata (Iper-Arousal vs Shutdown)
+                    </label>
+                    <p class="text-xs text-slate-600">Come ha risposto il tuo sistema nervoso la sera dopo le giornate più dense di stimoli?</p>
+                    <div class="flex flex-wrap gap-2" id="spinning-night-chips">
+                        <button type="button" onclick="toggleChip(this, 'spinningNightStatus', 'active-sensory')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Disattivazione serale regolare e buon recupero</button>
+                        <button type="button" onclick="toggleChip(this, 'spinningNightStatus', 'active-sensory')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Iper-arousal serale: sistema nervoso ancora iper-attivo al momento di dormire</button>
+                        <button type="button" onclick="toggleChip(this, 'spinningNightStatus', 'active-sensory')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Shutdown protettivo: spegnimento energetico e bisogno di silenzio/buio</button>
+                        <button type="button" onclick="toggleChip(this, 'spinningNightStatus', 'active-sensory')" class="selectable-chip px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Maggiore affaticamento nelle sere in cui la routine di decompressione è saltata</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(3)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Bilancio Energia <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 3: BILANCIO ENERGETICO SETTIMANALE (30 SECONDI)
+             ========================================================================= -->
+        <section id="step-3" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Parte 3 • Termometro Energetico (30 secondi)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Bilancio tra Sforzo di Camouflaging ed Energia Residua</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Utilizza i due cursori per indicare il livello medio di Camouflaging sociale e la riserva energetica a fine giornata in questa settimana:
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Slider 1: Sforzo di Camouflaging -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-masks-theater text-rose-500"></i> 1. Sforzo Medio di Social Camouflaging (CAT-Q)
+                            </label>
+                            <span id="maskingEffortLabel" class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="maskingEffortSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-rose-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Spontaneità e assenza di mascheramento)</span>
+                            <span>10 (Auto-monitoraggio e adattamento costanti)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Energia Residua a fine giornata -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-battery-three-quarters text-teal-600"></i> 2. Riserva Energetica Media a Fine Giornata
+                            </label>
+                            <span id="energyLeftLabel" class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">4 / 10</span>
+                        </div>
+                        <input type="range" id="energyLeftSlider" min="0" max="10" value="4" oninput="updateSliders()" class="w-full accent-teal-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>0 (Esaurimento completo / Shutdown)</span>
+                            <span>10 (Riserva energetica integra e regolata)</span>
+                        </div>
+                    </div>
+
+                    <!-- Domanda flash di progettazione ecologica -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                            Quale piccolo accomodamento sensoriale, pausa di decompressione o confine relazionale vorresti sperimentare nei prossimi giorni?
+                        </label>
+                        <input type="text" id="boundaryIntention" oninput="saveData()" placeholder="Es. Programmare 30 minuti di decompressione silenziosa al rientro a casa o declinare un impegno in caso di batteria scarica..." class="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(4)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera il Riepilogo e PDF <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 4: RIEPILOGO ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="step-4" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-500">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Step Finale • Condivisione</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Esporta l'Homework del Modulo 2A in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF con tutte le sezioni aperte o solo il prospetto di sintesi.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica solo il box di riepilogo sintetico">
+                            <i class="fa-solid fa-file-lines"></i> PDF Solo Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all" title="Copia come testo">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-teal-700"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-5 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-teal-700 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-teal-700">Percorso Modulare di Psicoeducazione • Modulo 2A</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 2A: Camouflaging e Profilo Sensoriale</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Contenuto dinamico iniettato da renderSummary() -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Modulo 2A • Modello CAT-Q (Hull et al., 2019) & Profilo Sensoriale AASP (Dunn, 2001)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToStep(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_2a_general_v1';
+
+        let appState = {
+            patientName: '',
+            maskingBehaviors: [],
+            maskingOtherText: '',
+            maskingCosts: [],
+            maskingCostOtherText: '',
+            maskingTrueNeeds: [],
+            maskingNeedOtherText: '',
+            sensoryTriggers: [],
+            sensoryTriggerOtherText: '',
+            sensoryAnchors: [],
+            sensoryAnchorOtherText: '',
+            spinningNightStatus: [],
+            maskingEffortLevel: 6,
+            energyLeftLevel: 4,
+            boundaryIntention: ''
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToStep(stepNumber) {
+            document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-step-${i}`);
+                if (i === stepNumber) {
+                    btn.className = 'step-nav-btn bg-teal-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stepNumber === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-mask', 'active-cost', 'active-sensory', 'active-calm');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function updateSliders() {
+            const effortVal = document.getElementById('maskingEffortSlider').value;
+            const energyVal = document.getElementById('energyLeftSlider').value;
+
+            document.getElementById('maskingEffortLabel').textContent = `${effortVal} / 10`;
+            document.getElementById('energyLeftLabel').textContent = `${energyVal} / 10`;
+
+            appState.maskingEffortLevel = effortVal;
+            appState.energyLeftLevel = energyVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.maskingOtherText = document.getElementById('maskingOtherText').value;
+            appState.maskingCostOtherText = document.getElementById('maskingCostOtherText').value;
+            appState.maskingNeedOtherText = document.getElementById('maskingNeedOtherText').value;
+            appState.sensoryTriggerOtherText = document.getElementById('sensoryTriggerOtherText').value;
+            appState.sensoryAnchorOtherText = document.getElementById('sensoryAnchorOtherText').value;
+            appState.boundaryIntention = document.getElementById('boundaryIntention').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {
+                // Ignora blocchi storage in iframe
+            }
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('maskingOtherText').value = appState.maskingOtherText || '';
+            document.getElementById('maskingCostOtherText').value = appState.maskingCostOtherText || '';
+            document.getElementById('maskingNeedOtherText').value = appState.maskingNeedOtherText || '';
+            document.getElementById('sensoryTriggerOtherText').value = appState.sensoryTriggerOtherText || '';
+            document.getElementById('sensoryAnchorOtherText').value = appState.sensoryAnchorOtherText || '';
+            document.getElementById('boundaryIntention').value = appState.boundaryIntention || '';
+
+            document.getElementById('maskingEffortSlider').value = appState.maskingEffortLevel ?? 6;
+            document.getElementById('energyLeftSlider').value = appState.energyLeftLevel ?? 4;
+            document.getElementById('maskingEffortLabel').textContent = `${appState.maskingEffortLevel ?? 6} / 10`;
+            document.getElementById('energyLeftLabel').textContent = `${appState.energyLeftLevel ?? 4} / 10`;
+
+            restoreChipGroup('masking-behavior-chips', appState.maskingBehaviors, 'active-mask');
+            restoreChipGroup('masking-cost-chips', appState.maskingCosts, 'active-cost');
+            restoreChipGroup('masking-need-chips', appState.maskingTrueNeeds, 'active-calm');
+            restoreChipGroup('sensory-trigger-chips', appState.sensoryTriggers, 'active-sensory');
+            restoreChipGroup('sensory-anchor-chips', appState.sensoryAnchors, 'active-calm');
+            restoreChipGroup('spinning-night-chips', appState.spinningNightStatus, 'active-sensory');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const maskBehav = appState.maskingBehaviors.length ? appState.maskingBehaviors.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const maskCosts = appState.maskingCosts.length ? appState.maskingCosts.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const maskNeeds = appState.maskingTrueNeeds.length ? appState.maskingTrueNeeds.join(' • ') : '<em>Nessun tag selezionato</em>';
+
+            const sensTrig = appState.sensoryTriggers.length ? appState.sensoryTriggers.join(' • ') : '<em>Nessun fattore selezionato</em>';
+            const sensAnch = appState.sensoryAnchors.length ? appState.sensoryAnchors.join(' • ') : '<em>Nessuna ancora selezionata</em>';
+            const spinNight = appState.spinningNightStatus.length ? appState.spinningNightStatus.join(' • ') : '<em>Non specificato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">1. Monitoraggio del Social Camouflaging (Modello CAT-Q)</div>
+                    <p><strong>Meccanismi attivati:</strong> ${maskBehav}</p>
+                    ${appState.maskingOtherText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.maskingOtherText)}"</p>` : ''}
+                    <p><strong class="text-rose-700">Costo energetico percepito:</strong> ${maskCosts}</p>
+                    ${appState.maskingCostOtherText ? `<p class="text-rose-950 bg-rose-50 p-2 rounded-lg border border-rose-200 text-xs"><strong>Altro costo:</strong> ${escapeHtml(appState.maskingCostOtherText)}</p>` : ''}
+                    <p><strong class="text-emerald-700">Bisogno autentico sacrificato:</strong> ${maskNeeds}</p>
+                    ${appState.maskingNeedOtherText ? `<p class="text-emerald-950 bg-emerald-50 p-2 rounded-lg border border-emerald-200 text-xs"><strong>Altro bisogno autentico:</strong> ${escapeHtml(appState.maskingNeedOtherText)}</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-purple-800">2. Profilo Sensoriale (AASP), Routine e Carico Cumulativo</div>
+                    <p><strong class="text-purple-700">Fattori di sovraccarico della settimana:</strong> ${sensTrig}</p>
+                    ${appState.sensoryTriggerOtherText ? `<p class="text-purple-950 bg-purple-50 p-2 rounded-lg border border-purple-200 text-xs"><strong>Altro (Sovraccarico):</strong> ${escapeHtml(appState.sensoryTriggerOtherText)}</p>` : ''}
+                    <p><strong class="text-teal-700">Ancore di regolazione e decompressione:</strong> ${sensAnch}</p>
+                    ${appState.sensoryAnchorOtherText ? `<p class="text-teal-950 bg-teal-50 p-2 rounded-lg border border-teal-200 text-xs"><strong>Altro (Regolazione):</strong> ${escapeHtml(appState.sensoryAnchorOtherText)}</p>` : ''}
+                    <p><strong class="text-indigo-700">Risposta a fine giornata (Iper-arousal / Shutdown):</strong> ${spinNight}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">3. Bilancio Energetico Settimanale</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Sforzo Medio di Camouflaging (CAT-Q)</span>
+                                <span class="text-rose-700 font-bold">${appState.maskingEffortLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-rose-500 h-2 rounded-full" style="width: ${appState.maskingEffortLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Riserva Energetica a Fine Giornata</span>
+                                <span class="text-teal-700 font-bold">${appState.energyLeftLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-teal-500 h-2 rounded-full" style="width: ${appState.energyLeftLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    ${appState.boundaryIntention ? `<p class="text-teal-950 bg-teal-50 p-3 rounded-lg border border-teal-200 text-xs"><strong>Accomodamento o confine protettivo per i prossimi giorni:</strong> "${escapeHtml(appState.boundaryIntention)}"</p>` : ''}
+                </div>
+            `;
+        }
+
+        // SCARICA SOLO IL BOX SINTETICO IN PDF
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_2A_Sintesi_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF di sintesi scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        // SCARICA IL PDF COMPLETO CON TUTTE LE SEZIONI E LA BUSSOLA APERTE E STATICHE
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_2A_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 2A: CAMOUFLAGING E PROFILO SENSORIALE ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. MONITORAGGIO DEL SOCIAL CAMOUFLAGING (CAT-Q)",
+                "• Meccanismi attivati: " + (appState.maskingBehaviors.join(', ') || '-'),
+                appState.maskingOtherText ? "• Contesto / Altro: " + appState.maskingOtherText : null,
+                "• Costo energetico percepito: " + (appState.maskingCosts.join(', ') || '-'),
+                appState.maskingCostOtherText ? "• Altro costo: " + appState.maskingCostOtherText : null,
+                "• Bisogno autentico sacrificato: " + (appState.maskingTrueNeeds.join(', ') || '-'),
+                appState.maskingNeedOtherText ? "• Altro bisogno: " + appState.maskingNeedOtherText : null,
+                "",
+                "2. PROFILO SENSORIALE (AASP), ROUTINE E CARICO CUMULATIVO",
+                "• Fattori di sovraccarico: " + (appState.sensoryTriggers.join(', ') || '-'),
+                appState.sensoryTriggerOtherText ? "• Altro (Sovraccarico): " + appState.sensoryTriggerOtherText : null,
+                "• Ancore di regolazione e routine: " + (appState.sensoryAnchors.join(', ') || '-'),
+                appState.sensoryAnchorOtherText ? "• Altro (Regolazione): " + appState.sensoryAnchorOtherText : null,
+                "• Risposta a fine giornata (Iper-arousal / Shutdown): " + (appState.spinningNightStatus.join(', ') || '-'),
+                "",
+                "3. BILANCIO ENERGETICO SETTIMANALE",
+                "• Sforzo medio di Camouflaging: " + appState.maskingEffortLevel + "/10",
+                "• Riserva energetica a fine giornata: " + appState.energyLeftLevel + "/10",
+                appState.boundaryIntention ? "• Accomodamento / confine per i prossimi giorni: " + appState.boundaryIntention : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                maskingBehaviors: [],
+                maskingOtherText: '',
+                maskingCosts: [],
+                maskingCostOtherText: '',
+                maskingTrueNeeds: [],
+                maskingNeedOtherText: '',
+                sensoryTriggers: [],
+                sensoryTriggerOtherText: '',
+                sensoryAnchors: [],
+                sensoryAnchorOtherText: '',
+                spinningNightStatus: [],
+                maskingEffortLevel: 6,
+                energyLeftLevel: 4,
+                boundaryIntention: ''
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-mask', 'active-cost', 'active-sensory', 'active-calm');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToStep(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 2B - Fenotipo Razionalizzante-Strumentale, Masking Stoico e Sensorialità</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+        }
+        .resonance-chip.selected {
+            background-color: #eff6ff;
+            border-color: #2563eb;
+            color: #1e40af;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+        }
+        .sensory-tag.active-tag {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le sezioni aperte e statiche)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #appWrapper {
+            overflow: visible !important;
+            display: block !important;
+        }
+        body.pdf-export-mode #mainScrollArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode .tab-content {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.5rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #appWrapper {
+                display: block !important;
+                overflow: visible !important;
+            }
+            #mainScrollArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .tab-content {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-blue-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Principale -->
+    <header class="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white px-6 py-4 shadow-md z-20 shrink-0 no-print">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/15 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-shield-halved text-xl text-blue-200"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-blue-500/30 border border-blue-400/30 px-2.5 py-0.5 rounded-full text-blue-100">Modulo 2B</span>
+                        <span class="text-[11px] text-blue-200 hidden sm:inline">• Percorso Modulare Neuro-Affermativo</span>
+                    </div>
+                    <h1 class="text-lg md:text-2xl font-bold tracking-tight mt-0.5">Fenotipo Razionalizzante-Strumentale, Masking Stoico e Sensorialità</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Contatore Risonanze + Stampa/PDF Completo -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-slate-950/50 border border-blue-400/30 px-3.5 py-2 rounded-xl text-xs md:text-sm">
+                    <i class="fa-solid fa-bookmark text-amber-300"></i>
+                    <span>Spunti selezionati: <strong id="resonanceCount" class="text-white font-bold">0</strong></span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica un PDF con tutte le schede aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Principale -->
+    <div id="appWrapper" class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl mx-auto w-full">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="md:w-72 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 overflow-x-auto md:overflow-y-auto shrink-0 flex md:flex-col gap-2 no-print">
+            <div class="hidden md:block text-xs font-bold uppercase tracking-wider text-slate-400 px-3 mb-1">Fasi del Modulo 2B</div>
+            
+            <button onclick="switchTab('tab1', this)" class="tab-btn active text-left px-4 py-3.5 rounded-xl w-full transition-all bg-blue-50 text-blue-800 font-semibold border border-blue-200 flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-compass"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">1. Introduzione</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Il profilo razionalizzante</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab2', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">2. Masking Stoico</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Compensazione e ruolo esperto</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab3', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-microchip"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">3. Alessitimia e Sensi</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Interocezione, Monotropismo e AASP</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab4', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-list-check"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">4. Sintesi e Quiz</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Riepilogo spunti e verifica</div>
+                </div>
+            </button>
+
+            <!-- Box guida interattiva nel menu laterale -->
+            <div class="hidden md:block mt-auto pt-4 border-t border-slate-100 space-y-3">
+                <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand-pointer text-blue-700"></i> Lettura Interattiva
+                    </div>
+                    <p class="leading-relaxed">
+                        Durante l'esplorazione, tocca i pulsanti <span class="text-blue-700 font-semibold">"Mi ci rivedo"</span> e i tag sensoriali che senti più vicini al tuo funzionamento.
+                    </p>
+                </div>
+                <div class="bg-blue-50/70 rounded-xl p-3.5 border border-blue-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-blue-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf text-blue-700"></i> Esportazione PDF Statica
+                    </div>
+                    <p class="leading-relaxed">
+                        Cliccando su <strong>"Scarica PDF Completo"</strong> o <strong>"Stampa Tutto"</strong> in alto, tutte le 4 schede si apriranno in un unico documento A4.
+                    </p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main id="mainScrollArea" class="flex-1 p-4 md:p-8 overflow-y-auto relative space-y-6">
+            
+            <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+            <div class="print-only-header hidden border-b-2 border-blue-800 pb-4 mb-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-blue-800">Programma Clinico Modulare di Psicoeducazione</div>
+                        <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 2B: Fenotipo Razionalizzante-Strumentale, Masking Stoico e Sensorialità</h1>
+                        <p class="text-xs text-slate-500 mt-1">Dispensa clinica completa (Rif. Lai et al., 2017 • Livingston et al., 2019 • Hull et al., 2019 • Kinnaird et al., 2019 • Murray et al., 2005 • Dunn, 2001).</p>
+                    </div>
+                    <div class="text-xs text-slate-500 text-right">
+                        <div id="printDateLabel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================================================
+                 TAB 1: INTRODUZIONE AUTONOMA AL MODULO 2B E CHECK-IN INIZIALE
+                 ========================================================================= -->
+            <div id="tab1" class="tab-content active max-w-4xl mx-auto space-y-6">
+                
+                <!-- Card Introduzione Autonoma -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-t-4 border-t-blue-700">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-semibold mb-4">
+                        <i class="fa-solid fa-compass"></i> Fase 1 • Orientamento e Inquadramento Clinico
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Comprendere il Profilo Razionalizzante-Strumentale nello Spettro di Livello 1</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                        Un equivoco diffuso è pensare che chi presenta un profilo orientato alla sistematizzazione logica riceva sempre una diagnosi nell'infanzia o non metta in atto strategie di mascheramento. Al contrario, la letteratura scientifica (<em>Lai et al., 2017; Livingston et al., 2019; Hull et al., 2020</em>) dimostra che nelle persone adulte con buone risorse cognitive le caratteristiche dello Spettro Autistico di Livello 1 vengono spesso mascherate attraverso l'<strong>iper-razionalizzazione</strong>, l'<strong>autosufficienza stoica</strong> e l'investimento totalizzante nel lavoro o in competenze tecniche, ritardando il riconoscimento clinico fino all'età adulta.
+                    </p>
+
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200/80 mb-6">
+                        <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-blue-700"></i> Check-in Iniziale: Quali di questi aspetti risuonano con la tua esperienza?
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mb-3">
+                            Tocca gli elementi che senti più vicini al tuo modo di funzionare:
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-blue-500 transition-all">
+                                Preferire interazioni basate su uno scopo pratico o su argomenti specifici rispetto alle chiacchiere di circostanza
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-blue-500 transition-all">
+                                Tendere a risolvere i problemi emotivi (propri o altrui) analizzandoli con la logica anziché esprimendo il vissuto
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-blue-500 transition-all">
+                                Non accorgersi della stanchezza o della tensione finché non subentra un'irritabilità improvvisa o un blocco totale
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-blue-500 transition-all">
+                                Immergersi per ore in sistemi complessi, lavoro o interessi tecnici per "spegnere" il rumore del mondo esterno
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- I 4 Pilastri del Profilo Razionalizzante-Strumentale -->
+                    <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-cubes text-indigo-600"></i> I 4 Nuclei del Funzionamento Esplorati in questo Modulo
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        La ricerca clinica sull'età adulta individua quattro meccanismi cardine che spiegano sia l'efficacia apparente di questo profilo sia il suo costo energetico nascosto:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="p-4 rounded-xl bg-blue-50/70 border border-blue-200/80">
+                            <div class="font-bold text-blue-950 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved text-blue-700"></i> Masking Stoico
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Occultare il sovraccarico e l'ansia dietro una facciata di impassibilità, controllo razionale e autosufficienza.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200/80">
+                            <div class="font-bold text-indigo-950 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-screwdriver-wrench text-indigo-700"></i> Socialità Strumentale
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Costruire il contatto sociale attorno al "fare", allo scambio di dati o al ruolo di persona esperta/risolutrice.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80">
+                            <div class="font-bold text-amber-950 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-gauge-Simple-high text-amber-600"></i> Soglia Interocettiva
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Bassa registrazione dei segnali corporei ed emotivi (alessitimia), con accumulo silenzioso della tensione.</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80">
+                            <div class="font-bold text-teal-950 text-sm mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-network-wired text-teal-700"></i> Monotropismo Sistemico
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">Allocazione attentiva profonda su sistemi, logiche, tecnologie o attività ad alta intensità regolatoria.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6 no-print">
+                        <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                            Esplora Compensazione e Masking Stoico <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 2: SCHEDA CLINICA 2B.1 - COMPENSAZIONE COGNITIVA, SOCIALITÀ STRUMENTALE E MASKING STOICO
+                 ========================================================================= -->
+            <div id="tab2" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Introduzione Fenotipo Razionalizzante -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-blue-700">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-900 text-xs font-bold uppercase tracking-wide">
+                            Scheda Clinica 2B.1 • Compensazione Cognitiva e Camouflaging Stoico
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Lai et al. (2017) • Livingston et al. (2019) • Hull et al. (2019, 2020)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Quando la Logica Diventa l'Unica Bussola Sociale</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Nelle persone adulte con un profilo orientato alla sistematizzazione (<em>Baron-Cohen et al., 2009; Livingston et al., 2019</em>), il cervello affronta l'imprevedibilità del mondo sociale trattandolo come un <strong>sistema complesso da decodificare tramite regole logiche, pattern e algoritmi di comportamento</strong>. Finché il contesto è strutturato e governato da regole chiare (es. ambito tecnico, accademico o professionale), questo compenso funziona con alta efficienza; quando invece le richieste diventano ambigue, emotive o non scritte, il carico cognitivo sale esponenzialmente.
+                    </p>
+
+                    <!-- Tabella comparativa: Come viene frainteso vs Realtà Neurobiologica -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Come viene spesso frainteso all'esterno</div>
+                            <ul class="space-y-2 text-xs md:text-sm text-slate-600">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> "Freddezza emotiva", distacco calcolato o mancanza di interesse per le persone.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Rigidità caratteriale, testardaggine o bisogno di avere sempre ragione sui dettagli.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-xmark text-slate-400 mt-1"></i> Chiusura improvvisa ("muro di gomma") durante le discussioni relazionali.</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-blue-800 mb-2">Cosa accade realmente a livello neurocognitivo</div>
+                            <ul class="space-y-2 text-xs md:text-sm text-slate-700">
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-blue-600 mt-1"></i> <strong>Iper-regolazione stoica:</strong> trattenere attivamente le reazioni emotive e sensoriali per non perdere il controllo o apparire vulnerabili.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-blue-600 mt-1"></i> <strong>Bisogno di coerenza e precisione:</strong> le informazioni vaghe o contraddittorie generano forte attrito cognitivo.</li>
+                                <li class="flex items-start gap-2"><i class="fa-solid fa-check text-blue-600 mt-1"></i> <strong>Sovraccarico esecutivo nei conflitti:</strong> quando il confronto diventa emotivamente denso e rapido, la memoria di lavoro si satura innescando un blocco protettivo (<em>Shutdown</em>).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LE 3 DIMENSIONI DEL CAMOUFLAGING NEL PROFILO RAZIONALIZZANTE (CAT-Q + LAI ET AL., 2017) -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <div class="mb-4">
+                        <h3 class="text-xl md:text-2xl font-bold text-slate-800">Le 3 Modalità del Camouflaging Strumentale e Stoico</h3>
+                        <p class="text-xs md:text-sm text-slate-500">Adattamento delle dimensioni del CAT-Q (Hull et al., 2019, 2020) e degli studi sul mascheramento di Lai et al. (2017)</p>
+                    </div>
+
+                    <!-- Evidenza Scientifica: Lai et al. (2017) -->
+                    <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white p-5 rounded-2xl mb-6 shadow-md">
+                        <div class="flex items-start gap-3.5">
+                            <i class="fa-solid fa-book-medical text-2xl text-blue-300 opacity-90 mt-0.5"></i>
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-blue-300 mb-1">Evidenza Clinica • Lai et al. (2017, Autism) • Hull et al. (2020)</div>
+                                <p class="text-sm md:text-base font-medium leading-relaxed text-blue-50">
+                                    Gli studi neuropsicologici condotti da <em>Lai et al. (2017)</em> e <em>Hull et al. (2020)</em> hanno dimostrato che il <em>Camouflaging</em> non si esprime solo attraverso la compiacenza relazionale, ma anche tramite <strong>strategie di compensazione intellettuale e soppressione stoica del disagio</strong>. Negli adulti che utilizzano questo stile di mascheramento, alti livelli di <em>camouflaging</em> risultano significativamente associati a <strong>esaurimento depressivo silenzioso, fatica cronica e senso di isolamento</strong>, poiché le difficoltà vengono interamente gestite in solitudine senza chiedere supporto.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Le 3 Card del Camouflaging 2B -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- 1. Compensazione tramite Ruolo / Competenza -->
+                        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1.5">1. Compensazione tramite Ruolo ed Expertise</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                    Sostituire la spontaneità relazionale con un <strong>ruolo codificato e strutturato</strong>: essere "la persona esperta", "chi risolve il problema tecnico" o usare l'ironia e il sarcasmo come filtro per mantenere una distanza di sicurezza nelle interazioni informali.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Compensazione tramite ruolo: sentirsi a proprio agio quando c\'è una funzione tecnica/operativa chiara e in difficoltà nelle chiacchiere informali prive di scopo')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-blue-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 2. Masking Stoico e Iper-Controllo -->
+                        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1.5">2. Masking Stoico (Lo Scudo Razionale)</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                                    Nascondere attivamente ogni segnale di ansia, incertezza o sovraccarico sensoriale mantenendo un'espressione neutra, un tono controllato e un'autosufficienza rigorosa (<em>"me la cavo da solo/a, non devo mostrare fatica"</em>).
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Masking stoico: nascondere il sovraccarico sensoriale o emotivo dietro una facciata di impassibilità, logica e autosufficienza')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-blue-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 3. Assimilazione Strumentale e Iper-Lavoro -->
+                        <div class="p-5 rounded-xl bg-amber-50/50 border border-amber-200 flex flex-col justify-between">
+                            <div>
+                                <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold mb-3">
+                                    <i class="fa-solid fa-gears"></i>
+                                </div>
+                                <h4 class="font-bold text-amber-950 text-base mb-1.5">3. Assimilazione tramite Performance</h4>
+                                <p class="text-xs text-slate-700 leading-relaxed mb-4">
+                                    Cercare accettazione e legittimazione sociale attraverso l'<strong>efficienza produttiva, la precisione o l'iper-lavoro (workaholism compensatorio)</strong>, facendosi carico di compiti complessi pur di evitare dinamiche relazionali ambigue.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Assimilazione strumentale: investire gran parte delle energie nella performance lavorativa/tecnica per compensare la fatica relazionale')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-600 hover:border-blue-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SIMULATORE INTERATTIVO: IL SOVRACCARICO SOTTO-SOGLIA ("EFFETTO PENTOLA A PRESSIONE") -->
+                    <div class="bg-slate-900 text-white p-6 rounded-2xl border border-slate-700">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                            <h4 class="font-bold text-blue-300 text-sm md:text-base flex items-center gap-2">
+                                <i class="fa-solid fa-gauge-high"></i> Simulatore: Il Carico "Sotto-Radar" e l'Effetto Pentola a Pressione
+                            </h4>
+                            <span id="pressureBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                Carico Interno: 25% (Apparenza Esterna: Calma)
+                            </span>
+                        </div>
+
+                        <div class="w-full bg-slate-800 rounded-full h-4 mb-3 overflow-hidden p-0.5 border border-slate-700">
+                            <div id="pressureBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 25%"></div>
+                        </div>
+
+                        <p id="pressureExplanation" class="text-xs md:text-sm text-slate-300 mb-4 min-h-[2.4rem]">
+                            Quando si combinano <strong>Masking Stoico</strong> (non mostrare nulla all'esterno) e <strong>Bassa Registrazione Interocettiva</strong> (non sentire i segnali graduali di stanchezza), la pressione sale in modo invisibile fino alla soglia critica. Prova ad aggiungere i carichi tipici:
+                        </p>
+
+                        <div class="flex flex-wrap gap-2 no-print">
+                            <button onclick="addPressure(25, 'Rumore di fondo, interruzioni continue e richieste vaghe sul lavoro: all\'esterno mantieni un controllo impeccabile, ma il sistema nervoso assorbe +25% di carico.')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-plus text-amber-400 mr-1"></i> + Interruzioni e richieste vaghe (+25%)
+                            </button>
+                            <button onclick="addPressure(25, 'Imprevisto che rompe la pianificazione logica della giornata: per non mostrare frustrazione reprimi l\'attivazione (+25% sotto-soglia).')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-plus text-amber-400 mr-1"></i> + Cambio imprevisto di piano (+25%)
+                            </button>
+                            <button onclick="addPressure(30, 'Confronto emotivo o richiesta di giustificazioni a fine giornata quando la memoria di lavoro è già satura (+30%).')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 transition-all">
+                                <i class="fa-solid fa-plus text-rose-400 mr-1"></i> + Discussione emotiva a batteria scarica (+30%)
+                            </button>
+                            <button onclick="releasePressure()" class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-all ml-auto">
+                                <i class="fa-solid fa-decompress mr-1"></i> Pausa preventiva + Spazio solitario / Focus tecnico
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab1', document.querySelectorAll('.tab-btn')[0])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna all'Introduzione
+                    </button>
+                    <button onclick="switchTab('tab3', document.querySelectorAll('.tab-btn')[2])" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Passa ad Alessitimia, Monotropismo e Sensi <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 3: SCHEDA CLINICA 2B.2 - ALESSITIMIA, INTEROCEZIONE, MONOTROPISMO E PROFILO SENSORIALE (AASP)
+                 ========================================================================= -->
+            <div id="tab3" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- 1. ALESSITIMIA E INTEROCEZIONE (BIRD & COOK, 2013; KINNAIRD ET AL., 2019; SHAH ET AL., 2016) -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-indigo-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold uppercase tracking-wide">
+                            Scheda Clinica 2B.2 • Interocezione, Alessitimia e Reattività Sotto-Soglia
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Bird & Cook (2013) • Shah et al. (2016) • Kinnaird et al. (2019)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Perché a volte il Corpo "Salta" direttamente dalla Calma all'Allarme?</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        La letteratura neuroscientifica (<em>Bird & Cook, 2013; Kinnaird et al., 2019, European Psychiatry</em>) documenta che in circa il <strong>50% delle persone adulte nello Spettro Autistico</strong> è presente un tratto chiamato <strong>Alessitimia</strong> (strettamente legato a una ridotta sensibilità interocettiva, <em>Shah et al., 2016</em>): non si tratta di assenza di emozioni, ma della fatica nel <strong>percepire precocemente i segnali fisiologici interni</strong> e nel tradurli in parole mentre si stanno verificando.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                        <div class="p-5 rounded-xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-amber-800 mb-1">Risposta Esternalizzante da Sovraccarico</div>
+                                <h4 class="font-bold text-slate-800 text-base mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-bolt text-amber-600"></i> Irritabilità Acuta / Scatto d'Impazienza
+                                </h4>
+                                <p class="text-xs md:text-sm text-slate-700 leading-relaxed mb-3">
+                                    Poiché i segnali intermedi di stanchezza, fame o saturazione acustica non vengono registrati in tempo reale, l'organismo accumula tensione finché un piccolo imprevisto fa traboccare il vaso, innescando una risposta brusca, impazienza o irritabilità improvvisa.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Accumulo interocettivo sotto-soglia: non accorgersi della stanchezza finché non emerge come irritabilità o impazienza improvvisa')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-blue-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <div class="p-5 rounded-xl bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-indigo-800 mb-1">Risposta Inibitoria da Sovraccarico</div>
+                                <h4 class="font-bold text-slate-800 text-base mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-power-off text-indigo-600"></i> Shutdown Comunicativo e Ritiro
+                                </h4>
+                                <p class="text-xs md:text-sm text-slate-700 leading-relaxed mb-3">
+                                    Di fronte a richieste emotive complesse o sovraccarico sensoriale prolungato, il sistema prefrontale va in protezione "staccando la spina": diventa faticoso articolare le frasi, si risponde a monosillabi e si sente un bisogno fisico immediato di silenzio e isolamento.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Shutdown comunicativo: sentire che le parole si bloccano e avere bisogno immediato di silenzio e ritiro quando il carico supera il limite')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-blue-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. MONOTROPISMO SISTEMICO E I 4 QUADRANTI SENSORIALI (MURRAY ET AL., 2005; DUNN, 2001) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <!-- Monotropismo Sistemico -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-teal-600 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Murray et al. (2005) • Allocazione Attentiva</span>
+                                <i class="fa-solid fa-bullseye text-teal-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Monotropismo e "Tunnel Attentivo" Sistemico</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                La teoria del <strong>Monotropismo</strong> spiega come la mente autistica concentri un'elevata quota di risorse in pochi canali attentivi alla volta (<em>tunnel di attenzione profonda</em>). Nel profilo razionalizzante questo si traduce nell'immersione in sistemi tecnici, informatici, meccanici, scientifici, strategici o lavorativi.
+                            </p>
+                            <div class="bg-teal-50/70 p-3 rounded-xl border border-teal-100 text-xs text-teal-950 mb-4">
+                                <strong>Doppia valenza:</strong> Dentro il tunnel monotropico il cervello sperimenta ordine, competenza e decompressione; tuttavia, essere interrotti bruscamente mentre si è nel tunnel provoca un forte stress neurofisiologico (fatica di <em>task-switching</em>).
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Monotropismo sistemico: profonda rigenerazione nell\'immersione tecnica/tematica e forte stress in caso di interruzioni brusche')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-blue-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Profilo Sensoriale AASP (Dunn, 2001) nel Fenotipo 2B -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-blue-600 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-blue-700">Modello AASP (Dunn, 2001) • Filtraggio Sensoriale</span>
+                                <i class="fa-solid fa-ear-listen text-blue-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Ipersensibilità Esterna vs Ricerca Propriocettiva</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Anche quando non viene verbalizzato, il sistema nervoso può presentare una marcata <strong>ipersensibilità uditiva e visiva</strong> (insofferenza per il vociare negli open-space, rumori masticatori/ripetitivi - <em>misofonia</em>, luci artificiali, caldo o tessuti sintetici) associata a una ricerca di <strong>input propriocettivi intensi</strong>.
+                            </p>
+                            <div class="bg-blue-50/70 p-3 rounded-xl border border-blue-100 text-xs text-blue-950 mb-4">
+                                <strong>Regolazione somatica:</strong> Molte persone con questo profilo regolano la tensione nervosa attraverso l'attività fisica intensa, pesi, camminate solitarie, musica in cuffia ad alto isolamento o ambienti digitali strutturati.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Profilo sensoriale AASP: marcato fastidio per rumori sovrapposti/ripetitivi o caos visivo, regolato tramite isolamento acustico o scarica fisica')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-blue-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MAPPA RAPIDA INTERATTIVA DEI TRIGGER E DELLE ANCORE DI REGOLAZIONE (CON BOX "ALTRO") -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <h3 class="text-lg md:text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-600"></i> Mappatura Operativa: Fattori di Attrito vs Strategie di Decompressione
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        Seleziona gli elementi che descrivono meglio il tuo funzionamento oppure utilizza i campi <strong>"Altro"</strong> per aggiungere dettagli specifici (verranno inclusi nello specchio riepilogativo e nel PDF):
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Colonna 1: Fattori di Sovraccarico e Attrito -->
+                        <div class="p-4 rounded-xl bg-indigo-50/50 border border-indigo-200 flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="font-bold text-indigo-950 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation text-indigo-600"></i> Principali Fattori di Sovraccarico
+                                </div>
+                                <div id="triggerTagsContainer" class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700 transition-all">Interruzioni durante il focus profondo</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700 transition-all">Rumore di fondo / Open-space / Locali affollati</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700 transition-all">Istruzioni vaghe, illogiche o contraddittorie</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700 transition-all">Chiacchiere di circostanza prolungate (Small talk)</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700 transition-all">Cambi di programma improvvisi senza preavviso</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag trigger-item px-3 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700 transition-all">Richieste di confronto emotivo a caldo</button>
+                                </div>
+                            </div>
+
+                            <!-- Box Altro per Fattori di Sovraccarico -->
+                            <div class="pt-3 border-t border-indigo-200/70 space-y-2">
+                                <label for="customTriggerText" class="block text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Altro (indica cos'altro ti sovraccarica):
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="customTriggerInputTag" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCustomSensoryTag('trigger');}" placeholder="Aggiungi un'etichetta rapida..." class="no-print flex-1 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none">
+                                    <button type="button" onclick="addCustomSensoryTag('trigger')" class="no-print px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0 transition-all">
+                                        + Aggiungi
+                                    </button>
+                                </div>
+                                <textarea id="customTriggerText" oninput="updateResonanceUI()" rows="2" placeholder="Oppure descrivi liberamente qui altri stimoli sensoriali, lavorativi o relazionali..." class="w-full rounded-lg border border-indigo-200 bg-white p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none transition-all"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Colonna 2: Ancore di Decompressione -->
+                        <div class="p-4 rounded-xl bg-blue-50/50 border border-blue-200 flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="font-bold text-blue-950 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-battery-full text-blue-600"></i> Strategie di Decompressione e Reset
+                                </div>
+                                <div id="anchorTagsContainer" class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-xs text-slate-700 transition-all">Immersione solitaria in progetti o interessi tecnici</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-xs text-slate-700 transition-all">Isolamento acustico (cuffie ANC / silenzio)</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-xs text-slate-700 transition-all">Attività fisica / Sport / Camminata solitaria</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-xs text-slate-700 transition-all">Routine strutturate e orari prevedibili</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-xs text-slate-700 transition-all">Tempo di "decompressione a zero parole" al rientro</button>
+                                    <button type="button" onclick="toggleSensoryTag(this)" class="sensory-tag anchor-item px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-xs text-slate-700 transition-all">Comunicazione scritta, chiara e diretta</button>
+                                </div>
+                            </div>
+
+                            <!-- Box Altro per Strategie di Decompressione -->
+                            <div class="pt-3 border-t border-blue-200/70 space-y-2">
+                                <label for="customAnchorText" class="block text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pen-to-square text-blue-600"></i> Altro (indica cos'altro ti ricarica o regola):
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="customAnchorInputTag" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCustomSensoryTag('anchor');}" placeholder="Aggiungi una strategia rapida..." class="no-print flex-1 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none">
+                                    <button type="button" onclick="addCustomSensoryTag('anchor')" class="no-print px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shrink-0 transition-all">
+                                        + Aggiungi
+                                    </button>
+                                </div>
+                                <textarea id="customAnchorText" oninput="updateResonanceUI()" rows="2" placeholder="Oppure descrivi liberamente qui altre attività, ambienti o rituali che ripristinano la tua energia..." class="w-full rounded-lg border border-blue-200 bg-white p-2.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none transition-all"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna a Masking Stoico
+                    </button>
+                    <button onclick="switchTab('tab4', document.querySelectorAll('.tab-btn')[3])" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Vai alla Sintesi e Mini-Quiz <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 4: SINTESI PERSONALIZZATA, MINI-QUIZ ED ESPORTAZIONE PDF COMPLETA
+                 ========================================================================= -->
+            <div id="tab4" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Box Riepilogo Dinamico degli Spunti Risonanti -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl border-t-4 border-t-amber-500">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-bookmark text-amber-500"></i> Lo Specchio del Modulo 2B
+                            </h3>
+                            <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                                Gli elementi sul Masking Stoico, sull'Interocezione/Alessitimia, sul Monotropismo e sul Profilo Sensoriale selezionati durante l'esplorazione:
+                            </p>
+                        </div>
+                        <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                            <i class="fa-solid fa-file-pdf"></i> Esporta Tutta la Scheda in PDF
+                        </button>
+                    </div>
+
+                    <div id="resonanceSummaryList" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-600">
+                        <em>Non sono ancora stati selezionati spunti con il pulsante "Mi ci rivedo" o nella Mappatura Operativa.</em>
+                    </div>
+                </div>
+
+                <!-- Mini-Quiz di Consolidamento Modulo 2B (4 Domande) -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Mini-Quiz di Consolidamento (Modulo 2B)</h2>
+                    <p class="text-slate-600 text-sm md:text-base mb-6 pb-4 border-b border-slate-200">
+                        Verifichiamo i concetti chiave sul profilo razionalizzante-strumentale, sull'interocezione e sulla prevenzione del sovraccarico.
+                    </p>
+                    
+                    <form id="quizForm" class="space-y-6">
+                        <!-- Q1 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q1-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">1. Come si esprime tipicamente il "Camouflaging" (Lai et al., 2017; Hull et al., 2019) nel profilo razionalizzante-strumentale?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="A" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">A) Attraverso l'iper-razionalizzazione, il rifugio in un ruolo tecnico/esperto strutturato e il "Masking Stoico" (nascondere fatica e sovraccarico dietro un'apparente impassibilità e autosufficienza).</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="B" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">B) Chi presenta questo profilo non mette mai in atto alcuna forma di compensazione sociale.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="C" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">C) Ricercando continuamente feste affollate e conversazioni superficiali.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q2 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q2-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">2. Cosa comporta la combinazione tra "Bassa Registrazione Interocettiva" e "Alessitimia" (Bird & Cook, 2013; Kinnaird et al., 2019)?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="A" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">A) La totale assenza di reazioni fisiologiche allo stress.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="B" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">B) La fatica ad accorgersi gradualmente dei segnali corporei ed emotivi di saturazione: il carico si accumula "sotto-soglia" finché non emerge all'improvviso come irritabilità acuta o blocco comunicativo (Shutdown).</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="C" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">C) Una deliberata volontà di ignorare gli altri per maleducazione.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q3 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q3-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">3. Secondo la teoria del Monotropismo (Murray et al., 2005), perché essere interrotti bruscamente mentre si è immersi in un compito tecnico o in un interesse genera così tanto stress?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="A" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">A) Perché il sistema attentivo monotropico convoglia un'alta quota di risorse in un unico "tunnel" profondo, che funge anche da regolatore del sistema nervoso; uscirne di colpo comporta un elevato costo neurofisiologico di riorganizzazione.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="B" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">B) Perché si tratta solo di un capriccio legato all'abitudine.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="C" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">C) Perché chi ha un funzionamento monotropico non è in grado di concentrarsi.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q4 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q4-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">4. Come va interpretato il bisogno di una "finestra di decompressione a zero parole" dopo il lavoro o dopo un evento sociale?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="A" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">A) Come un segnale di disaffezione o ostilità verso chi ci sta vicino.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="B" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">B) Come una necessità fisiologica di scaricare il carico sensoriale ed esecutivo accumulato, prevenendo lo Shutdown o gli scatti di irritabilità da esaurimento.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="C" class="mt-1 w-4 h-4 text-blue-600">
+                                    <span class="text-sm text-slate-700">C) Come un'abitudine da eliminare forzandosi a parlare subito di argomenti complessi.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 text-center no-print">
+                            <button type="button" onclick="checkQuiz()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-blue-200">
+                                Verifica le Risposte <i class="fa-solid fa-check ml-2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Risultati Quiz -->
+                    <div id="quizResults" class="hidden mt-6 p-6 rounded-xl border transition-all"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const selectedResonances = new Set();
+        let currentPressure = 25;
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+        };
+
+        // Cambio Tab principale
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-blue-800', 'font-semibold', 'border-blue-200');
+                btn.classList.add('text-slate-600', 'border-transparent');
+                const iconBox = btn.querySelector('span');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-blue-100', 'text-blue-700');
+                    iconBox.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            if (btnElement) {
+                btnElement.classList.remove('text-slate-600', 'border-transparent');
+                btnElement.classList.add('bg-blue-50', 'text-blue-800', 'font-semibold', 'border-blue-200');
+                const activeIconBox = btnElement.querySelector('span');
+                if (activeIconBox) {
+                    activeIconBox.classList.remove('bg-slate-100', 'text-slate-600');
+                    activeIconBox.classList.add('bg-blue-100', 'text-blue-700');
+                }
+            }
+
+            const mainArea = document.getElementById('mainScrollArea');
+            if (mainArea) mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Toggle chip apertura Tab 1
+        function toggleCheckinChip(btn) {
+            btn.classList.toggle('ring-2');
+            btn.classList.toggle('ring-blue-600');
+            btn.classList.toggle('bg-blue-50');
+            btn.classList.toggle('font-semibold');
+        }
+
+        // Toggle tag sensoriali Tab 3
+        function toggleSensoryTag(btn) {
+            btn.classList.toggle('active-tag');
+            updateResonanceUI();
+        }
+
+        // Aggiunge un tag personalizzato in "Trigger" o "Ancore"
+        function addCustomSensoryTag(type) {
+            const inputId = type === 'trigger' ? 'customTriggerInputTag' : 'customAnchorInputTag';
+            const containerId = type === 'trigger' ? 'triggerTagsContainer' : 'anchorTagsContainer';
+            const itemClass = type === 'trigger' ? 'trigger-item border-indigo-200' : 'anchor-item border-blue-200';
+
+            const inputEl = document.getElementById(inputId);
+            const value = inputEl.value.trim();
+            if (!value) return;
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `sensory-tag ${itemClass} active-tag px-3 py-1.5 rounded-lg border bg-white text-xs text-slate-700 transition-all`;
+            btn.textContent = value;
+            btn.onclick = function() { toggleSensoryTag(this); };
+
+            document.getElementById(containerId).appendChild(btn);
+            inputEl.value = '';
+            updateResonanceUI();
+        }
+
+        // Gestione "Mi ci rivedo"
+        function toggleResonance(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedResonances.has(textLabel)) {
+                selectedResonances.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) {
+                    icon.classList.remove('fa-solid', 'fa-check');
+                    icon.classList.add('fa-regular', 'fa-bookmark');
+                }
+            } else {
+                selectedResonances.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) {
+                    icon.classList.remove('fa-regular', 'fa-bookmark');
+                    icon.classList.add('fa-solid', 'fa-check');
+                }
+            }
+            updateResonanceUI();
+        }
+
+        function updateResonanceUI() {
+            document.getElementById('resonanceCount').textContent = selectedResonances.size;
+            const summaryContainer = document.getElementById('resonanceSummaryList');
+            
+            const selectedTriggers = Array.from(document.querySelectorAll('.trigger-item.active-tag')).map(el => el.textContent.trim());
+            const selectedAnchors = Array.from(document.querySelectorAll('.anchor-item.active-tag')).map(el => el.textContent.trim());
+            const customTriggerNote = (document.getElementById('customTriggerText')?.value || '').trim();
+            const customAnchorNote = (document.getElementById('customAnchorText')?.value || '').trim();
+
+            const hasSensoryData = selectedTriggers.length > 0 || selectedAnchors.length > 0 || customTriggerNote !== '' || customAnchorNote !== '';
+
+            if (selectedResonances.size === 0 && !hasSensoryData) {
+                summaryContainer.innerHTML = '<em>Non sono ancora stati selezionati spunti con il pulsante "Mi ci rivedo" o nella Mappatura Operativa.</em>';
+                return;
+            }
+
+            let html = '<div class="space-y-4">';
+
+            if (selectedResonances.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedResonances.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
+                            <i class="fa-solid fa-circle-check text-blue-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (hasSensoryData) {
+                html += `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                        <div class="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-indigo-950 mb-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-indigo-600 mr-1"></i> Fattori di Sovraccarico Indicati
+                            </div>
+                            <p class="text-xs text-slate-700">${selectedTriggers.length ? selectedTriggers.join(' • ') : '<em>Nessun tag predefinito</em>'}</p>
+                            ${customTriggerNote ? `<p class="text-xs text-indigo-950 bg-white p-2 rounded border border-indigo-100 mt-2"><strong>Altro (specificato):</strong> ${customTriggerNote}</p>` : ''}
+                        </div>
+                        <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-blue-950 mb-1.5">
+                                <i class="fa-solid fa-battery-full text-blue-600 mr-1"></i> Strategie di Decompressione Indicate
+                            </div>
+                            <p class="text-xs text-slate-700">${selectedAnchors.length ? selectedAnchors.join(' • ') : '<em>Nessun tag predefinito</em>'}</p>
+                            ${customAnchorNote ? `<p class="text-xs text-blue-950 bg-white p-2 rounded border border-blue-100 mt-2"><strong>Altro (specificato):</strong> ${customAnchorNote}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            summaryContainer.innerHTML = html;
+        }
+
+        // Simulatore Effetto Pentola a Pressione / Sovraccarico Sotto-Soglia
+        function addPressure(amount, message) {
+            currentPressure = Math.min(100, currentPressure + amount);
+            renderPressureState(message);
+        }
+
+        function releasePressure() {
+            currentPressure = 20;
+            renderPressureState('Inserendo pause preventive di silenzio, isolamento acustico o focus monotropico PRIMA di raggiungere il limite, la pressione scende e si prevengono sia l\'irritabilità sia lo Shutdown.');
+        }
+
+        function renderPressureState(message) {
+            const bar = document.getElementById('pressureBar');
+            const badge = document.getElementById('pressureBadge');
+            const explanation = document.getElementById('pressureExplanation');
+
+            bar.style.width = currentPressure + '%';
+            explanation.textContent = message;
+
+            bar.classList.remove('bg-emerald-500', 'bg-amber-500', 'bg-rose-500');
+            badge.className = 'px-3 py-1 rounded-full text-xs font-bold border ';
+
+            if (currentPressure <= 45) {
+                bar.classList.add('bg-emerald-500');
+                badge.classList.add('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500/30');
+                badge.textContent = `Carico Interno: ${currentPressure}% (Sistema Regolato)`;
+            } else if (currentPressure <= 75) {
+                bar.classList.add('bg-amber-500');
+                badge.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/30');
+                badge.textContent = `Carico Sotto-Soglia: ${currentPressure}% (Mascherato dallo Scudo Stoico)`;
+            } else {
+                bar.classList.add('bg-rose-500');
+                badge.classList.add('bg-rose-500/20', 'text-rose-300', 'border-rose-500/30');
+                badge.textContent = `SOGLIA CRITICA (${currentPressure}%): Scatto d'Irritabilità o Shutdown!`;
+            }
+        }
+
+        // Verifica Mini-Quiz
+        function checkQuiz() {
+            const answers = {
+                q1: 'A',
+                q2: 'B',
+                q3: 'A',
+                q4: 'B'
+            };
+            
+            let score = 0;
+            const form = document.getElementById('quizForm');
+            const resultsDiv = document.getElementById('quizResults');
+            
+            document.querySelectorAll('.quiz-question').forEach(q => {
+                q.classList.remove('border-l-4', 'border-l-emerald-500', 'border-l-rose-500', 'bg-emerald-50/40', 'bg-rose-50/40');
+            });
+
+            for (let [question, correctAnswer] of Object.entries(answers)) {
+                const selected = form.querySelector(`input[name="${question}"]:checked`);
+                const container = document.getElementById(`${question}-container`);
+                
+                if (selected && selected.value === correctAnswer) {
+                    score++;
+                    container.classList.add('border-l-4', 'border-l-emerald-500', 'bg-emerald-50/40');
+                } else {
+                    container.classList.add('border-l-4', 'border-l-rose-500', 'bg-rose-50/40');
+                }
+            }
+
+            resultsDiv.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-amber-50', 'border-amber-200');
+            
+            if (score === 4) {
+                resultsDiv.classList.add('bg-emerald-50', 'border-emerald-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-emerald-600"></i> Eccellente! (${score}/4 risposte corrette)
+                    </h4>
+                    <p class="text-emerald-800 text-sm md:text-base leading-relaxed">
+                        I meccanismi del Modulo 2B sono chiari: riconoscere lo scudo stoico, rispettare il tunnel attentivo monotropico e intercettare i segnali corporei prima della soglia critica permette di prevenire sia l'irritabilità da sovraccarico sia lo Shutdown.
+                    </p>
+                `;
+            } else {
+                resultsDiv.classList.add('bg-amber-50', 'border-amber-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600"></i> Rivediamo insieme i punti chiave (${score}/4 corrette)
+                    </h4>
+                    <ul class="list-disc pl-5 text-xs md:text-sm text-slate-700 space-y-1.5 bg-white p-4 rounded-xl border border-amber-200">
+                        <li><strong>Domanda 1 (A):</strong> Nel profilo razionalizzante il Camouflaging si esprime tramite l'iper-razionalizzazione, il ruolo di esperto e il Masking Stoico.</li>
+                        <li><strong>Domanda 2 (B):</strong> La bassa registrazione interocettiva e l'alessitimia fanno accumulare la tensione sotto-soglia fino allo scatto d'impazienza o allo Shutdown.</li>
+                        <li><strong>Domanda 3 (A):</strong> Il focus monotropico profondo regola il sistema nervoso; le interruzioni brusche comportano un alto costo neurobiologico.</li>
+                        <li><strong>Domanda 4 (B):</strong> Una finestra di decompressione silenziosa è una misura fisiologica fondamentale per scaricare il sistema nervoso.</li>
+                    </ul>
+                `;
+            }
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Esportazione PDF con tutte le sezioni aperte
+        function exportFullStaticPDF() {
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_2B_Fenotipo_Razionalizzante_Masking_Stoico_Sensorialita.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 2B generato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+    </script>
+</body>
+</html>

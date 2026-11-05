@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 4 - Il Trattamento Multimodale e la Farmacoterapia in Età Adulta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+        }
+        .resonance-chip.selected {
+            background-color: #ecfdf5;
+            border-color: #059669;
+            color: #065f46;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+        }
+        .med-tab-btn.active-med {
+            background-color: #0f766e;
+            color: #ffffff;
+            border-color: #0f766e;
+            box-shadow: 0 4px 10px -2px rgba(15, 118, 110, 0.25);
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le 4 schede e sotto-schede aperte)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #appWrapper {
+            overflow: visible !important;
+            display: block !important;
+        }
+        body.pdf-export-mode #mainScrollArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode .tab-content {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.5rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .med-detail-panel {
+            display: block !important;
+            margin-bottom: 1.25rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #appWrapper {
+                display: block !important;
+                overflow: visible !important;
+            }
+            #mainScrollArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .tab-content {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .med-detail-panel {
+                display: block !important;
+                margin-bottom: 14px !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Principale -->
+    <header class="bg-gradient-to-r from-emerald-900 via-teal-800 to-cyan-900 text-white px-6 py-4 shadow-md z-20 shrink-0 no-print">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/15 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-staff-snake text-xl text-emerald-200"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-emerald-100">Modulo 4</span>
+                        <span class="text-[11px] text-emerald-200 hidden sm:inline">• Schede 3 e 4 Migliarese et al. (2023) • Guida RITA (Dicembre 2024) • NICE [NG87]</span>
+                    </div>
+                    <h1 class="text-lg md:text-2xl font-bold tracking-tight mt-0.5">Il Trattamento Multimodale e Guida alla Farmacoterapia in Età Adulta</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Contatore Risonanze + Stampa/PDF Completo -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-emerald-950/60 border border-emerald-400/30 px-3.5 py-2 rounded-xl text-xs md:text-sm">
+                    <i class="fa-solid fa-bookmark text-amber-300"></i>
+                    <span>Spunti selezionati: <strong id="resonanceCount" class="text-white font-bold">0</strong></span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica un PDF con tutte le schede e il vademecum farmacologico aperti">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Principale -->
+    <div id="appWrapper" class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl mx-auto w-full">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="md:w-72 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 overflow-x-auto md:overflow-y-auto shrink-0 flex md:flex-col gap-2 no-print">
+            <div class="hidden md:block text-xs font-bold uppercase tracking-wider text-slate-400 px-3 mb-1">Fasi del Modulo 4</div>
+            
+            <button onclick="switchTab('tab1', this)" class="tab-btn active text-left px-4 py-3.5 rounded-xl w-full transition-all bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-compass"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">1. Cura Multimodale</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Scheda 3 • Priorità e Realismo</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab2', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-capsules"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">2. I Farmaci in Italia</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Scheda 4 & Guida RITA 2024</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab3', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-file-prescription"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">3. Guida Pratica RMR</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Ricetta a ricalco, NICE e AuDHD</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab4', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-list-check"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">4. Sintesi e Quiz</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Riepilogo spunti e verifica</div>
+                </div>
+            </button>
+
+            <!-- Nota informativa clinica nel menu laterale -->
+            <div class="hidden md:block mt-auto pt-4 border-t border-slate-100 space-y-3">
+                <div class="bg-amber-50/80 rounded-xl p-3.5 border border-amber-200/80 text-xs text-amber-950 space-y-1.5">
+                    <div class="font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-doctor text-amber-700"></i> Nota Clinica
+                    </div>
+                    <p class="leading-relaxed text-[11px]">
+                        Le informazioni farmacologiche hanno scopo psicoeducativo e divulgativo (<em>Guida RITA Dic. 2024; Linee Guida NICE</em>) e supportano il dialogo consapevole con la figura medica specialistica di riferimento.
+                    </p>
+                </div>
+                <div class="bg-emerald-50/70 rounded-xl p-3.5 border border-emerald-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-emerald-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf text-emerald-700"></i> Esportazione Vademecum
+                    </div>
+                    <p class="leading-relaxed text-[11px]">
+                        Cliccando su <strong>"Scarica PDF Completo"</strong>, tutte le schede sui farmaci e sulla Ricetta a Ricalco vengono esportate per intero.
+                    </p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main id="mainScrollArea" class="flex-1 p-4 md:p-8 overflow-y-auto relative space-y-6">
+            
+            <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+            <div class="print-only-header hidden border-b-2 border-emerald-800 pb-4 mb-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-emerald-800">Programma Clinico Modulare di Psicoeducazione</div>
+                        <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 4: Il Trattamento Multimodale e Guida alla Farmacoterapia in Italia</h1>
+                        <p class="text-xs text-slate-500 mt-1">Dispensa clinica completa (Rif. Schede 3 e 4 Migliarese et al., 2023 • Guida alla Prescrizione RITA Dicembre 2024 • Linee Guida NICE [NG87] • Determina AIFA 13/10/2023).</p>
+                    </div>
+                    <div class="text-xs text-slate-500 text-right">
+                        <div id="printDateLabel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================================================
+                 TAB 1: SCHEDA 3 - IL TRATTAMENTO MULTIMODALE, NEUROPLASTICITÀ E REALISMO
+                 ========================================================================= -->
+            <div id="tab1" class="tab-content active max-w-4xl mx-auto space-y-6">
+                
+                <!-- Card Introduzione Scheda 3 -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-t-4 border-t-emerald-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wide">
+                            Scheda 3 • Il Trattamento del Disturbo in Età Adulta
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Migliarese et al. (2023) • Kooij et al. (2019) • NICE [NG87]</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Cosa Significa "Trattare" l'ADHD e il Profilo AuDHD in Età Adulta?</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Come sottolinea la <strong>Scheda 3 (Migliarese et al., 2023)</strong>, il trattamento in età adulta non è mirato soltanto a contenere i sintomi più interferenti, ma a permettere a ciascuna persona di <strong>raggiungere una profonda conoscenza delle proprie modalità di funzionamento</strong> per massimizzare le competenze, ridurre gli attriti quotidiani, adattare l'ambiente e migliorare stabilmente la qualità di vita.
+                    </p>
+
+                    <!-- I 3 Pilastri del Trattamento Multimodale -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                            <div class="font-bold text-emerald-950 text-sm mb-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-lightbulb text-emerald-600"></i> 1. Psicoinformazione
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed">
+                                Comprendere la natura neurobiologica del proprio funzionamento e il modo specifico in cui influenza relazioni, energia, organizzazione e gestione emotiva.
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200">
+                            <div class="font-bold text-teal-950 text-sm mb-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-compass-drafting text-teal-600"></i> 2. Terapia Cognitiva & Coaching
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed">
+                                Ristrutturare le convinzioni limitanti di vergogna o colpa e costruire strategie esecutive, sensoriali e relazionali su misura.
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-cyan-50/70 border border-cyan-200">
+                            <div class="font-bold text-cyan-950 text-sm mb-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-capsules text-cyan-700"></i> 3. Supporto Farmacologico
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed">
+                                Quando indicato, riequilibra i sistemi neurotrasmettitoriali (dopamina e noradrenalina), creando le condizioni biologiche per applicare e allenare le strategie.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- La Metafora degli Occhiali -->
+                    <div class="bg-gradient-to-r from-slate-800 to-teal-950 text-white p-5 rounded-2xl shadow-md">
+                        <div class="flex items-start gap-3.5">
+                            <i class="fa-solid fa-glasses text-2xl text-emerald-300 mt-1"></i>
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-emerald-300 mb-1">La Metafora Clinica: "Pills Don't Teach Skills, ma Mettono a Fuoco la Pagina"</div>
+                                <p class="text-xs md:text-sm text-slate-200 leading-relaxed">
+                                    I farmaci per l'ADHD funzionano come un paio di <strong>occhiali da vista per la corteccia prefrontale</strong>: gli occhiali non leggono il libro al posto nostro (non insegnano automaticamente come organizzare l'agenda o come mettere confini relazionali), ma permettono finalmente di mettere a fuoco le righe senza dover strizzare gli occhi con uno sforzo estenuante. Allo stesso modo, la psicoeducazione fornisce gli strumenti operativi che diventano molto più semplici da applicare.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LE 6 REGOLE D'ORO PER UN TRATTAMENTO EFFICACE (SCHEDA 3 MIGLIARESE ET AL., 2023) -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <div class="mb-5">
+                        <h3 class="text-xl md:text-2xl font-bold text-slate-800 mb-1">Le 6 Condizioni Fondamentali per il Percorso (Scheda 3)</h3>
+                        <p class="text-xs md:text-sm text-slate-600">
+                            Spesso l'entusiasmo iniziale post-diagnosi spinge a voler rivoluzionare tutta la propria vita in una settimana (la trappola del <em>"Tutto o Niente"</em>). La Scheda 3 individua 6 principi protettivi. Tocca <span class="text-emerald-700 font-semibold">"Mi ci rivedo / Voglio ricordarlo"</span> su quelli più importanti per te:
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Regola 1 -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-bold">1</span>
+                                    Definire una sola priorità alla volta
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    Affrontare dieci cambiamenti contemporaneamente satura subito la memoria di lavoro. Scegliere <strong>un solo obiettivo concreto per volta</strong> è il segreto della sostenibilità.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Principio 1 (Scheda 3): Procedere per gradi definendo una sola priorità alla volta anziché voler cambiare tutto subito')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Voglio ricordarlo
+                            </button>
+                        </div>
+
+                        <!-- Regola 2 -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-bold">2</span>
+                                    Rinunciare all'idea della "Bacchetta Magica"
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    Né un farmaco né una singola tecnica azzerano ogni fatica dall'oggi al domani. Sapere cosa aspettarsi con <strong>realismo</strong> protegge dalle delusioni perfezionistiche.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Principio 2 (Scheda 3): Rinunciare al mito della bacchetta magica e coltivare aspettative realistiche e gentili')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Voglio ricordarlo
+                            </button>
+                        </div>
+
+                        <!-- Regola 3 -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-bold">3</span>
+                                    Accettare le oscillazioni e i "passi falsi"
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    È un percorso di apprendimento lungo: avere giornate in cui la strategia non funziona o l'agenda resta chiusa <strong>fa parte del processo</strong> e non azzera i progressi fatti.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Principio 3 (Scheda 3): Accettare le giornate no e gli imprevisti senza interpretarli come un fallimento totale')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Voglio ricordarlo
+                            </button>
+                        </div>
+
+                        <!-- Regola 4 -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-bold">4</span>
+                                    Ricordarsi della Neuroplasticità
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    Le capacità della mente non sono scolpite nella pietra: i circuiti esecutivi e attentivi sono <strong>plastici e allenabili</strong> quando utilizziamo strumenti adatti alla nostra neurobiologia.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Principio 4 (Scheda 3): Ricordare che le competenze cognitive ed esecutive sono plastiche e allenabili nel tempo')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Voglio ricordarlo
+                            </button>
+                        </div>
+
+                        <!-- Regola 5 -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-bold">5</span>
+                                    Rinforzare i Punti di Forza
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    Non concentrarsi solo sulle disfunzionalità (disorganizzazione, fatica d'avvio), ma valorizzare attivamente creatività, profondità d'analisi, iperfocalizzazione ed empatia.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Principio 5 (Scheda 3): Valorizzare i punti di forza neurodivergenti accanto alla gestione delle aree di fatica')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Voglio ricordarlo
+                            </button>
+                        </div>
+
+                        <!-- Regola 6 -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs flex items-center justify-center font-bold">6</span>
+                                    Ordine di Priorità nelle Comorbilità
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    Se sono presenti altre condizioni cliniche (es. ansia acuta, depressione maggiore o burnout severo), il piano medico-clinico parte sempre dallo stabilizzare la condizione prevalente.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Principio 6 (Scheda 3): Rispettare le priorità cliniche partendo dalla condizione prevalente e dal livello di energia attuale')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Voglio ricordarlo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Passa alla Guida ai Farmaci in Italia (RITA 2024) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 2: SCHEDA 4 AGGIORNATA CON GUIDA RITA (DICEMBRE 2024) E DETERMINA AIFA 2023
+                 ========================================================================= -->
+            <div id="tab2" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- 1. MECCANISMO D'AZIONE E POSIZIONAMENTO DELLE LINEE GUIDA INTERNAZIONALI -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-teal-700">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                            Scheda 4 Aggiornata • Guida RITA (06/12/2024) • Linee Guida NICE [NG87]
+                        </span>
+                        <span class="text-xs text-slate-400">Determina AIFA 13/10/2023 (G.U. n. 244 del 18/10/2023)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">La Farmacoterapia nell'Adulto in Italia: Cosa Sapere</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        In assenza di linee guida nazionali specifiche per l'adulto, il riferimento scientifico europeo di più alta qualità è rappresentato dalle <strong>Linee Guida NICE [NG87]</strong> (aggiornate nel 2018/2019) e dal <em>Consensus Europeo sull'ADHD nell'Adulto</em> (<em>Kooij et al., 2019</em>). Quando i sintomi compromettono significativamente diverse aree di funzionamento, i farmaci stimolanti rappresentano la prima scelta terapeutica: in Italia, il <strong>Metilfenidato è attualmente l'unica opzione farmacologica di prima linea disponibile in commercio</strong>.
+                    </p>
+
+                    <!-- Box Neurobiologico: DAT e NET -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200">
+                            <h4 class="font-bold text-teal-950 text-sm mb-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-synapse text-teal-700"></i> Meccanismo d'Azione (Blocco DAT e NET)
+                            </h4>
+                            <p class="text-xs text-slate-700 leading-relaxed">
+                                Il metilfenidato agisce bloccando i trasportatori presinaptici per la <strong>dopamina (DAT - Dopamine Transporter)</strong> e per la <strong>noradrenalina (NET - Norepinephrine Transporter)</strong>. Inibendone la ricaptazione, aumenta la concentrazione di questi neurotrasmettitori nello spazio sinaptico della corteccia frontale (controllo esecutivo) e delle aree subcorticali, migliorando l'attenzione, la <em>working memory</em> e riducendo impulsività e irrequietezza.
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+                            <h4 class="font-bold text-amber-950 text-sm mb-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-amber-600"></i> Principio della Titolazione Personalizzata
+                            </h4>
+                            <p class="text-xs text-slate-700 leading-relaxed">
+                                Il dosaggio non è mai standardizzato a priori, ma viene <strong>incrementato gradualmente (titolazione)</strong> dallo specialista psichiatra in base alla risposta individuale e alla tollerabilità, fino a individuare la <strong>dose minima efficace</strong>. Per Medikinet® nell'adulto il dosaggio autorizzato AIFA arriva fino a <strong>1 mg/kg/die</strong> (con dose massima giornaliera di <strong>80 mg/die</strong>; per Ritalin® ed Equasym® il range abituale è <strong>10–60 mg/die</strong>).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ESPLORATORE INTERATTIVO DELLE 3 FORMULAZIONI DI METILFENIDATO + SECONDA LINEA -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <div class="mb-5">
+                        <h3 class="text-xl md:text-2xl font-bold text-slate-800 mb-1">Le 3 Formulazioni di Metilfenidato in Italia e i Farmaci di Seconda Linea</h3>
+                        <p class="text-xs md:text-sm text-slate-600">
+                            Seleziona ciascuna opzione per visualizzare la cinetica di rilascio, i dosaggi disponibili e le regole aggiornate di prescrivibilità e rimborsabilità in età adulta (<em>Guida RITA, Dicembre 2024</em>):
+                        </p>
+                    </div>
+
+                    <!-- Bottoni Selettori Formulazione (Nascosti in stampa perché si aprono tutti i pannelli) -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-6 no-print">
+                        <button onclick="switchMedPanel('med-medikinet', this)" class="med-tab-btn active-med p-3 rounded-xl border border-slate-200 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-capsules"></i> 1. Medikinet® (50/50)
+                        </button>
+                        <button onclick="switchMedPanel('med-ritalin', this)" class="med-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-tablets"></i> 2. Ritalin® (Immediato)
+                        </button>
+                        <button onclick="switchMedPanel('med-equasym', this)" class="med-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-prescription-bottle-medical"></i> 3. Equasym® (30/70)
+                        </button>
+                        <button onclick="switchMedPanel('med-secondline', this)" class="med-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-layer-group"></i> 4. Seconda Linea & Combo
+                        </button>
+                    </div>
+
+                    <!-- PANNELLO 1: MEDIKINET -->
+                    <div id="med-medikinet" class="med-detail-panel p-5 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/80 pb-3">
+                            <div>
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider">ON-LABEL NELL'ADULTO (Anche di Nuova Diagnosi)</span>
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-900 mt-1">Medikinet® • Metilfenidato a Rilascio Modificato (50% Immediato / 50% Prolungato)</h4>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-900 bg-white px-3 py-1.5 rounded-xl border border-emerald-200">
+                                Confezioni da 30 cps: 5, 10, 20, 30, 40 mg
+                            </span>
+                        </div>
+
+                        <!-- Barra Visiva Cinetica -->
+                        <div class="bg-white p-3.5 rounded-xl border border-emerald-200/80">
+                            <div class="text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                                <span>Profilo Farmacocinetico Biphasic Release:</span>
+                                <span class="text-emerald-700">Posologia adulto: 10–80 mg/die (max 1 mg/kg)</span>
+                            </div>
+                            <div class="w-full h-5 rounded-lg overflow-hidden flex text-[11px] font-bold text-white text-center leading-5">
+                                <div class="bg-teal-600 w-1/2">50% Rilascio Immediato</div>
+                                <div class="bg-emerald-500 w-1/2">50% Rilascio Prolungato</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                            <div class="bg-white p-4 rounded-xl border border-emerald-200">
+                                <div class="font-bold text-emerald-800 mb-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-check"></i> Novità Regolatoria AIFA (18 Ottobre 2023)
+                                </div>
+                                <p class="text-slate-600 leading-relaxed">
+                                    Con la <strong>Determina AIFA del 13 ottobre 2023 (pubblicata in G.U. n. 244 del 18/10/2023)</strong>, Medikinet® è ufficialmente approvato <strong>in indicazione (On-Label)</strong> anche per gli <strong>adulti con nuova diagnosi di ADHD</strong> (oltre che per i bambini dai 6 anni e per la continuità terapeutica).
+                                </p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-emerald-200">
+                                <div class="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-coins text-amber-500"></i> Rimborsabilità: Fascia A vs Fascia C
+                                </div>
+                                <ul class="space-y-1.5 text-slate-600 text-xs leading-relaxed">
+                                    <li>• <strong>Fascia A (Rimborsato dal SSN):</strong> Quando prescritto dallo specialista SSN o dal Medico di Medicina Generale (MMG) sulla base di un <strong>Piano Terapeutico (PT)</strong> emesso da un Centro Autorizzato pubblico.</li>
+                                    <li>• <strong>Fascia C (A carico del paziente):</strong> Può essere prescritto direttamente su Ricetta a Ricalco sia da medici SSN sia da <strong>specialisti privati</strong>, <em>senza necessità di Piano Terapeutico</em>.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANNELLO 2: RITALIN -->
+                    <div id="med-ritalin" class="med-detail-panel hidden p-5 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-teal-200/80 pb-3">
+                            <div>
+                                <span class="px-2.5 py-0.5 rounded-full bg-teal-700 text-white text-[11px] font-bold uppercase tracking-wider">ON-LABEL IN CONTINUITÀ • OFF-LABEL NUOVA DIAGNOSI ADULTA</span>
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-900 mt-1">Ritalin® • Metilfenidato a Rilascio Immediato (100% Immediato)</h4>
+                            </div>
+                            <span class="text-xs font-bold text-teal-900 bg-white px-3 py-1.5 rounded-xl border border-teal-200">
+                                Confezioni da 30 compresse da 10 mg
+                            </span>
+                        </div>
+
+                        <div class="bg-white p-3.5 rounded-xl border border-teal-200/80">
+                            <div class="text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                                <span>Profilo Farmacocinetico: Azione rapida e breve durata (utile per flessibilità oraria)</span>
+                                <span class="text-teal-700">Posologia: 10–60 mg/die</span>
+                            </div>
+                            <div class="w-full h-5 rounded-lg overflow-hidden flex text-[11px] font-bold text-white text-center leading-5">
+                                <div class="bg-cyan-600 w-full">100% Rilascio Immediato (Compresse da 10 mg)</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                            <div class="bg-white p-4 rounded-xl border border-teal-200">
+                                <div class="font-bold text-teal-800 mb-1">1. Adulto già diagnosticato in età evolutiva (On-Label)</div>
+                                <p class="text-slate-600 leading-relaxed text-xs">
+                                    In continuità terapeutica dall'età infantile/adolescenziale è <strong>On-Label</strong>: prescrivibile in <strong>Fascia A</strong> (gratuito SSN) con Piano Terapeutico di un centro autorizzato, oppure in <strong>Fascia C</strong> (a pagamento) da specialista privato senza PT.
+                                </p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-teal-200">
+                                <div class="font-bold text-amber-800 mb-1">2. Adulto di Nuova Diagnosi (Off-Label • Legge 94/1998)</div>
+                                <p class="text-slate-600 leading-relaxed text-xs">
+                                    Nell'adulto di nuova diagnosi il suo impiego è supportato da solide evidenze scientifiche ed è prescrivibile in modalità <strong>Off-Label ai sensi della Legge Di Bella (L. 94/1998)</strong> in <strong>Fascia C</strong> (a carico dell'assistito, senza PT), sia da medico SSN che privato, previa firma del <strong>Consenso Informato scritto</strong> e uso del <strong>Codice Alfanumerico</strong> sulla ricetta a ricalco.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANNELLO 3: EQUASYM -->
+                    <div id="med-equasym" class="med-detail-panel hidden p-5 rounded-2xl bg-cyan-50/50 border border-cyan-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-200/80 pb-3">
+                            <div>
+                                <span class="px-2.5 py-0.5 rounded-full bg-cyan-800 text-white text-[11px] font-bold uppercase tracking-wider">ON-LABEL IN CONTINUITÀ (FASCIA C) • OFF-LABEL NUOVA DIAGNOSI</span>
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-900 mt-1">Equasym® • Metilfenidato a Rilascio Modificato (30% Immediato / 70% Prolungato)</h4>
+                            </div>
+                            <span class="text-xs font-bold text-cyan-900 bg-white px-3 py-1.5 rounded-xl border border-cyan-200">
+                                Confezioni da 30 cps: 10, 20, 30 mg
+                            </span>
+                        </div>
+
+                        <div class="bg-white p-3.5 rounded-xl border border-cyan-200/80">
+                            <div class="text-xs font-bold text-slate-700 mb-1.5 flex justify-between">
+                                <span>Profilo Farmacocinetico: Avvio più graduale (30%) e rilascio prolungato prevalente (70%)</span>
+                                <span class="text-cyan-800">Posologia: 10–60 mg/die</span>
+                            </div>
+                            <div class="w-full h-5 rounded-lg overflow-hidden flex text-[11px] font-bold text-white text-center leading-5">
+                                <div class="bg-cyan-600 w-[30%]">30% Immediato</div>
+                                <div class="bg-indigo-600 w-[70%]">70% Rilascio Prolungato</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                            <div class="bg-white p-4 rounded-xl border border-cyan-200">
+                                <div class="font-bold text-cyan-900 mb-1">1. Adulto in continuità dall'età evolutiva (On-Label in Fascia C)</div>
+                                <p class="text-slate-600 leading-relaxed text-xs">
+                                    A differenza di Ritalin® e Medikinet®, per Equasym® il Piano Terapeutico SSN (Fascia A) è redigibile solo in età evolutiva. Nell'adulto già diagnosticato in infanzia è <strong>On-Label per la prosecuzione</strong>, ma prescrivibile in <strong>Fascia C</strong> (a carico dell'assistito, senza PT).
+                                </p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-cyan-200">
+                                <div class="font-bold text-amber-800 mb-1">2. Adulto di Nuova Diagnosi (Off-Label • Legge 94/1998)</div>
+                                <p class="text-slate-600 leading-relaxed text-xs">
+                                    Come per il Ritalin®, nell'adulto di nuova diagnosi è prescrivibile in modalità <strong>Off-Label (Legge 94/1998)</strong> in <strong>Fascia C</strong> (a carico dell'assistito, senza PT) da medico SSN o privato, con raccolta del <strong>Consenso Informato scritto</strong> e <strong>Codice Alfanumerico</strong> sulla RMR.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANNELLO 4: SECONDA LINEA (ATOMOXETINA, BUPROPIONE) E COMBINAZIONE DI STIMOLANTI -->
+                    <div id="med-secondline" class="med-detail-panel hidden p-5 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-4">
+                        <div class="border-b border-indigo-200/80 pb-3">
+                            <span class="px-2.5 py-0.5 rounded-full bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-wider">PERSONALIZZAZIONE TERAPEUTICA E SECONDA LINEA (Guida RITA pag. 20 & Scheda 4)</span>
+                            <h4 class="text-lg md:text-xl font-extrabold text-slate-900 mt-1">Strategie di Combinazione, Atomoxetina e Altre Molecole</h4>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <div class="bg-white p-4 rounded-xl border border-indigo-200">
+                                <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-puzzle-piece text-indigo-600"></i> Combinazione di Stimolanti
+                                </div>
+                                <p class="text-slate-600 leading-relaxed">
+                                    Quando una singola formulazione non copre in modo ottimale le esigenze della giornata, lo specialista può <strong>associare metilfenidato a rilascio prolungato + metilfenidato a rilascio immediato</strong> per modulare la durata dell'effetto terapeutico (con attento monitoraggio clinico).
+                                </p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border border-amber-300">
+                                <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Atomoxetina (Importante Aggiornamento)
+                                </div>
+                                <p class="text-slate-600 leading-relaxed">
+                                    Farmaco <strong>non-stimolante</strong> (inibitore selettivo del reuptake della noradrenalina, con azione graduale in 6–8 settimane e dosaggio medio 80–120 mg/die). Secondo le Linee Guida NICE e la Guida RITA (Dic. 2024) è una <strong>terapia di seconda linea</strong> (se gli stimolanti sono inefficaci o mal tollerati). <strong>Nota bene: la produzione in Italia è stata recentemente interrotta</strong>, ma le ASL che ne necessitano possono importarla dall'estero tramite specifiche procedure.
+                                </p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border border-indigo-200">
+                                <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pills text-indigo-600"></i> Bupropione e Altre Opzioni
+                                </div>
+                                <p class="text-slate-600 leading-relaxed">
+                                    La <strong>Scheda 4 (Migliarese et al., 2023)</strong> indica tra le alternative di seconda linea il <strong>Bupropione</strong> (inibitore del reuptake di dopamina e noradrenalina, approvato per la depressione e spesso utile quando coesiste una flessione dell'umore), oltre ad altre molecole valutate caso per caso dallo specialista.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABELLA SINOTTICA COMPLETA (COME DA PAG. 10 DELLA GUIDA RITA 2024) -->
+                    <div class="mt-6 pt-5 border-t border-slate-200">
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-table text-teal-700"></i> Tabella Riassuntiva Prescrivibilità e Rimborsabilità nell'Adulto (Guida RITA, 2024)
+                        </h4>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-800 text-white">
+                                        <th class="p-3 font-bold">Farmaco</th>
+                                        <th class="p-3 font-bold">Rilascio e Dosaggi</th>
+                                        <th class="p-3 font-bold">Adulto già diagnosticato in Età Evolutiva</th>
+                                        <th class="p-3 font-bold">Adulto di Nuova Diagnosi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 bg-white">
+                                    <tr>
+                                        <td class="p-3 font-extrabold text-emerald-800">Medikinet®</td>
+                                        <td class="p-3 text-slate-600">Modificato (50% IR / 50% PR)<br>Cps 5, 10, 20, 30, 40 mg</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">ON-LABEL</span><br>• Con PT SSN: <strong>Fascia A</strong> (Gratuito)<br>• Senza PT (Privato): <strong>Fascia C</strong></td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">ON-LABEL (Det. AIFA 10/2023)</span><br>• Con PT SSN: <strong>Fascia A</strong> (Gratuito)<br>• Senza PT (Privato): <strong>Fascia C</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-extrabold text-teal-800">Ritalin®</td>
+                                        <td class="p-3 text-slate-600">Immediato (100% IR)<br>Compresse 10 mg</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">ON-LABEL (Continuità)</span><br>• Con PT SSN: <strong>Fascia A</strong> (Gratuito)<br>• Senza PT (Privato): <strong>Fascia C</strong></td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">OFF-LABEL (Legge 94/1998)</span><br>• Senza PT: <strong>Fascia C</strong> (Consenso informato + Codice Alfanumerico)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-extrabold text-cyan-800">Equasym®</td>
+                                        <td class="p-3 text-slate-600">Modificato (30% IR / 70% PR)<br>Cps 10, 20, 30 mg</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">ON-LABEL (Continuità)</span><br>• Senza PT: <strong>Fascia C</strong> (A carico dell'assistito)</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">OFF-LABEL (Legge 94/1998)</span><br>• Senza PT: <strong>Fascia C</strong> (Consenso informato + Codice Alfanumerico)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab1', document.querySelectorAll('.tab-btn')[0])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna alla Scheda 3
+                    </button>
+                    <button onclick="switchTab('tab3', document.querySelectorAll('.tab-btn')[2])" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Passa a Valutazioni Preliminari, RMR e AuDHD <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 3: VALUTAZIONI PRELIMINARI (NICE), EFFETTI COLLATERALI, SPECIFICITÀ AuDHD E GUIDA PRATICA RMR
+                 ========================================================================= -->
+            <div id="tab3" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- 1. VALUTAZIONI PRELIMINARI (NICE) ED EFFETTI COLLATERALI -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-cyan-700">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-cyan-100 text-cyan-900 text-xs font-bold uppercase tracking-wide">
+                            Sicurezza e Monitoraggio • Linee Guida NICE [NG87] & Guida RITA (pag. 5)
+                        </span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-4">Valutazioni Mediche Preliminari e Tollerabilità</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Valutazioni Preliminari NICE -->
+                        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                            <h3 class="font-bold text-slate-800 text-sm md:text-base flex items-center gap-2">
+                                <i class="fa-solid fa-heart-pulse text-rose-500"></i> Cosa controllare prima di iniziare?
+                            </h3>
+                            <ul class="space-y-2 text-xs text-slate-700 leading-relaxed">
+                                <li>• <strong>Anamnesi ed Esame Obiettivo:</strong> Valutazione di eventuali patologie cardiache personali o familiari e misurazione basale della <strong>pressione arteriosa</strong> e della frequenza cardiaca.</li>
+                                <li>• <strong>Esclusione di controindicazioni:</strong> Ipersensibilità al principio attivo, ansia grave non stabilizzata, ipertiroidismo, feocromocitoma, infarto miocardico recente o quadri psichiatrici acuti in atto.</li>
+                                <li class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-950">
+                                    <strong>Chiarimento sull'ECG (Linee Guida NICE):</strong> L'elettrocardiogramma (ECG) e la visita cardiologica <strong>non sono considerati esami obbligatori di routine per chiunque</strong>, ma sono raccomandati nei pazienti con storia personale o familiare di patologie cardiovascolari o fattori di rischio specifici.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Principali Effetti Collaterali e Gestione -->
+                        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                            <h3 class="font-bold text-slate-800 text-sm md:text-base flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-check text-amber-600"></i> Possibili Effetti Collaterali da Monitorare
+                            </h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Sono generalmente dose-dipendenti, spesso transitori nelle prime settimane e gestibili modulando la posologia o la formulazione con lo specialista:
+                            </p>
+                            <ul class="space-y-1.5 text-xs text-slate-700 leading-relaxed">
+                                <li>• <strong>Sistema Nervoso Centrale:</strong> Insonnia iniziale (se assunto troppo tardi), nervosismo, tensione interna, cefalea, irritabilità o lieve "effetto <em>rebound</em>" (stanchezza/irritabilità a fine effetto).</li>
+                                <li>• <strong>Apparato Gastrointestinale:</strong> Riduzione dell'appetito durante il picco d'azione, lieve nausea o dolore addominale (utile assumere il farmaco a stomaco pieno, in particolare per Medikinet®).</li>
+                                <li>• <strong>Sistema Cardiovascolare:</strong> Lieve incremento della frequenza cardiaca (tachicardia) o della pressione arteriosa.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. FARMACOTERAPIA E PROFILO AuDHD: COSA ACCADE QUANDO SI CALMA IL "RUMORE" ADHD? -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 bg-gradient-to-br from-slate-900 via-teal-950 to-emerald-950 text-white shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-teal-400/20 text-teal-200 text-xs font-bold uppercase tracking-wider border border-teal-400/30">
+                            <i class="fa-solid fa-brain mr-1"></i> Focus Specifico • Farmacoterapia nel Profilo Co-occorrente AuDHD (Antshel & Russo, 2019)
+                        </span>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 text-white">Cosa Succede quando gli Stimolanti Silenziano il Caos ADHD nel Profilo AuDHD?</h3>
+                    <p class="text-xs md:text-sm text-slate-300 leading-relaxed mb-5">
+                        Nelle persone con co-occorrenza di ADHD e Spettro Autistico di Livello 1, l'inizio della terapia farmacologica presenta tre peculiarità cliniche ben documentate che è fondamentale conoscere in anticipo per non spaventarsi:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-white/10 p-4 rounded-xl border border-white/15 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-emerald-300 text-sm mb-1.5">1. Emersione dei Tratti Sensoriali e di Routine</div>
+                                <p class="text-slate-200 leading-relaxed mb-3">
+                                    Quando il farmaco riduce la distraibilità e l'impulsività ADHD, la mente diventa più ordinata e silenziosa: questo fa sì che <strong>i bisogni di prevedibilità e la sensibilità sensoriale autistica diventino più nitidi e percepibili</strong> (non è un peggioramento, ma la caduta del "rumore di fondo").
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Focus AuDHD: Consapevolezza che riducendo il rumore attentivo ADHD possono emergere con più chiarezza i bisogni di ordine e protezione sensoriale')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Molto utile da sapere
+                            </button>
+                        </div>
+
+                        <div class="bg-white/10 p-4 rounded-xl border border-white/15 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-amber-300 text-sm mb-1.5">2. Sensibilità Interocettiva e "Start Low, Go Slow"</div>
+                                <p class="text-slate-200 leading-relaxed mb-3">
+                                    Il sistema nervoso AuDHD può avvertire in modo amplificato le variazioni corporee (come il battito cardiaco più rapido o il momento in cui il farmaco inizia/finisce l'effetto). Per questo è spesso indicata una <strong>titolazione molto graduale</strong>.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Focus AuDHD: Importanza di una titolazione graduale per accompagnare la sensibilità interocettiva')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Molto utile da sapere
+                            </button>
+                        </div>
+
+                        <div class="bg-white/10 p-4 rounded-xl border border-white/15 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-cyan-300 text-sm mb-1.5">3. Direzionare il Focus ed Evitare l'Over-Lavoro</div>
+                                <p class="text-slate-200 leading-relaxed mb-3">
+                                    Avere improvvisamente più concentrazione può portare al rischio di lavorare per 10 ore consecutive senza pause, dimenticando di bere, mangiare o riposare i sensi. Serve programmare <strong>pause sensoriali obbligatorie</strong> anche quando ci si sente concentrati.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Focus AuDHD: Ricordarsi di non usare la maggiore concentrazione per iper-lavorare oltre i propri limiti sensoriali e fisici')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Molto utile da sapere
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. VADEMECUM PRATICO ALLA RICETTA MINISTERIALE A RICALCO (RMR) E TELEMEDICINA -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-t-4 border-t-amber-500">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wide">
+                            Guida Pratica per il Paziente • Ricetta Ministeriale a Ricalco (RMR) & Telemedicina (Guida RITA pag. 15–20)
+                        </span>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold text-slate-800 mb-2">Come Funziona la Ricetta a Ricalco (RMR) in Farmacia?</h3>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-5">
+                        In Italia il metilfenidato rientra nella <strong>Tabella II, Sezione A del D.P.R. 309/1990</strong>. Pertanto, indipendentemente dal fatto che sia rimborsato dal SSN o a pagamento, richiede sempre la <strong>Ricetta Ministeriale a Ricalco (RMR) cartacea</strong> (ad oggi non dematerializzabile). Conoscere queste regole pratiche evita intoppi o rifiuti in farmacia:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                        <!-- Quali copie consegnare -->
+                        <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200">
+                            <h4 class="font-bold text-amber-950 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-copy text-amber-600"></i> 1. Quali copie della ricetta devi avere con te?
+                            </h4>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-2">
+                                Ogni ricetta a ricalco è composta da 3 fogli autocopianti:
+                            </p>
+                            <ul class="space-y-1.5 text-xs text-slate-700">
+                                <li>• <strong>Se il farmaco è rimborsato dal SSN (Fascia A con Piano Terapeutico):</strong> Il medico ti consegna <strong>tutte e 3 le copie</strong> (Originale, Copia SSN e Copia Assistito/Prescrittore).</li>
+                                <li>• <strong>Se il farmaco è a tuo carico (Fascia C o Off-Label):</strong> Il medico ti consegna <strong>2 copie</strong>: la <strong>1ª copia (Originale)</strong> per il farmacista e la <strong>3ª copia (Copia Assistito/Prescrittore)</strong> che ti resta come ricevuta.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Checklist di validità della ricetta -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                            <h4 class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass-check text-teal-700"></i> 2. Cosa verificare sulla ricetta prima di andare in farmacia?
+                            </h4>
+                            <ul class="space-y-1.5 text-xs text-slate-700 leading-relaxed">
+                                <li>• Compilata con <strong>penna a inchiostro nero</strong>, in stampatello leggibile.</li>
+                                <li>• Può contenere <strong>un solo farmaco e un solo dosaggio per ricetta</strong> (la riga "2ª prescrizione" deve restare sempre vuota) per una durata massima di <strong>30 giorni di terapia</strong>.</li>
+                                <li>• Numero di confezioni e posologia scritti <strong>in lettere per esteso</strong> (es. <em>"DUE capsule al giorno per TRENTA giorni"</em>).</li>
+                                <li>• <strong>Timbro (con indirizzo e telefono del medico) e firma</strong> presenti su tutte le copie.</li>
+                                <li>• <strong>Se Off-Label (L. 94/1998):</strong> Al posto del tuo Nome e Codice Fiscale deve esserci un <strong>Codice Alfanumerico</strong> (es. <em>ABC123</em>) e la dicitura <em>"Prescrizione Off Label redatta ai sensi della Legge 94/1998"</em>.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Box Telemedicina e Raccordo con il Medico di Medicina Generale (MMG) -->
+                    <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200 flex items-start gap-3">
+                        <i class="fa-solid fa-laptop-medical text-teal-700 text-xl mt-0.5"></i>
+                        <div class="text-xs text-slate-700 leading-relaxed">
+                            <strong class="text-teal-950 font-bold block mb-0.5">Come gestire le prescrizioni se segui visite in Telemedicina? (Guida RITA pag. 20)</strong>
+                            Poiché la ricetta a ricalco è cartacea in originale, quando lo specialista opera a distanza (in telemedicina) rilascia al paziente un <strong>referto diagnostico-terapeutico dettagliato</strong> (con posologia, indicazione ed eventuale modulo di consenso informato) coordinandosi con il tuo <strong>Medico di Medicina Generale (MMG)</strong>, che possiede il ricettario a ricalco della ASL e può compilare materialmente la prescrizione. In farmacia ricorda di portare con te un <strong>documento d'identità valido</strong> per il ritiro.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna alle Formulazioni
+                    </button>
+                    <button onclick="switchTab('tab4', document.querySelectorAll('.tab-btn')[3])" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Vai alla Sintesi e Mini-Quiz <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 4: SINTESI PERSONALIZZATA, MINI-QUIZ ED ESPORTAZIONE PDF COMPLETA
+                 ========================================================================= -->
+            <div id="tab4" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Box Riepilogo Dinamico degli Spunti Selezionati -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl border-t-4 border-t-amber-500">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-bookmark text-amber-500"></i> Lo Specchio del Modulo 4
+                            </h3>
+                            <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                                I principi del trattamento multimodale e gli spunti farmacologici che hai selezionato durante l'incontro:
+                            </p>
+                        </div>
+                        <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                            <i class="fa-solid fa-file-pdf"></i> Esporta Tutta la Scheda in PDF
+                        </button>
+                    </div>
+
+                    <div id="resonanceSummaryList" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-600">
+                        <em>Non sono ancora stati selezionati spunti con i pulsanti "Voglio ricordarlo" nelle schede precedenti.</em>
+                    </div>
+                </div>
+
+                <!-- Mini-Quiz di Consolidamento Modulo 4 (4 Domande) -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Mini-Quiz di Consolidamento (Modulo 4)</h2>
+                    <p class="text-slate-600 text-sm md:text-base mb-6 pb-4 border-b border-slate-200">
+                        Verifichiamo i concetti chiave sul trattamento multimodale (Scheda 3) e sulla normativa prescrittiva italiana aggiornata (Scheda 4 & Guida RITA 2024).
+                    </p>
+                    
+                    <form id="quizForm" class="space-y-6">
+                        <!-- Q1 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q1-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">1. Secondo la Scheda 3 (Migliarese et al., 2023), qual è l'atteggiamento più funzionale per affrontare il percorso di trattamento in età adulta?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="A" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">A) Pretendere di risolvere ogni difficoltà in pochi giorni cambiando dieci abitudini contemporaneamente.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="B" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">B) Definire una sola priorità alla volta, adottare un approccio multimodale (psicoeducazione, strategie, eventuale farmacoterapia), rinunciare al mito della "bacchetta magica" e ricordare che la mente è plastica e allenabile.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="C" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">C) Affidarsi esclusivamente alla forza di volontà senza modificare l'ambiente.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q2 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q2-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">2. In base alla Determina AIFA del 13/10/2023 e alla Guida RITA (Dicembre 2024), quale formulazione di metilfenidato è attualmente approvata "On-Label" (in indicazione) in Italia anche per l'adulto di nuova diagnosi?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="A" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">A) Nessun farmaco è approvato o prescrivibile in età adulta in Italia.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="B" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">B) Medikinet® (metilfenidato a rilascio modificato 50/50) è approvato On-Label anche per l'adulto di nuova diagnosi (in Fascia A con Piano Terapeutico SSN o in Fascia C da privato), mentre Ritalin® ed Equasym® restano prescrivibili nell'adulto di nuova diagnosi in modalità Off-Label (Legge 94/1998).</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="C" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">C) I farmaci per l'ADHD possono essere acquistati in farmacia senza ricetta medica.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q3 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q3-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">3. Qual è lo stato attuale dell'Atomoxetina in Italia secondo la Guida RITA (Dicembre 2024)?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="A" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">A) È un farmaco non-stimolante considerato terapia di seconda linea (quando gli stimolanti sono inefficaci o mal tollerati), la cui produzione in Italia è stata recentemente interrotta (restando importabile dall'estero tramite specifiche procedure ASL).</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="B" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">B) È uno psicostimolante ad azione immediata in 20 minuti.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="C" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">C) È un integratore da banco.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q4 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q4-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">4. Cosa succede spesso in una persona con profilo AuDHD quando il trattamento farmacologico riduce efficacemente la disattenzione e il caos mentale ADHD?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="A" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">A) Scompaiono completamente anche tutte le sensibilità sensoriali.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="B" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">B) Abbassandosi il "rumore di fondo" ADHD, i bisogni di prevedibilità, ordine e protezione sensoriale dello Spettro Autistico possono diventare più nitidi e percepibili, rendendo importante affiancare pause sensoriali e non eccedere nell'iper-lavoro.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="C" class="mt-1 w-4 h-4 text-emerald-600">
+                                    <span class="text-sm text-slate-700">C) Non occorre più dormire né fare pause.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 text-center no-print">
+                            <button type="button" onclick="checkQuiz()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-emerald-200">
+                                Verifica le Risposte <i class="fa-solid fa-check ml-2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Risultati Quiz -->
+                    <div id="quizResults" class="hidden mt-6 p-6 rounded-xl border transition-all"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const selectedResonances = new Set();
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+        };
+
+        // Cambio Tab principale
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-50', 'text-emerald-800', 'font-semibold', 'border-emerald-200');
+                btn.classList.add('text-slate-600', 'border-transparent');
+                const iconBox = btn.querySelector('span');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-emerald-100', 'text-emerald-700');
+                    iconBox.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            if (btnElement) {
+                btnElement.classList.remove('text-slate-600', 'border-transparent');
+                btnElement.classList.add('bg-emerald-50', 'text-emerald-800', 'font-semibold', 'border-emerald-200');
+                const activeIconBox = btnElement.querySelector('span');
+                if (activeIconBox) {
+                    activeIconBox.classList.remove('bg-slate-100', 'text-slate-600');
+                    activeIconBox.classList.add('bg-emerald-100', 'text-emerald-700');
+                }
+            }
+
+            const mainArea = document.getElementById('mainScrollArea');
+            if (mainArea) mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Cambio Sotto-Pannello Farmaci (Tab 2)
+        function switchMedPanel(panelId, btnElement) {
+            document.querySelectorAll('.med-detail-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(panelId).classList.remove('hidden');
+
+            document.querySelectorAll('.med-tab-btn').forEach(b => {
+                b.classList.remove('active-med');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnElement.classList.remove('bg-white', 'text-slate-700');
+            btnElement.classList.add('active-med');
+        }
+
+        function toggleResonance(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedResonances.has(textLabel)) {
+                selectedResonances.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) {
+                    icon.classList.remove('fa-solid', 'fa-check');
+                    icon.classList.add('fa-regular', 'fa-bookmark');
+                }
+            } else {
+                selectedResonances.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) {
+                    icon.classList.remove('fa-regular', 'fa-bookmark');
+                    icon.classList.add('fa-solid', 'fa-check');
+                }
+            }
+            updateResonanceUI();
+        }
+
+        function updateResonanceUI() {
+            document.getElementById('resonanceCount').textContent = selectedResonances.size;
+            const summaryContainer = document.getElementById('resonanceSummaryList');
+            
+            if (selectedResonances.size === 0) {
+                summaryContainer.innerHTML = '<em>Non sono ancora stati selezionati spunti con i pulsanti "Voglio ricordarlo" nelle schede precedenti.</em>';
+                return;
+            }
+
+            let html = '<ul class="space-y-2">';
+            selectedResonances.forEach(item => {
+                html += `
+                    <li class="flex items-start gap-2.5 bg-white p-3 rounded-lg border border-emerald-200 shadow-sm">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5"></i>
+                        <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            summaryContainer.innerHTML = html;
+        }
+
+        // Verifica Mini-Quiz
+        function checkQuiz() {
+            const answers = {
+                q1: 'B',
+                q2: 'B',
+                q3: 'A',
+                q4: 'B'
+            };
+            
+            let score = 0;
+            const form = document.getElementById('quizForm');
+            const resultsDiv = document.getElementById('quizResults');
+            
+            document.querySelectorAll('.quiz-question').forEach(q => {
+                q.classList.remove('border-l-4', 'border-l-emerald-500', 'border-l-rose-500', 'bg-emerald-50/40', 'bg-rose-50/40');
+            });
+
+            for (let [question, correctAnswer] of Object.entries(answers)) {
+                const selected = form.querySelector(`input[name="${question}"]:checked`);
+                const container = document.getElementById(`${question}-container`);
+                
+                if (selected && selected.value === correctAnswer) {
+                    score++;
+                    container.classList.add('border-l-4', 'border-l-emerald-500', 'bg-emerald-50/40');
+                } else {
+                    container.classList.add('border-l-4', 'border-l-rose-500', 'bg-rose-50/40');
+                }
+            }
+
+            resultsDiv.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-amber-50', 'border-amber-200');
+            
+            if (score === 4) {
+                resultsDiv.classList.add('bg-emerald-50', 'border-emerald-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-emerald-600"></i> Eccellente! (${score}/4 risposte corrette)
+                    </h4>
+                    <p class="text-emerald-800 text-sm md:text-base leading-relaxed">
+                        Hai una mappa chiara e aggiornata del trattamento multimodale in Italia: procedere con una priorità alla volta e conoscere con esattezza come funziona la terapia farmacologica permette di vivere il percorso con sicurezza e autonomia.
+                    </p>
+                `;
+            } else {
+                resultsDiv.classList.add('bg-amber-50', 'border-amber-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600"></i> Rivediamo insieme i punti chiave (${score}/4 corrette)
+                    </h4>
+                    <ul class="list-disc pl-5 text-xs md:text-sm text-slate-700 space-y-1.5 bg-white p-4 rounded-xl border border-amber-200">
+                        <li><strong>Domanda 1 (B):</strong> La Scheda 3 raccomanda di procedere per gradi (una priorità alla volta), con realismo e approccio multimodale.</li>
+                        <li><strong>Domanda 2 (B):</strong> Dal 18/10/2023 Medikinet® è approvato On-Label anche nell'adulto di nuova diagnosi; Ritalin® ed Equasym® sono prescrivibili Off-Label (Legge 94/1998).</li>
+                        <li><strong>Domanda 3 (A):</strong> L'Atomoxetina è una seconda linea non-stimolante la cui produzione nazionale è stata interrotta (importabile tramite ASL).</li>
+                        <li><strong>Domanda 4 (B):</strong> Riducendo il rumore attentivo ADHD, i bisogni sensoriali e di prevedibilità diventano più chiari e vanno ascoltati.</li>
+                    </ul>
+                `;
+            }
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Esportazione PDF con tutte le sezioni e tutte le schede farmaci aperte
+        function exportFullStaticPDF() {
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_4_Trattamento_Multimodale_e_Guida_Farmaci_Italia.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 4 generato con tutte le schede aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+    </script>
+</body>
+</html>

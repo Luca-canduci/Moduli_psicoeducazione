@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 3 - L'Intersezione AuDHD, Paradossi e Mappa Funzionale dei Sintomi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+        }
+        .resonance-chip.selected {
+            background-color: #f5f3ff;
+            border-color: #7c3aed;
+            color: #4c1d95;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15);
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le sezioni aperte e statiche)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #appWrapper {
+            overflow: visible !important;
+            display: block !important;
+        }
+        body.pdf-export-mode #mainScrollArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode .tab-content {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.5rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #appWrapper {
+                display: block !important;
+                overflow: visible !important;
+            }
+            #mainScrollArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .tab-content {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-violet-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Principale -->
+    <header class="bg-gradient-to-r from-violet-900 via-indigo-800 to-teal-800 text-white px-6 py-4 shadow-md z-20 shrink-0 no-print">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/15 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-Infinity text-xl text-violet-200"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-violet-100">Modulo 3</span>
+                        <span class="text-[11px] text-violet-200 hidden sm:inline">• Percorso Modulare Neuro-Affermativo</span>
+                    </div>
+                    <h1 class="text-lg md:text-2xl font-bold tracking-tight mt-0.5">L'Intersezione AuDHD: Sinergie, Paradossi e Mappa dei Sintomi</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Contatore Risonanze + Stampa/PDF Completo -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-violet-950/50 border border-violet-400/30 px-3.5 py-2 rounded-xl text-xs md:text-sm">
+                    <i class="fa-solid fa-bookmark text-amber-300"></i>
+                    <span>Spunti selezionati: <strong id="resonanceCount" class="text-white font-bold">0</strong></span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica un PDF con tutte le schede e la Ruota dei Sintomi aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Principale -->
+    <div id="appWrapper" class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl mx-auto w-full">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="md:w-72 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 overflow-x-auto md:overflow-y-auto shrink-0 flex md:flex-col gap-2 no-print">
+            <div class="hidden md:block text-xs font-bold uppercase tracking-wider text-slate-400 px-3 mb-1">Fasi del Modulo 3</div>
+            
+            <button onclick="switchTab('tab1', this)" class="tab-btn active text-left px-4 py-3.5 rounded-xl w-full transition-all bg-violet-50 text-violet-800 font-semibold border border-violet-200 flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-dna"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">1. Basi Scientifiche</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Co-occorrenza e mascheramento</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab2', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-scale-unbalanced"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">2. I 4 Paradossi AuDHD</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Il tiro alla fune motivazionale</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab3', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">3. Ruota dei Sintomi</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Mappatura interattiva 9 domini</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab4', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-list-check"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">4. Sintesi e Quiz</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Riepilogo spunti e verifica</div>
+                </div>
+            </button>
+
+            <!-- Box guida interattiva nel menu laterale -->
+            <div class="hidden md:block mt-auto pt-4 border-t border-slate-100 space-y-3">
+                <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-compass-drafting text-violet-700"></i> Mappa Personalizzata
+                    </div>
+                    <p class="leading-relaxed">
+                        Nella <strong>Fase 3</strong> puoi regolare i cursori dei 9 domini per disegnare in tempo reale la tua <strong>Ruota Funzionale dei Sintomi</strong>.
+                    </p>
+                </div>
+                <div class="bg-violet-50/70 rounded-xl p-3.5 border border-violet-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-violet-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf text-violet-700"></i> Esportazione PDF Statica
+                    </div>
+                    <p class="leading-relaxed">
+                        Cliccando su <strong>"Scarica PDF Completo"</strong>, tutte le schede e il grafico radar si esporteranno in un unico documento A4.
+                    </p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main id="mainScrollArea" class="flex-1 p-4 md:p-8 overflow-y-auto relative space-y-6">
+            
+            <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+            <div class="print-only-header hidden border-b-2 border-violet-800 pb-4 mb-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-violet-800">Programma Clinico Modulare di Psicoeducazione</div>
+                        <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 3: L'Intersezione AuDHD, Paradossi e Mappa Funzionale dei Sintomi</h1>
+                        <p class="text-xs text-slate-500 mt-1">Dispensa clinica completa (Rif. Polderman et al., 2014 • Antshel & Russo, 2019 • Rong et al., 2021 • Hours et al., 2022).</p>
+                    </div>
+                    <div class="text-xs text-slate-500 text-right">
+                        <div id="printDateLabel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================================================
+                 TAB 1: BASI SCIENTIFICHE DELLA CO-OCCORRENZA AuDHD E RECIPROCO MASCHERAMENTO
+                 ========================================================================= -->
+            <div id="tab1" class="tab-content active max-w-4xl mx-auto space-y-6">
+                
+                <!-- Card Introduzione Autonoma -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-t-4 border-t-violet-700">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 text-violet-800 text-xs font-semibold mb-4">
+                        <i class="fa-solid fa-dna"></i> Fase 1 • Epidemiologia, Genetica e Inquadramento Clinico
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Oltre la Somma Aritmetica: Che cos'è il Funzionamento AuDHD?</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Fino al 2013 (prima della pubblicazione del DSM-5), i manuali diagnostici consideravano l'ADHD e lo Spettro Autistico come diagnosi mutuamente esclusive. La ricerca genetica ed epidemiologica degli ultimi dieci anni (<em>Polderman et al., 2014, Translational Psychiatry; Antshel & Russo, 2019; Rong et al., 2021</em>) ha invece dimostrato che le due condizioni condividono tra il <strong>50% e il 72% dei fattori genetici di ereditabilità</strong> e che tra il <strong>28% e il 45% delle persone adulte nello Spettro Autistico soddisfa anche i criteri per l'ADHD</strong> (e viceversa).
+                    </p>
+
+                    <!-- Check-in iniziale -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200/80 mb-6">
+                        <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-left-right text-violet-600"></i> Check-in Iniziale: Ti capita di sperimentare una "contraddizione interna"?
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mb-3">
+                            Tocca le affermazioni che descrivono meglio la coesistenza di spinte opposte nella tua esperienza quotidiana:
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-violet-500 transition-all">
+                                Sentire un profondo bisogno di ordine e routine, ma annoiarsi o non riuscire a mantenere le tabelle di marcia create
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-violet-500 transition-all">
+                                Alternare slanci di entusiasmo e ricerca di stimoli nuovi a improvvisi momenti di saturazione sensoriale
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-violet-500 transition-all">
+                                Essere al tempo stesso molto metodici su alcuni dettagli e caotici o procrastinatori su altri fronti pratici
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-violet-500 transition-all">
+                                Sentirsi a volte "troppo strutturati" per l'ADHD classico e "troppo impulsivi o variabili" per lo stereotipo autistico
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Perché la co-occorrenza ritarda la diagnosi? (L'effetto di mascheramento reciproco) -->
+                    <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-masks-theater text-indigo-600"></i> L'Effetto di "Compensazione e Camuffamento Reciproco" (Hours et al., 2022)
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4 leading-relaxed">
+                        Quando ADHD e Spettro Autistico coesistono nella stessa persona, i tratti dell'uno possono <strong>mascherare all'esterno</strong> i tratti dell'altro, rendendo il quadro meno visibile agli occhi non specialistici ma molto più faticoso da bilanciare internamente:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-1">Come il lato Autistico compensa l'ADHD</div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-2">Controllo Analitico, Regole e Puntualità Compensatoria</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    Il bisogno autistico di prevedibilità, rispetto delle regole e precisione spinge la persona a creare sistemi di controllo rigorosi (es. arrivare con largo anticipo per il timore di fare tardi o controllare dieci volte di non aver dimenticato nulla), nascondendo all'esterno la disattenzione ADHD.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Compensazione reciproca: il bisogno di ordine, precisione o rispetto delle regole maschera all\'esterno la distraibilità e il caos esecutivo')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-violet-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-teal-50/70 border border-teal-200 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">Come il lato ADHD compensa lo Spettro Autistico</div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-2">Spontaneità Ideativa, Verbosità e Ricerca di Novità</h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    La curiosità esplorativa, la rapidità associativa e la loquacità tipiche dell'ADHD rendono la persona apparentemente estroversa, comunicativa e dinamica nei contesti sociali iniziali, occultando il successivo crollo della batteria sensoriale e il bisogno di solitudine.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Compensazione reciproca: la curiosità, l\'umorismo o la loquacità iniziale mascherano la fatica sensoriale e il bisogno di ritiro')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-violet-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6 no-print">
+                        <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                            Esplora i 4 Paradossi AuDHD <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 2: SCHEDA CLINICA 3.1 - I 4 PARADOSSI INTERNI AuDHD ("IL TIRO ALLA FUNE")
+                 ========================================================================= -->
+            <div id="tab2" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Introduzione ai Paradossi -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-violet-700">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-violet-100 text-violet-900 text-xs font-bold uppercase tracking-wide">
+                            Scheda Clinica 3.1 • Dinamica Neurocognitiva Co-occorrente
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Antshel & Russo (2019) • Murray et al. (2005) • Kooij et al. (2019)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">I 4 Paradossi Interni AuDHD ("Il Tiro alla Fune")</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed">
+                        Comprendere il profilo AuDHD significa riconoscere che nel sistema nervoso convivono due reti di regolazione con esigenze differenti: una rete che ricerca <strong>prevedibilità, coerenza e protezione dagli stimoli</strong> (per abbassare l'allerta dell'amigdala) e una rete che necessita di <strong>stimolazione dopaminergica, novità e interesse immediato</strong> per attivare le funzioni esecutive. Esploriamo i 4 paradossi principali:
+                    </p>
+                </div>
+
+                <!-- GRIGLIA DEI 4 PARADOSSI -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <!-- Paradosso 1: Routine vs Novità -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-indigo-600 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Paradosso 1 • Struttura vs Stimolazione</span>
+                                <i class="fa-solid fa-arrows-split-up-and-left text-indigo-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Bisogno di Routine vs Intolleranza alla Ripetitività</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Il sistema nervoso ha bisogno di una routine prevedibile per sentirsi sicuro e non andare in sovraccarico; tuttavia, non appena una routine diventa troppo rigida o identica ogni giorno, subentra il calo dopaminergico ADHD che la fa percepire come una "gabbia" noiosa o soffocante.
+                            </p>
+                            <div class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-100 text-xs text-indigo-950 mb-4">
+                                <strong>Sintesi:</strong> Avere bisogno di struttura per funzionare, ma faticare a seguire una struttura fissa imposta.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Paradosso 1 (Routine vs Novità): avere bisogno di prevedibilità e routine per stare calmi, ma annoiarsi o ribellarsi se la routine diventa troppo rigida')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-violet-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Paradosso 2: Pianificazione vs Esecuzione -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-teal-600 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Paradosso 2 • Organizzazione vs Avvio</span>
+                                <i class="fa-solid fa-list-ol text-teal-600"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Pianificazione Meticolosa vs Paralisi Esecutiva</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Progettare tabelle, liste, agende o sistemi organizzativi estremamente dettagliati e coerenti (che donano un immediato senso di ordine mentale), ma esaurire tutta la dopamina nella fase di progettazione, ritrovandosi poi bloccati quando si tratta di passare all'esecuzione pratica.
+                            </p>
+                            <div class="bg-teal-50/70 p-3 rounded-xl border border-teal-100 text-xs text-teal-950 mb-4">
+                                <strong>Sintesi:</strong> Amare l'ordine sistemico e i piani ben costruiti, ma scontrarsi con la fatica esecutiva di mantenerli nel tempo.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Paradosso 2 (Pianificazione vs Esecuzione): creare liste, piani o sistemi dettagliati ma faticare ad avviarli o mantenerli dopo pochi giorni')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-violet-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Paradosso 3: Sottostimolazione vs Sovrastimolazione -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-amber-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Paradosso 3 • Regolazione dell'Arousal</span>
+                                <i class="fa-solid fa-wave-square text-amber-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Cercare Stimoli e Finire in Sovraccarico Sensoriale</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Per contrastare la noia o la stanchezza attentiva, la componente ADHD spinge a cercare stimoli intensi (musica, più schermi aperti, nuovi progetti, uscite), ma poco dopo la bassa soglia sensoriale autistica va in saturazione (<em>Sensory Overload</em>).
+                            </p>
+                            <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-100 text-xs text-amber-950 mb-4">
+                                <strong>Sintesi:</strong> Essere contemporaneamente <em>sottostimolati dal punto di vista dopaminergico</em> (annoiati/irrequieti) e <em>sovrastimolati dal punto di vista sensoriale</em> (esausti per rumori o luci).
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Paradosso 3 (Sottostimolazione vs Sovrastimolazione): sentirsi al tempo stesso mentalmente irrequieti/annoiati e sensorialmente sovraccarichi')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-violet-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+
+                    <!-- Paradosso 4: Hyperfocus Monotropico vs Rotazione degli Interessi -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-rose-500 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Paradosso 4 • Interessi e Socialità</span>
+                                <i class="fa-solid fa-compass text-rose-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2">Immersione Assoluta vs Cambio Improvviso di Focus</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed mb-3">
+                                Quando un argomento accende sia il <em>Monotropismo</em> sia la <em>Novità dopaminergica</em>, nasce un'iperfocalizzazione potentissima in cui si assorbe ogni dettaglio; quando però la novità si esaurisce, l'interesse può andare in letargo improvviso (lasciando in sospeso progetti avviati).
+                            </p>
+                            <div class="bg-rose-50/70 p-3 rounded-xl border border-rose-100 text-xs text-rose-950 mb-4">
+                                <strong>Anche nelle relazioni:</strong> Alternare momenti di forte slancio comunicativo e condivisione (<em>info-dumping</em>) al bisogno improvviso di ritirarsi in silenzio perché la batteria sociale si è esaurita di colpo.
+                            </div>
+                        </div>
+                        <button onclick="toggleResonance(this, 'Paradosso 4 (Focus e Batteria Sociale): alternare immersioni totalizzanti o slanci comunicativi a improvvisi cali di batteria e bisogno di ritiro')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-violet-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LA SOLUZIONE CLINICA: LA "STRUTTURA FLESSIBILE" (SCAFFOLDING ADATTIVO) -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl bg-gradient-to-br from-slate-900 via-violet-950 to-indigo-950 text-white shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-400/30">
+                            <i class="fa-solid fa-handshake-angle mr-1"></i> Strategia Clinica Integrata • Fare Pace tra i Due Poli
+                        </span>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 text-white">Dalla Gabbia Rigida al "Menu di Routine Flessibili"</h3>
+                    <p class="text-xs md:text-sm text-slate-300 leading-relaxed mb-5">
+                        Perché i metodi di organizzazione tradizionali falliscono nel profilo AuDHD? Perché una tabella oraria rigida al minuto fa ribellare il lato ADHD, mentre l'assenza totale di piano manda in allerta il lato autistico. La strategia evidence-based consiste nel costruire <strong>"Cornici Stabili con Contenuto Variabile"</strong>:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-white/10 p-4 rounded-xl border border-white/15">
+                            <div class="font-bold text-emerald-300 mb-1">1. Ancore Fisse, Orari Elastici</div>
+                            <p class="text-slate-200 leading-relaxed">Stabilire una sequenza prevedibile di passaggi (che calma l'ansia), lasciando però libertà di scegliere l'ordine o la durata in base all'energia del giorno.</p>
+                        </div>
+                        <div class="bg-white/10 p-4 rounded-xl border border-white/15">
+                            <div class="font-bold text-amber-300 mb-1">2. Menu Dopaminergico A/B/C</div>
+                            <p class="text-slate-200 leading-relaxed">Preparare 2 o 3 opzioni pre-approvate (per colazione, studio o decompressione serale) così da avere sia familiarità sicura sia possibilità di scelta.</p>
+                        </div>
+                        <div class="bg-white/10 p-4 rounded-xl border border-white/15">
+                            <div class="font-bold text-violet-300 mb-1">3. Rotazione Senza Colpa</div>
+                            <p class="text-slate-200 leading-relaxed">Accettare che gli interessi e i sistemi organizzativi funzionino "a stagioni": quando un metodo perde efficacia, lo si aggiorna senza viverlo come un fallimento.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab1', document.querySelectorAll('.tab-btn')[0])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna alle Basi Scientifiche
+                    </button>
+                    <button onclick="switchTab('tab3', document.querySelectorAll('.tab-btn')[2])" class="bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Costruisci la tua Ruota dei Sintomi <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 3: LA RUOTA FUNZIONALE DEI SINTOMI AuDHD (RADAR SVG INTERATTIVO A 9 DOMINI)
+                 ========================================================================= -->
+            <div id="tab3" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-emerald-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wide">
+                            Strumento Clinico Interattivo • Mappatura Dimensionale
+                        </span>
+                        <span class="text-xs text-slate-400">Ispirato ai profili dimensionali AuDHD (Antshel & Russo, 2019)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">La Tua Ruota Funzionale dei Sintomi (Symptom Chart)</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed">
+                        Ogni persona neurodivergente possiede una costellazione unica: non siamo tutti uguali in ogni dominio. Sposta i cursori da <strong>1 (Impatto lieve / Raro)</strong> a <strong>5 (Impatto molto elevato / Quotidiano)</strong> sui 9 domini qui sotto per visualizzare in tempo reale la forma del tuo funzionamento attuale:
+                    </p>
+                </div>
+
+                <!-- CONTENITORE GRAFICO RADAR + SLIDERS DEI 9 DOMINI -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <!-- Colonna Sinistra: Grafico Radar SVG Dinamico -->
+                    <div class="lg:col-span-5 glass-panel rounded-2xl p-5 flex flex-col items-center justify-center sticky top-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 text-center">
+                            Profilo Visivo dei 9 Domini Funzionali
+                        </div>
+                        
+                        <div class="w-full max-w-[320px] aspect-square flex items-center justify-center">
+                            <svg id="symptomRadarSvg" viewBox="0 0 320 320" class="w-full h-full overflow-visible">
+                                <!-- Griglia poligonale e dati generati dinamicamente via JS -->
+                            </svg>
+                        </div>
+
+                        <!-- Legenda 3 Aree della Ruota -->
+                        <div class="w-full pt-3 mt-2 border-t border-slate-100 grid grid-cols-3 gap-1.5 text-[11px] text-center">
+                            <div class="p-1.5 rounded-lg bg-amber-50 text-amber-900 font-semibold border border-amber-200">
+                                <span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span>Polo ADHD
+                            </div>
+                            <div class="p-1.5 rounded-lg bg-teal-50 text-teal-900 font-semibold border border-teal-200">
+                                <span class="inline-block w-2 h-2 rounded-full bg-teal-600 mr-1"></span>Polo Spettro
+                            </div>
+                            <div class="p-1.5 rounded-lg bg-violet-50 text-violet-900 font-semibold border border-violet-200">
+                                <span class="inline-block w-2 h-2 rounded-full bg-violet-600 mr-1"></span>Ponte AuDHD
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colonna Destra: I 9 Cursori suddivisi in 3 Gruppi -->
+                    <div class="lg:col-span-7 space-y-4">
+                        
+                        <!-- GRUPPO A: Dominio Specifico ADHD -->
+                        <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-amber-500 space-y-3.5">
+                            <div class="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt"></i> A. Dimensioni Prevalenti Polo ADHD
+                            </div>
+
+                            <!-- Dominio 0 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>1. Regolazione Attentiva e Distraibilità</span>
+                                    <span id="radarVal-0" class="font-bold text-amber-700">4 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="4" oninput="updateRadarDomain(0, this.value)" class="w-full accent-amber-500 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+
+                            <!-- Dominio 1 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>2. Iperattività Mentale e Inquietudine Interna</span>
+                                    <span id="radarVal-1" class="font-bold text-amber-700">4 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="4" oninput="updateRadarDomain(1, this.value)" class="w-full accent-amber-500 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+
+                            <!-- Dominio 2 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>3. Impulsività e Ricerca di Novità / Dopamina</span>
+                                    <span id="radarVal-2" class="font-bold text-amber-700">3 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="3" oninput="updateRadarDomain(2, this.value)" class="w-full accent-amber-500 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- GRUPPO B: Dominio Specifico Spettro Autistico -->
+                        <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-teal-600 space-y-3.5">
+                            <div class="text-xs font-bold uppercase tracking-wider text-teal-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved"></i> B. Dimensioni Prevalenti Polo Spettro Autistico
+                            </div>
+
+                            <!-- Dominio 3 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>4. Bisogno di Prevedibilità e Fatica negli Imprevisti</span>
+                                    <span id="radarVal-3" class="font-bold text-teal-700">4 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="4" oninput="updateRadarDomain(3, this.value)" class="w-full accent-teal-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+
+                            <!-- Dominio 4 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>5. Sensibilità e Sovraccarico Sensoriale (AASP)</span>
+                                    <span id="radarVal-4" class="font-bold text-teal-700">4 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="4" oninput="updateRadarDomain(4, this.value)" class="w-full accent-teal-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+
+                            <!-- Dominio 5 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>6. Costo Sociale e Camouflaging (CAT-Q)</span>
+                                    <span id="radarVal-5" class="font-bold text-teal-700">4 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="4" oninput="updateRadarDomain(5, this.value)" class="w-full accent-teal-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- GRUPPO C: Dominio Condiviso / Sinergico AuDHD -->
+                        <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-violet-600 space-y-3.5">
+                            <div class="text-xs font-bold uppercase tracking-wider text-violet-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-layer-group"></i> C. Dimensioni Sinergiche Condivise (Ponte AuDHD)
+                            </div>
+
+                            <!-- Dominio 6 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>7. Funzioni Esecutive, Memoria di Lavoro e Avvio</span>
+                                    <span id="radarVal-6" class="font-bold text-violet-700">4 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="4" oninput="updateRadarDomain(6, this.value)" class="w-full accent-violet-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+
+                            <!-- Dominio 7 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>8. Intensità e Regolazione Emotiva</span>
+                                    <span id="radarVal-7" class="font-bold text-violet-700">4 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="4" oninput="updateRadarDomain(7, this.value)" class="w-full accent-violet-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+
+                            <!-- Dominio 8 -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                                    <span>9. Interocezione e Percezione del Tempo</span>
+                                    <span id="radarVal-8" class="font-bold text-violet-700">3 / 5</span>
+                                </div>
+                                <input type="range" min="1" max="5" value="3" oninput="updateRadarDomain(8, this.value)" class="w-full accent-violet-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- Box Note / Altro sulla Mappatura -->
+                        <div class="glass-panel rounded-2xl p-4 space-y-2">
+                            <label for="customChartNotes" class="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen-to-square text-violet-600"></i> Altro / Osservazioni personali sulla tua Ruota dei Sintomi:
+                            </label>
+                            <textarea id="customChartNotes" oninput="updateResonanceUI()" rows="2" placeholder="Annota qui quali domini senti più interferenti in questa fase della tua vita o eventuali specificità..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-xs text-slate-800 focus:bg-white focus:border-violet-600 focus:outline-none transition-all"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna ai 4 Paradossi
+                    </button>
+                    <button onclick="switchTab('tab4', document.querySelectorAll('.tab-btn')[3])" class="bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Vai alla Sintesi e Mini-Quiz <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 4: SINTESI PERSONALIZZATA, MINI-QUIZ ED ESPORTAZIONE PDF COMPLETA
+                 ========================================================================= -->
+            <div id="tab4" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Box Riepilogo Dinamico degli Spunti Risonanti + Punteggi Ruota -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl border-t-4 border-t-amber-500">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-bookmark text-amber-500"></i> Lo Specchio del Modulo 3
+                            </h3>
+                            <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                                Riepilogo dei paradossi selezionati e dei domini prioritari emersi nella tua Ruota Funzionale dei Sintomi:
+                            </p>
+                        </div>
+                        <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                            <i class="fa-solid fa-file-pdf"></i> Esporta Tutta la Scheda in PDF
+                        </button>
+                    </div>
+
+                    <div id="resonanceSummaryList" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-600">
+                        <!-- Popolato dinamicamente via JS -->
+                    </div>
+                </div>
+
+                <!-- Mini-Quiz di Consolidamento Modulo 3 (4 Domande) -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Mini-Quiz di Consolidamento (Modulo 3)</h2>
+                    <p class="text-slate-600 text-sm md:text-base mb-6 pb-4 border-b border-slate-200">
+                        Verifichiamo insieme i concetti chiave sull'intersezione AuDHD e sulla gestione ecologica dei paradossi interni.
+                    </p>
+                    
+                    <form id="quizForm" class="space-y-6">
+                        <!-- Q1 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q1-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">1. Perché la co-occorrenza di ADHD e Spettro Autistico (AuDHD) può portare frequentemente a una diagnosi tardiva in età adulta (Hours et al., 2022)?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="A" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">A) Perché i due funzionamenti non hanno alcuna influenza sul comportamento quotidiano.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="B" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">B) Perché alcuni tratti si mascherano a vicenda all'esterno (il bisogno di ordine e regole compensa la disattenzione, mentre la curiosità e la loquacità mascherano la fatica sociale/sensoriale), a fronte però di un elevato dispendio energetico interno.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="C" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">C) Perché ADHD e Spettro Autistico non possono mai presentarsi nella stessa persona.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q2 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q2-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">2. Da cosa nasce il tipico paradosso del progettare piani o tabelle di marcia perfetti salvo poi non riuscire a seguirli dopo pochi giorni?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="A" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">A) Dal fatto che la fase di progettazione soddisfa il bisogno di ordine e prevedibilità, ma una tabella troppo rigida esaurisce rapidamente la stimolazione dopaminergica necessaria per l'avvio esecutivo.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="B" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">B) Da una mancanza morale di serietà o di impegno.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="C" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">C) Dall'incapacità di comprendere come funziona un'agenda.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q3 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q3-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">3. Cosa significa sperimentare contemporaneamente "sottostimolazione" e "sovrastimolazione"?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="A" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">A) Essere contemporaneamente alla ricerca di stimoli cognitivi interessanti per combattere la noia (lato ADHD) ma avere il sistema nervoso già saturo per rumori, luci o richieste esterne (lato sensoriale).</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="B" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">B) Non provare mai né noia né stanchezza.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="C" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">C) Avere sempre bisogno di ambienti caotici e rumorosi per rilassarsi.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q4 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q4-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">4. Qual è la strategia più funzionale per conciliare il bisogno di routine con il bisogno di novità/flessibilità?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="A" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">A) Imporre orari inflessibili al minuto punendosi se non si rispettano.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="B" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">B) Costruire una "Struttura Flessibile" (ancore prevedibili ma con un menu di opzioni A/B/C modulabili in base all'energia della giornata).</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="C" class="mt-1 w-4 h-4 text-violet-600">
+                                    <span class="text-sm text-slate-700">C) Eliminare qualsiasi forma di pianificazione o prevedibilità.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 text-center no-print">
+                            <button type="button" onclick="checkQuiz()" class="bg-violet-700 hover:bg-violet-800 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-violet-200">
+                                Verifica le Risposte <i class="fa-solid fa-check ml-2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Risultati Quiz -->
+                    <div id="quizResults" class="hidden mt-6 p-6 rounded-xl border transition-all"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const selectedResonances = new Set();
+
+        // I 9 Domini della Ruota Funzionale dei Sintomi
+        const radarDomains = [
+            { short: "Attenzione", full: "Regolazione Attentiva e Distraibilità", group: "ADHD", color: "#f59e0b", val: 4 },
+            { short: "Iperatt. Mentale", full: "Iperattività Mentale e Inquietudine", group: "ADHD", color: "#f59e0b", val: 4 },
+            { short: "Impulsività/Novità", full: "Impulsività e Ricerca di Novità", group: "ADHD", color: "#f59e0b", val: 3 },
+            { short: "Routine", full: "Bisogno di Prevedibilità e Routine", group: "Spettro", color: "#0d9488", val: 4 },
+            { short: "Sensorialità", full: "Sensibilità e Sovraccarico Sensoriale", group: "Spettro", color: "#0d9488", val: 4 },
+            { short: "Camouflaging", full: "Costo Sociale e Camouflaging", group: "Spettro", color: "#0d9488", val: 4 },
+            { short: "Funz. Esecutive", full: "Funzioni Esecutive e Memoria di Lavoro", group: "AuDHD", color: "#7c3aed", val: 4 },
+            { short: "Emozioni", full: "Intensità e Regolazione Emotiva", group: "AuDHD", color: "#7c3aed", val: 4 },
+            { short: "Tempo/Corpo", full: "Interocezione e Percezione del Tempo", group: "AuDHD", color: "#7c3aed", val: 3 }
+        ];
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+            drawSymptomRadar();
+            updateResonanceUI();
+        };
+
+        // Cambio Tab principale
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-violet-50', 'text-violet-800', 'font-semibold', 'border-violet-200');
+                btn.classList.add('text-slate-600', 'border-transparent');
+                const iconBox = btn.querySelector('span');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-violet-100', 'text-violet-700');
+                    iconBox.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            if (btnElement) {
+                btnElement.classList.remove('text-slate-600', 'border-transparent');
+                btnElement.classList.add('bg-violet-50', 'text-violet-800', 'font-semibold', 'border-violet-200');
+                const activeIconBox = btnElement.querySelector('span');
+                if (activeIconBox) {
+                    activeIconBox.classList.remove('bg-slate-100', 'text-slate-600');
+                    activeIconBox.classList.add('bg-violet-100', 'text-violet-700');
+                }
+            }
+
+            const mainArea = document.getElementById('mainScrollArea');
+            if (mainArea) mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleCheckinChip(btn) {
+            btn.classList.toggle('ring-2');
+            btn.classList.toggle('ring-violet-600');
+            btn.classList.toggle('bg-violet-50');
+            btn.classList.toggle('font-semibold');
+        }
+
+        function toggleResonance(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedResonances.has(textLabel)) {
+                selectedResonances.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) {
+                    icon.classList.remove('fa-solid', 'fa-check');
+                    icon.classList.add('fa-regular', 'fa-bookmark');
+                }
+            } else {
+                selectedResonances.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) {
+                    icon.classList.remove('fa-regular', 'fa-bookmark');
+                    icon.classList.add('fa-solid', 'fa-check');
+                }
+            }
+            updateResonanceUI();
+        }
+
+        // Aggiorna un dominio della Ruota dei Sintomi
+        function updateRadarDomain(index, value) {
+            radarDomains[index].val = parseInt(value, 10);
+            const label = document.getElementById(`radarVal-${index}`);
+            if (label) label.textContent = `${value} / 5`;
+            drawSymptomRadar();
+            updateResonanceUI();
+        }
+
+        // Disegna il Grafico Radar SVG a 9 Assi
+        function drawSymptomRadar() {
+            const svg = document.getElementById('symptomRadarSvg');
+            if (!svg) return;
+
+            const cx = 160;
+            const cy = 160;
+            const maxRadius = 102;
+            const total = radarDomains.length;
+            let html = '';
+
+            // 1. Cerchi/Poligoni concentrici di scala (livelli 1..5)
+            for (let level = 1; level <= 5; level++) {
+                const r = (maxRadius / 5) * level;
+                let pts = [];
+                for (let i = 0; i < total; i++) {
+                    const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+                    const x = cx + r * Math.cos(angle);
+                    const y = cy + r * Math.sin(angle);
+                    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+                }
+                html += `<polygon points="${pts.join(' ')}" fill="${level === 5 ? 'rgba(241,245,249,0.5)' : 'none'}" stroke="#cbd5e1" stroke-width="${level === 5 ? '1.5' : '1'}" stroke-dasharray="${level < 5 ? '2,2' : 'none'}" />`;
+            }
+
+            // 2. Assi radiali ed etichette esterne
+            for (let i = 0; i < total; i++) {
+                const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+                const xEnd = cx + maxRadius * Math.cos(angle);
+                const yEnd = cy + maxRadius * Math.sin(angle);
+                html += `<line x1="${cx}" y1="${cy}" x2="${xEnd.toFixed(1)}" y2="${yEnd.toFixed(1)}" stroke="#cbd5e1" stroke-width="1" />`;
+
+                const labelRadius = maxRadius + 24;
+                const lx = cx + labelRadius * Math.cos(angle);
+                const ly = cy + labelRadius * Math.sin(angle);
+                html += `
+                    <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="#334155" font-size="9.5" font-weight="700">
+                        ${radarDomains[i].short}
+                    </text>
+                `;
+            }
+
+            // 3. Poligono dei valori attuali dell'utente
+            let dataPts = [];
+            let dotsHtml = '';
+            for (let i = 0; i < total; i++) {
+                const val = radarDomains[i].val;
+                const r = (maxRadius / 5) * val;
+                const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+                const px = cx + r * Math.cos(angle);
+                const py = cy + r * Math.sin(angle);
+                dataPts.push(`${px.toFixed(1)},${py.toFixed(1)}`);
+                dotsHtml += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4.5" fill="${radarDomains[i].color}" stroke="#ffffff" stroke-width="1.5" />`;
+            }
+
+            html += `<polygon points="${dataPts.join(' ')}" fill="rgba(124, 58, 237, 0.22)" stroke="#6d28d9" stroke-width="2.5" />`;
+            html += dotsHtml;
+
+            svg.innerHTML = html;
+        }
+
+        function updateResonanceUI() {
+            document.getElementById('resonanceCount').textContent = selectedResonances.size;
+            const summaryContainer = document.getElementById('resonanceSummaryList');
+            const customNotes = (document.getElementById('customChartNotes')?.value || '').trim();
+
+            // Filtra i domini con punteggio alto (>= 4) per metterli in evidenza nello specchio
+            const highDomains = radarDomains.filter(d => d.val >= 4);
+
+            let html = '<div class="space-y-4">';
+
+            if (selectedResonances.size > 0) {
+                html += '<div><div class="text-xs font-bold uppercase tracking-wider text-violet-800 mb-2">Paradossi e Dinamiche Riconosciute:</div><ul class="space-y-2">';
+                selectedResonances.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-lg border border-violet-200 shadow-sm">
+                            <i class="fa-solid fa-circle-check text-violet-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul></div>';
+            } else {
+                html += '<p class="text-xs text-slate-500 italic">Puoi selezionare i paradossi in cui ti riconosci nelle schede 1 e 2 usando il pulsante "Mi ci rivedo".</p>';
+            }
+
+            // Sintesi dei punteggi della Ruota dei Sintomi
+            html += `
+                <div class="bg-white p-4 rounded-xl border border-slate-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie text-emerald-600"></i> Sintesi della Tua Ruota Funzionale dei Sintomi
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        ${radarDomains.map(d => `
+                            <div class="p-2 rounded-lg bg-slate-50 border border-slate-200/80 flex justify-between items-center">
+                                <span class="text-slate-700 font-medium truncate pr-2">${d.short}</span>
+                                <span class="px-2 py-0.5 rounded font-bold ${d.val >= 4 ? 'bg-violet-100 text-violet-800' : 'bg-slate-200 text-slate-700'}">${d.val}/5</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${highDomains.length > 0 ? `<p class="text-xs text-slate-600 mt-3"><strong>Aree a maggiore intensità attuale (4-5/5):</strong> ${highDomains.map(d => d.full).join(' • ')}.</p>` : ''}
+                    ${customNotes ? `<p class="text-xs text-violet-950 bg-violet-50 p-2.5 rounded-lg border border-violet-200 mt-2"><strong>Note personali:</strong> ${customNotes}</p>` : ''}
+                </div>
+            `;
+
+            html += '</div>';
+            summaryContainer.innerHTML = html;
+        }
+
+        // Verifica Mini-Quiz
+        function checkQuiz() {
+            const answers = {
+                q1: 'B',
+                q2: 'A',
+                q3: 'A',
+                q4: 'B'
+            };
+            
+            let score = 0;
+            const form = document.getElementById('quizForm');
+            const resultsDiv = document.getElementById('quizResults');
+            
+            document.querySelectorAll('.quiz-question').forEach(q => {
+                q.classList.remove('border-l-4', 'border-l-emerald-500', 'border-l-rose-500', 'bg-emerald-50/40', 'bg-rose-50/40');
+            });
+
+            for (let [question, correctAnswer] of Object.entries(answers)) {
+                const selected = form.querySelector(`input[name="${question}"]:checked`);
+                const container = document.getElementById(`${question}-container`);
+                
+                if (selected && selected.value === correctAnswer) {
+                    score++;
+                    container.classList.add('border-l-4', 'border-l-emerald-500', 'bg-emerald-50/40');
+                } else {
+                    container.classList.add('border-l-4', 'border-l-rose-500', 'bg-rose-50/40');
+                }
+            }
+
+            resultsDiv.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-amber-50', 'border-amber-200');
+            
+            if (score === 4) {
+                resultsDiv.classList.add('bg-emerald-50', 'border-emerald-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-emerald-600"></i> Eccellente! (${score}/4 risposte corrette)
+                    </h4>
+                    <p class="text-emerald-800 text-sm md:text-base leading-relaxed">
+                        Hai padroneggiato i concetti chiave del Modulo 3: i paradossi AuDHD non sono incoerenza caratteriale, ma il dialogo costante tra bisogno di sicurezza predittiva e bisogno di attivazione dopaminergica.
+                    </p>
+                `;
+            } else {
+                resultsDiv.classList.add('bg-amber-50', 'border-amber-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600"></i> Rivediamo insieme i punti chiave (${score}/4 corrette)
+                    </h4>
+                    <ul class="list-disc pl-5 text-xs md:text-sm text-slate-700 space-y-1.5 bg-white p-4 rounded-xl border border-amber-200">
+                        <li><strong>Domanda 1 (B):</strong> Nella co-occorrenza AuDHD i tratti possono compensarsi all'esterno, ritardando la diagnosi ma aumentando la fatica interna.</li>
+                        <li><strong>Domanda 2 (A):</strong> Progettare dà ordine immediato, ma una tabella troppo rigida fa calare la dopamina necessaria per l'esecuzione.</li>
+                        <li><strong>Domanda 3 (A):</strong> Si può essere contemporaneamente in cerca di stimolazione cognitiva (noia) e in sovraccarico sensoriale (luci/rumori).</li>
+                        <li><strong>Domanda 4 (B):</strong> La "Struttura Flessibile" (cornice stabile ma con opzioni A/B/C) rispetta entrambi i poli del sistema nervoso.</li>
+                    </ul>
+                `;
+            }
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Esportazione PDF con tutte le sezioni aperte
+        function exportFullStaticPDF() {
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_3_Intersezione_AuDHD_Paradossi_e_Ruota_Sintomi.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 3 generato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+    </script>
+</body>
+</html>

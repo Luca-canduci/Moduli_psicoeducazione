@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 3 - Bilancia dei Paradossi AuDHD e Struttura Flessibile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .step-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-paradox {
+            background-color: #f3e8ff;
+            border-color: #7c3aed;
+            color: #4c1d95;
+            font-weight: 600;
+        }
+        .selectable-chip.active-asd {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+        .selectable-chip.active-adhd {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-bridge {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le sezioni e bussola aperte e statiche)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .step-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .step-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-violet-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Principale -->
+    <header class="bg-gradient-to-r from-violet-900 via-indigo-800 to-teal-800 text-white px-4 py-5 shadow-md no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-scale-unbalanced text-violet-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-violet-100 font-bold">Homework • Modulo 3</span>
+                        <span class="text-[11px] text-violet-200 hidden sm:inline">• Co-occorrenza e Sinergie</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold mt-0.5">Bilancia dei Paradossi AuDHD e Struttura Flessibile</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Indicatore Salvataggio + Esportazione PDF Completa -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-violet-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il PDF con tutte le sezioni dell'homework aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-violet-800 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-violet-800">Programma Clinico Modulare di Psicoeducazione • Modulo 3</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 3: Bilancia dei Paradossi AuDHD e Struttura Flessibile</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Osservazione dei conflitti motivazionali interni e progettazione del Menu Dopaminergico A/B/C (Rif. Antshel & Russo, 2019; Hours et al., 2022).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Anti-Perfezionismo -->
+        <div class="bg-violet-50/90 border border-violet-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-feather-pointed"></i>
+            </span>
+            <div class="text-xs md:text-sm text-violet-950 leading-relaxed flex-1">
+                <strong class="font-bold">Obiettivo della settimana: Osservare il "tiro alla fune" senza giudicarsi.</strong> 
+                Quando senti due spinte opposte dentro di te (es. voler pianificare tutto ma annoiarti subito del piano), non è incoerenza caratteriale: sono i due poli del tuo sistema nervoso che chiedono ascolto. Usa i tag rapidi qui sotto per mappare un episodio della settimana.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-violet-100 text-violet-900 border border-violet-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Ripasso 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 3 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-violet-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-violet-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-violet-700"></i> Bussola Rapida del Modulo 3 (Paradossi AuDHD e Struttura Flessibile)
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Compensazione Reciproca</div>
+                    <p class="text-slate-600 text-xs">Il bisogno di ordine e regole può mascherare la disattenzione ADHD, mentre la curiosità e la loquacità possono mascherare la fatica sensoriale/sociale (<em>Hours et al., 2022</em>).</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. I 4 Paradossi Interni</div>
+                    <p class="text-slate-600 text-xs">Routine vs Novità • Pianificazione vs Paralisi esecutiva • Sottostimolazione (noia) vs Sovrastimolazione (<em>overload</em>) • Immersione vs Cambio di focus.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Menu Dopaminergico A/B/C</div>
+                    <p class="text-slate-600 text-xs">Invece di una tabella rigida che soffoca il lato ADHD, creare <strong>3 opzioni pre-approvate (Alta, Media, Bassa energia)</strong> dentro una cornice familiare.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigazione a 4 Step -->
+        <nav class="grid grid-cols-2 sm:grid-cols-4 gap-2 no-print">
+            <button onclick="goToStep(1)" id="nav-step-1" class="step-nav-btn bg-violet-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                <i class="fa-solid fa-scale-unbalanced"></i> 1. Il Tiro alla Fune
+            </button>
+            <button onclick="goToStep(2)" id="nav-step-2" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center gap-2 justify-center transition-all">
+                <i class="fa-solid fa-sliders"></i> 2. Menu A / B / C
+            </button>
+            <button onclick="goToStep(3)" id="nav-step-3" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center gap-2 justify-center transition-all">
+                <i class="fa-solid fa-chart-pie"></i> 3. Check Equilibrio
+            </button>
+            <button onclick="goToStep(4)" id="nav-step-4" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center gap-2 justify-center transition-all">
+                <i class="fa-solid fa-file-pdf"></i> 4. Riepilogo e PDF
+            </button>
+        </nav>
+
+
+        <!-- =========================================================================
+             STEP 1: OSSERVAZIONE DEL "TIRO ALLA FUNE" INTERNO (I 4 PARADOSSI)
+             ========================================================================= -->
+        <section id="step-1" class="step-section active space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-violet-700">Parte 1 • Dinamica Neurocognitiva Co-occorrente (Antshel & Russo, 2019)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Riconoscere un "Tiro alla Fune" della Settimana</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Ripensa a un momento di questi giorni in cui hai percepito due esigenze opposte dentro di te: da un lato il bisogno di prevedibilità, ordine o calma sensoriale, dall'altro la ricerca di stimolazione, novità o la fatica esecutiva di avvio.
+                    </p>
+                </div>
+
+                <!-- 1A. Quale Paradosso si è attivato -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. Quale dei 4 Paradossi AuDHD hai notato in azione? <span class="text-xs font-normal text-slate-500">(Tocca uno o più elementi)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3" id="paradox-type-chips">
+                        <button type="button" onclick="toggleChip(this, 'paradoxTypes', 'active-paradox')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Paradosso 1 (Routine vs Novità): bisogno di prevedibilità ma insofferenza/noia per una tabella rigida</button>
+                        <button type="button" onclick="toggleChip(this, 'paradoxTypes', 'active-paradox')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Paradosso 2 (Pianificazione vs Avvio): creare liste o piani dettagliati ma bloccarsi nel passare all'azione</button>
+                        <button type="button" onclick="toggleChip(this, 'paradoxTypes', 'active-paradox')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Paradosso 3 (Sotto vs Sovrastimolazione): sentirsi mentalmente annoiati/irrequieti ma sensorialmente già saturi</button>
+                        <button type="button" onclick="toggleChip(this, 'paradoxTypes', 'active-paradox')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Paradosso 4 (Immersione vs Cambio di focus): iperfocalizzazione totalizzante seguita da brusco calo di interesse</button>
+                        <button type="button" onclick="toggleChip(this, 'paradoxTypes', 'active-paradox')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Paradosso Sociale: entusiasmo comunicativo iniziale seguito da improvviso bisogno di silenzio e ritiro</button>
+                    </div>
+                    <textarea id="paradoxContextText" oninput="saveData()" rows="2" placeholder="Altro / Se ti va, descrivi brevemente la situazione in cui si è verificato (opzionale)..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-800 focus:bg-white focus:border-violet-600 focus:outline-none transition-all"></textarea>
+                </div>
+
+                <!-- 1B. Ascoltare le due voci: Polo Prevedibilità vs Polo Dopamina -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cosa chiedeva il Polo Spettro -->
+                    <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200/80 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-teal-950 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-shield-halved text-teal-600"></i> Cosa chiedeva il Polo della Prevedibilità e dei Sensi?
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Qual era il bisogno di sicurezza, ordine o protezione sensoriale?</p>
+                            <div class="flex flex-wrap gap-1.5" id="asd-need-chips">
+                                <button type="button" onclick="toggleChip(this, 'asdNeeds', 'active-asd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Sapere in anticipo i passaggi chiari senza imprevisti</button>
+                                <button type="button" onclick="toggleChip(this, 'asdNeeds', 'active-asd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Ridurre rumori, luci o interruzioni esterne</button>
+                                <button type="button" onclick="toggleChip(this, 'asdNeeds', 'active-asd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Avere il tempo di fare le cose con cura e precisione</button>
+                                <button type="button" onclick="toggleChip(this, 'asdNeeds', 'active-asd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Stare nel proprio spazio familiare senza pressioni sociali</button>
+                            </div>
+                        </div>
+                        <input type="text" id="asdNeedOtherText" oninput="saveData()" placeholder="Altro bisogno di ordine/protezione (specifica)..." class="w-full rounded-lg border border-teal-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-teal-500 focus:outline-none">
+                    </div>
+
+                    <!-- Cosa chiedeva il Polo ADHD -->
+                    <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-amber-950 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-bolt text-amber-600"></i> Cosa chiedeva il Polo Dopaminergico ed Esecutivo?
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Qual era il bisogno di attivazione, flessibilità o alleggerimento?</p>
+                            <div class="flex flex-wrap gap-1.5" id="adhd-need-chips">
+                                <button type="button" onclick="toggleChip(this, 'adhdNeeds', 'active-adhd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">Un pizzico di novità, sfida o stimolo interessante per accendersi</button>
+                                <button type="button" onclick="toggleChip(this, 'adhdNeeds', 'active-adhd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">Libertà di scelta senza sentirsi chiusi in una gabbia oraria</button>
+                                <button type="button" onclick="toggleChip(this, 'adhdNeeds', 'active-adhd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">Un micro-passo iniziale piccolo per superare la paralisi d'avvio</button>
+                                <button type="button" onclick="toggleChip(this, 'adhdNeeds', 'active-adhd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">Scaricare l'irrequietezza fisica o mentale senza sentirsi in colpa</button>
+                            </div>
+                        </div>
+                        <input type="text" id="adhdNeedOtherText" oninput="saveData()" placeholder="Altro bisogno dopaminergico/esecutivo (specifica)..." class="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToStep(2)" class="bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Costruisci il Tuo Menu Flessibile A/B/C <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 2: COSTRUIRE LA "STRUTTURA FLESSIBILE" (IL MENU A/B/C E I DOMINI PRIORITARI)
+             ========================================================================= -->
+        <section id="step-2" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Parte 2 • Strategia Clinica Integrata ("Scaffolding Adattivo")</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Progettare una "Struttura Flessibile" (Il Menu A / B / C)</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Per mettere d'accordo bisogno di routine e bisogno di novità/flessibilità, scegli un ambito della tua giornata (es. studio/lavoro, cura di sé, pasti o routine serale) e costruiamo <strong>3 versioni pre-approvate (A, B, C)</strong> in base alla tua batteria del giorno:
+                    </p>
+                </div>
+
+                <!-- Scelta dell'ambito su cui applicare il Menu A/B/C -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. Su quale area quotidiana vuoi creare la tua "Cornice Flessibile"? <span class="text-xs font-normal text-slate-500">(Tocca una o più aree)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="menu-area-chips">
+                        <button type="button" onclick="toggleChip(this, 'menuAreas', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Avvio dello studio o del lavoro quotidiano</button>
+                        <button type="button" onclick="toggleChip(this, 'menuAreas', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Decompressione al rientro a casa / Fine giornata</button>
+                        <button type="button" onclick="toggleChip(this, 'menuAreas', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Gestione dei pasti e dell'idratazione</button>
+                        <button type="button" onclick="toggleChip(this, 'menuAreas', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Ordine dello spazio / Gestione domestica</button>
+                        <button type="button" onclick="toggleChip(this, 'menuAreas', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Movimento fisico e scarica motoria</button>
+                    </div>
+                </div>
+
+                <!-- Le 3 Opzioni del Menu (A = Batteria Alta, B = Batteria Media, C = Batteria Scarica / Emergenza) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Opzione A -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Opzione A • Batteria Alta</span>
+                            <i class="fa-solid fa-battery-full text-emerald-600"></i>
+                        </div>
+                        <p class="text-[11px] text-slate-600">Quando hai buona energia esecutiva e sensoriale:</p>
+                        <textarea id="menuOptionA" oninput="saveData()" rows="3" placeholder="Es. Sessione completa strutturata, pasto cucinato con calma o allenamento completo..." class="w-full rounded-xl border border-emerald-200 bg-white p-2.5 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Opzione B -->
+                    <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Opzione B • Batteria Media</span>
+                            <i class="fa-solid fa-battery-half text-amber-600"></i>
+                        </div>
+                        <p class="text-[11px] text-slate-600">Versione agile e semplificata per le giornate normali:</p>
+                        <textarea id="menuOptionB" oninput="saveData()" rows="3" placeholder="Es. Blocco da 20 minuti con timer e musica in cuffia, oppure pasto veloce pre-assemblato..." class="w-full rounded-xl border border-amber-200 bg-white p-2.5 text-xs text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Opzione C -->
+                    <div class="p-4 rounded-2xl bg-violet-50/60 border border-violet-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-violet-800">Opzione C • Batteria Scarica</span>
+                            <i class="fa-solid fa-battery-quarter text-violet-600"></i>
+                        </div>
+                        <p class="text-[11px] text-slate-600">Minimo vitale "a zero attrito" nei giorni di sovraccarico:</p>
+                        <textarea id="menuOptionC" oninput="saveData()" rows="3" placeholder="Es. Solo 5 minuti di micro-step, comfort food pronto in dispensa o riposo sensoriale al buio..." class="w-full rounded-xl border border-violet-200 bg-white p-2.5 text-xs text-slate-800 focus:border-violet-600 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Selezione dei Domini Prioritari emersi dalla Ruota dei Sintomi -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <label class="block text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-violet-700"></i> 2. Quali domini della Ruota dei Sintomi senti più prioritari in questa fase?
+                    </label>
+                    <div class="flex flex-wrap gap-1.5" id="priority-domain-chips">
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Regolazione Attentiva e Distraibilità</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Iperattività Mentale / Brain Spinning</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Impulsività e Ricerca di Dopamina</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Bisogno di Routine e Fatica negli Imprevisti</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Sensibilità e Sovraccarico Sensoriale</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Costo del Camouflaging Sociale</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Funzioni Esecutive e Paralisi d'Avvio</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Intensità e Regolazione Emotiva</button>
+                        <button type="button" onclick="toggleChip(this, 'priorityDomains', 'active-paradox')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-700">Interocezione e Percezione del Tempo</button>
+                    </div>
+                    <input type="text" id="priorityDomainOtherText" oninput="saveData()" placeholder="Altro dominio o nota specifica (opzionale)..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-violet-600 focus:outline-none">
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(3)" class="bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Check Equilibrio <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 3: CHECK EQUILIBRIO INTERNO (30 SECONDI)
+             ========================================================================= -->
+        <section id="step-3" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Parte 3 • Termometro della Settimana (30 secondi)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Bilancio tra Attrito Interno e Auto-Accettazione</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Utilizza i due cursori per fotografare come hai vissuto la coesistenza dei due poli in questa settimana:
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Slider 1: Intensità del Tiro alla Fune -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-arrows-left-right text-violet-600"></i> 1. Intensità del "Tiro alla Fune" Interno (Attrito tra Routine e Dopamina)
+                            </label>
+                            <span id="conflictIntensityLabel" class="px-2.5 py-1 rounded-full bg-violet-100 text-violet-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="conflictIntensitySlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-violet-700 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Buona sinergia tra i due lati)</span>
+                            <span>10 (Forte sensazione di blocco o contraddizione interna)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Flessibilità Gentile vs Tutto-o-Niente -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-handshake-angle text-emerald-600"></i> 2. Permesso di Usare Opzioni Flessibili (vs Perfezionismo "Tutto o Niente")
+                            </label>
+                            <span id="flexibilityPermissionLabel" class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="flexibilityPermissionSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-emerald-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Rigidità "O faccio tutto perfetto o niente")</span>
+                            <span>10 (Mi sono concesso/a di modulare il carico senza colpa)</span>
+                        </div>
+                    </div>
+
+                    <!-- Spunto per il prossimo incontro -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                            C'è una domanda, un paradosso specifico o un obiettivo prioritario su cui vorresti concentrarti nei prossimi incontri?
+                        </label>
+                        <input type="text" id="nextSessionFocus" oninput="saveData()" placeholder="Scrivi qui una nota o parola chiave per il colloquio..." class="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 focus:border-violet-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(4)" class="bg-violet-700 hover:bg-violet-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera il Riepilogo e PDF <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 4: RIEPILOGO ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="step-4" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-500">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Step Finale • Condivisione</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Esporta l'Homework del Modulo 3 in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutte le sezioni aperte oppure il prospetto sintetico.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-violet-700 hover:bg-violet-800 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica solo il box di riepilogo sintetico">
+                            <i class="fa-solid fa-file-lines"></i> PDF Solo Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all" title="Copia come testo">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-violet-700"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-violet-600 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-5 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-violet-800 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-violet-800">Percorso Modulare di Psicoeducazione • Modulo 3</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 3: Bilancia dei Paradossi AuDHD e Menu Flessibile</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Contenuto dinamico iniettato da renderSummary() -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Modulo 3 • Polderman et al. (2014) • Antshel & Russo (2019) • Hours et al. (2022)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToStep(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_3_general_v1';
+
+        let appState = {
+            patientName: '',
+            paradoxTypes: [],
+            paradoxContextText: '',
+            asdNeeds: [],
+            asdNeedOtherText: '',
+            adhdNeeds: [],
+            adhdNeedOtherText: '',
+            menuAreas: [],
+            menuOptionA: '',
+            menuOptionB: '',
+            menuOptionC: '',
+            priorityDomains: [],
+            priorityDomainOtherText: '',
+            conflictIntensityLevel: 6,
+            flexibilityPermissionLevel: 6,
+            nextSessionFocus: ''
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToStep(stepNumber) {
+            document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-step-${i}`);
+                if (i === stepNumber) {
+                    btn.className = 'step-nav-btn bg-violet-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stepNumber === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-paradox', 'active-asd', 'active-adhd', 'active-bridge');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function updateSliders() {
+            const conflictVal = document.getElementById('conflictIntensitySlider').value;
+            const flexVal = document.getElementById('flexibilityPermissionSlider').value;
+
+            document.getElementById('conflictIntensityLabel').textContent = `${conflictVal} / 10`;
+            document.getElementById('flexibilityPermissionLabel').textContent = `${flexVal} / 10`;
+
+            appState.conflictIntensityLevel = conflictVal;
+            appState.flexibilityPermissionLevel = flexVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.paradoxContextText = document.getElementById('paradoxContextText').value;
+            appState.asdNeedOtherText = document.getElementById('asdNeedOtherText').value;
+            appState.adhdNeedOtherText = document.getElementById('adhdNeedOtherText').value;
+            appState.menuOptionA = document.getElementById('menuOptionA').value;
+            appState.menuOptionB = document.getElementById('menuOptionB').value;
+            appState.menuOptionC = document.getElementById('menuOptionC').value;
+            appState.priorityDomainOtherText = document.getElementById('priorityDomainOtherText').value;
+            appState.nextSessionFocus = document.getElementById('nextSessionFocus').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('paradoxContextText').value = appState.paradoxContextText || '';
+            document.getElementById('asdNeedOtherText').value = appState.asdNeedOtherText || '';
+            document.getElementById('adhdNeedOtherText').value = appState.adhdNeedOtherText || '';
+            document.getElementById('menuOptionA').value = appState.menuOptionA || '';
+            document.getElementById('menuOptionB').value = appState.menuOptionB || '';
+            document.getElementById('menuOptionC').value = appState.menuOptionC || '';
+            document.getElementById('priorityDomainOtherText').value = appState.priorityDomainOtherText || '';
+            document.getElementById('nextSessionFocus').value = appState.nextSessionFocus || '';
+
+            document.getElementById('conflictIntensitySlider').value = appState.conflictIntensityLevel ?? 6;
+            document.getElementById('flexibilityPermissionSlider').value = appState.flexibilityPermissionLevel ?? 6;
+            document.getElementById('conflictIntensityLabel').textContent = `${appState.conflictIntensityLevel ?? 6} / 10`;
+            document.getElementById('flexibilityPermissionLabel').textContent = `${appState.flexibilityPermissionLevel ?? 6} / 10`;
+
+            restoreChipGroup('paradox-type-chips', appState.paradoxTypes, 'active-paradox');
+            restoreChipGroup('asd-need-chips', appState.asdNeeds, 'active-asd');
+            restoreChipGroup('adhd-need-chips', appState.adhdNeeds, 'active-adhd');
+            restoreChipGroup('menu-area-chips', appState.menuAreas, 'active-bridge');
+            restoreChipGroup('priority-domain-chips', appState.priorityDomains, 'active-paradox');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const pTypes = appState.paradoxTypes.length ? appState.paradoxTypes.join(' • ') : '<em>Nessun paradosso selezionato</em>';
+            const asdN = appState.asdNeeds.length ? appState.asdNeeds.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const adhdN = appState.adhdNeeds.length ? appState.adhdNeeds.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const mAreas = appState.menuAreas.length ? appState.menuAreas.join(' • ') : '<em>Non specificato</em>';
+            const pDomains = appState.priorityDomains.length ? appState.priorityDomains.join(' • ') : '<em>Nessun dominio selezionato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-800">1. Il "Tiro alla Fune" Osservato in Settimana</div>
+                    <p><strong>Paradossi AuDHD riconosciuti:</strong> ${pTypes}</p>
+                    ${appState.paradoxContextText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.paradoxContextText)}"</p>` : ''}
+                    <p><strong class="text-teal-700">Bisogno del Polo Prevedibilità/Sensi:</strong> ${asdN}</p>
+                    ${appState.asdNeedOtherText ? `<p class="text-teal-950 bg-teal-50 p-2 rounded-lg border border-teal-200 text-xs"><strong>Altro (Prevedibilità/Sensi):</strong> ${escapeHtml(appState.asdNeedOtherText)}</p>` : ''}
+                    <p><strong class="text-amber-700">Bisogno del Polo Dopaminergico/Esecutivo:</strong> ${adhdN}</p>
+                    ${appState.adhdNeedOtherText ? `<p class="text-amber-950 bg-amber-50 p-2 rounded-lg border border-amber-200 text-xs"><strong>Altro (Dopamina/Avvio):</strong> ${escapeHtml(appState.adhdNeedOtherText)}</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-800">2. Progettazione della "Struttura Flessibile" (Menu A / B / C)</div>
+                    <p><strong>Ambito scelto:</strong> ${mAreas}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        <div class="bg-emerald-50/80 p-2.5 rounded-lg border border-emerald-200">
+                            <div class="font-bold text-emerald-900 mb-1">Opzione A (Batteria Alta):</div>
+                            <div class="text-slate-700">${appState.menuOptionA ? escapeHtml(appState.menuOptionA) : '<em>Non compilato</em>'}</div>
+                        </div>
+                        <div class="bg-amber-50/80 p-2.5 rounded-lg border border-amber-200">
+                            <div class="font-bold text-amber-900 mb-1">Opzione B (Batteria Media):</div>
+                            <div class="text-slate-700">${appState.menuOptionB ? escapeHtml(appState.menuOptionB) : '<em>Non compilato</em>'}</div>
+                        </div>
+                        <div class="bg-violet-50/80 p-2.5 rounded-lg border border-violet-200">
+                            <div class="font-bold text-violet-900 mb-1">Opzione C (Batteria Scarica):</div>
+                            <div class="text-slate-700">${appState.menuOptionC ? escapeHtml(appState.menuOptionC) : '<em>Non compilato</em>'}</div>
+                        </div>
+                    </div>
+                    <p class="pt-1"><strong class="text-violet-800">Domini prioritari della Ruota dei Sintomi:</strong> ${pDomains}</p>
+                    ${appState.priorityDomainOtherText ? `<p class="text-violet-950 bg-violet-50 p-2 rounded-lg border border-violet-200 text-xs"><strong>Note sui domini:</strong> ${escapeHtml(appState.priorityDomainOtherText)}</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">3. Bilancio Interno Settimanale</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Intensità del "Tiro alla Fune" Interno</span>
+                                <span class="text-violet-700 font-bold">${appState.conflictIntensityLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-violet-600 h-2 rounded-full" style="width: ${appState.conflictIntensityLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Permesso di Modulare il Carico (Flessibilità)</span>
+                                <span class="text-emerald-700 font-bold">${appState.flexibilityPermissionLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: ${appState.flexibilityPermissionLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    ${appState.nextSessionFocus ? `<p class="text-violet-950 bg-violet-50 p-3 rounded-lg border border-violet-200 text-xs"><strong>Focus / Domanda per i prossimi incontri:</strong> "${escapeHtml(appState.nextSessionFocus)}"</p>` : ''}
+                </div>
+            `;
+        }
+
+        // SCARICA SOLO IL BOX SINTETICO IN PDF
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_3_Sintesi_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF di sintesi scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        // SCARICA IL PDF COMPLETO CON TUTTE LE SEZIONI E LA BUSSOLA APERTE E STATICHE
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_3_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 3: BILANCIA DEI PARADOSSI AuDHD E STRUTTURA FLESSIBILE ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. IL TIRO ALLA FUNE DELLA SETTIMANA",
+                "• Paradossi riconosciuti: " + (appState.paradoxTypes.join(', ') || '-'),
+                appState.paradoxContextText ? "• Episodio / Contesto: " + appState.paradoxContextText : null,
+                "• Bisogno Polo Prevedibilità/Sensi: " + (appState.asdNeeds.join(', ') || '-'),
+                appState.asdNeedOtherText ? "• Altro (Prevedibilità/Sensi): " + appState.asdNeedOtherText : null,
+                "• Bisogno Polo Dopaminergico/Esecutivo: " + (appState.adhdNeeds.join(', ') || '-'),
+                appState.adhdNeedOtherText ? "• Altro (Dopamina/Avvio): " + appState.adhdNeedOtherText : null,
+                "",
+                "2. STRUTTURA FLESSIBILE (MENU A / B / C)",
+                "• Ambito scelto: " + (appState.menuAreas.join(', ') || '-'),
+                "• Opzione A (Batteria Alta): " + (appState.menuOptionA || '-'),
+                "• Opzione B (Batteria Media): " + (appState.menuOptionB || '-'),
+                "• Opzione C (Batteria Scarica): " + (appState.menuOptionC || '-'),
+                "• Domini prioritari della Ruota dei Sintomi: " + (appState.priorityDomains.join(', ') || '-'),
+                appState.priorityDomainOtherText ? "• Note sui domini: " + appState.priorityDomainOtherText : null,
+                "",
+                "3. BILANCIO INTERNO",
+                "• Intensità del Tiro alla Fune Interno: " + appState.conflictIntensityLevel + "/10",
+                "• Permesso di usare opzioni flessibili: " + appState.flexibilityPermissionLevel + "/10",
+                appState.nextSessionFocus ? "• Focus per i prossimi incontri: " + appState.nextSessionFocus : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                paradoxTypes: [],
+                paradoxContextText: '',
+                asdNeeds: [],
+                asdNeedOtherText: '',
+                adhdNeeds: [],
+                adhdNeedOtherText: '',
+                menuAreas: [],
+                menuOptionA: '',
+                menuOptionB: '',
+                menuOptionC: '',
+                priorityDomains: [],
+                priorityDomainOtherText: '',
+                conflictIntensityLevel: 6,
+                flexibilityPermissionLevel: 6,
+                nextSessionFocus: ''
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-paradox', 'active-asd', 'active-adhd', 'active-bridge');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToStep(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

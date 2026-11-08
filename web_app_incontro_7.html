@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 7 - Ecologia Sensoriale, Interocezione e Adattamento Ambientale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+        }
+        .resonance-chip.selected {
+            background-color: #fff1f2;
+            border-color: #e11d48;
+            color: #9f1239;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(225, 29, 72, 0.15);
+        }
+        .sensory-tag.active-ally {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #065f46;
+            font-weight: 600;
+        }
+        .sensory-tag.active-obstacle {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #9f1239;
+            font-weight: 600;
+        }
+        .env-tab-btn.active-env {
+            background-color: #be123c;
+            color: #ffffff;
+            border-color: #be123c;
+            box-shadow: 0 4px 10px -2px rgba(190, 18, 60, 0.25);
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le 4 schede e sotto-schede aperte)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #appWrapper {
+            overflow: visible !important;
+            display: block !important;
+        }
+        body.pdf-export-mode #mainScrollArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode .tab-content {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.5rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .env-detail-panel {
+            display: block !important;
+            margin-bottom: 1.25rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #appWrapper {
+                display: block !important;
+                overflow: visible !important;
+            }
+            #mainScrollArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .tab-content {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .env-detail-panel {
+                display: block !important;
+                margin-bottom: 14px !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-rose-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Principale -->
+    <header class="bg-gradient-to-r from-rose-900 via-pink-800 to-indigo-900 text-white px-6 py-4 shadow-md z-20 shrink-0 no-print">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/15 p-2.5 rounded-xl backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-wave-square text-xl text-rose-200"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-rose-100">Modulo 7 • Area III</span>
+                        <span class="text-[11px] text-rose-200 hidden sm:inline">• Sensorialità, Emozioni ed Energia</span>
+                    </div>
+                    <h1 class="text-lg md:text-2xl font-bold tracking-tight mt-0.5">Ecologia Sensoriale, Interocezione e Adattamento Ambientale</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Contatore Risonanze + Stampa/PDF Completo -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-rose-950/60 border border-rose-400/30 px-3.5 py-2 rounded-xl text-xs md:text-sm">
+                    <i class="fa-solid fa-bookmark text-amber-300"></i>
+                    <span>Spunti selezionati: <strong id="resonanceCount" class="text-white font-bold">0</strong></span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica un PDF con tutte le schede aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Layout Principale -->
+    <div id="appWrapper" class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl mx-auto w-full">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="md:w-72 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 overflow-x-auto md:overflow-y-auto shrink-0 flex md:flex-col gap-2 no-print">
+            <div class="hidden md:block text-xs font-bold uppercase tracking-wider text-slate-400 px-3 mb-1">Fasi del Modulo 7</div>
+            
+            <button onclick="switchTab('tab1', this)" class="tab-btn active text-left px-4 py-3.5 rounded-xl w-full transition-all bg-rose-50 text-rose-800 font-semibold border border-rose-200 flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">1. Oltre i 5 Sensi</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Gli 8 canali e il costo cognitivo</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab2', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">2. Interocezione</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Segnali precoci e termostato</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab3', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-sliders"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">3. Dieta Sensoriale</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Adattare ambienti e Stimming</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('tab4', this)" class="tab-btn text-left px-4 py-3.5 rounded-xl w-full transition-all text-slate-600 hover:bg-slate-50 border border-transparent flex items-center gap-3 shrink-0 md:shrink">
+                <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-list-check"></i>
+                </span>
+                <div>
+                    <div class="text-sm leading-tight">4. Sintesi e Quiz</div>
+                    <div class="text-xs text-slate-500 font-normal hidden md:block">Riepilogo spunti e verifica</div>
+                </div>
+            </button>
+
+            <!-- Box guida interattiva nel menu laterale -->
+            <div class="hidden md:block mt-auto pt-4 border-t border-slate-100 space-y-3">
+                <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand-pointer text-rose-700"></i> Esplorazione Attiva
+                    </div>
+                    <p class="leading-relaxed">
+                        Nella <strong>Fase 2</strong> puoi usare il <strong>Termostato Neuro-Sensoriale</strong> e nella <strong>Fase 3</strong> mappare i tuoi <strong>Alleati</strong> e i tuoi <strong>Ostacoli</strong> sensoriali.
+                    </p>
+                </div>
+                <div class="bg-rose-50/70 rounded-xl p-3.5 border border-rose-200/80 text-xs text-slate-600 space-y-1.5">
+                    <div class="font-semibold text-rose-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf text-rose-700"></i> Esportazione PDF Statica
+                    </div>
+                    <p class="leading-relaxed">
+                        Cliccando su <strong>"Scarica PDF Completo"</strong>, tutte le schede e i 3 contesti ambientali si apriranno in un unico documento A4.
+                    </p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main id="mainScrollArea" class="flex-1 p-4 md:p-8 overflow-y-auto relative space-y-6">
+            
+            <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+            <div class="print-only-header hidden border-b-2 border-rose-800 pb-4 mb-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-rose-800">Programma Clinico Modulare di Psicoeducazione • Area III</div>
+                        <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 7: Ecologia Sensoriale, Interocezione e Adattamento Ambientale</h1>
+                        <p class="text-xs text-slate-500 mt-1">Rif. Scientifici: Dunn (2001) • Craig (2009) • Garfinkel et al. (2016) • Kooij et al. (2019) • Kapp et al. (2019).</p>
+                    </div>
+                    <div class="text-xs text-slate-500 text-right">
+                        <div id="printDateLabel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================================================
+                 TAB 1: OLTRE I 5 SENSI - IL COSTO ESECUTIVO DEGLI STIMOLI E GLI 8 CANALI
+                 ========================================================================= -->
+            <div id="tab1" class="tab-content active max-w-4xl mx-auto space-y-6">
+                
+                <!-- Card Introduzione -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-t-4 border-t-rose-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold uppercase tracking-wide">
+                            Fase 1 • Neurobiologia del Filtraggio Sensoriale
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Dunn (2001) • Kooij et al. (2019)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Perché gli Stimoli Sensoriali Consumano la Tua "Batteria Mentale"?</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Spesso pensiamo all'attenzione e alle funzioni esecutive come processi puramente astratti, separati dal corpo e dall'ambiente fisico. In realtà, ogni singolo stimolo che colpisce i nostri sensi — il ronzio di un elettrodomestico, una luce artificiale fredda, il tessuto di una maglia che pizzica, il vociare in una stanza — richiede al cervello un lavoro attivo di <strong>filtraggio e inibizione</strong>. Quando il filtro sensoriale è molto permeabile, una quota enorme della tua energia quotidiana viene spesa silenziosamente solo per "reggere" l'ambiente circostante.
+                    </p>
+
+                    <!-- Check-in Iniziale -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200/80 mb-6">
+                        <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-rose-600"></i> Check-in Iniziale: Quali di queste situazioni ti capita di sperimentare?
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mb-3">
+                            Tocca gli aspetti che senti più vicini alla tua esperienza:
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-rose-500 transition-all">
+                                Non riuscire più a seguire un discorso o a pensare lucidamente se intorno ci sono due o più fonti sonore sovrapposte
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-rose-500 transition-all">
+                                Sentire che un fastidio fisico apparentemente "piccolo" (un'etichetta, scarpe strette, caldo) assorbe tutta la tua attenzione
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-rose-500 transition-all">
+                                Accorgerti di avere fame, sete o freddo solo quando ormai hai mal di testa o sei esausto/a
+                            </button>
+                            <button onclick="toggleCheckinChip(this)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-700 hover:border-rose-500 transition-all">
+                                Concentrarti molto meglio se puoi muoverti, camminare, dondolarti o tenere qualcosa tra le mani
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- OLTRE I 5 SENSI: GLI 8 SISTEMI SENSORIALI -->
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-indigo-600"></i> Oltre i 5 Sensi Classici: Conoscere gli 8 Canali Sensoriali
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4 leading-relaxed">
+                        A scuola ci hanno insegnato l'esistenza di 5 sensi rivolti verso il mondo esterno (vista, udito, tatto, olfatto, gusto). Per capire il funzionamento neurodivergente è però fondamentale conoscere anche i <strong>3 sensi interni del corpo</strong> che regolano l'energia e la stabilità emotiva:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <!-- 6. Interocezione -->
+                        <div class="p-4 rounded-xl bg-rose-50/60 border border-rose-200 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-rose-700 mb-1">6° Senso • Il Radar Interno</div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-heart-pulse text-rose-600"></i> Interocezione
+                                </h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    È la percezione dei segnali fisiologici provenienti dall'interno degli organi: fame, sete, sazietà, battito cardiaco, respiro, temperatura corporea, tensione muscolare, bisogno di andare in bagno e segnali fisici delle emozioni.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Interocezione: alternare una bassa percezione di fame/sete/stanchezza a un\'amplificazione improvvisa di fastidi o battito cardiaco')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-rose-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 7. Propriocezione -->
+                        <div class="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-indigo-700 mb-1">7° Senso • Confini e Pressione</div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-person-rays text-indigo-600"></i> Propriocezione
+                                </h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    È il senso di posizione e forza di muscoli e articolazioni nello spazio. Quando è poco stimolato ci si può sentire "scoordinati" o urtare gli spigoli; quando viene attivato con una <strong>pressione profonda</strong> (coperte pesanti, pesi, compressione), invia un segnale immediato di calma al sistema nervoso.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Propriocezione: trovare profonda calma nella pressione fisica (coperte pesanti, abbracci decisi, attività muscolare) o urtare facilmente gli oggetti quando si è stanchi')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-rose-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+
+                        <!-- 8. Sistema Vestibolare -->
+                        <div class="p-4 rounded-xl bg-teal-50/60 border border-teal-200 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">8° Senso • Movimento ed Equilibrio</div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-arrows-up-down-left-right text-teal-600"></i> Sistema Vestibolare
+                                </h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                    Situato nell'orecchio interno, regola l'equilibrio e il movimento. Spiega sia la chinetosi (fastidio in auto/mezzi) sia il fatto che molte persone neurodivergenti <strong>pensino e ascoltino molto meglio mentre camminano avanti e indietro o si dondolano lievemente</strong>.
+                                </p>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Sistema Vestibolare: ragionare e concentrarsi meglio camminando avanti e indietro, muovendosi sulla sedia o dondolandosi')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-rose-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> Mi ci rivedo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Box: I 5 Sensi Esterni nella Vita Quotidiana -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-amber-500"></i> E i 5 Sensi Esterni? L'Effetto Sommatoria
+                        </div>
+                        <p class="leading-relaxed">
+                            Nelle giornate adulte raramente c'è un solo senso coinvolto: spesso si sommano <strong>Udito</strong> (rumori di fondo, traffico, voci), <strong>Vista</strong> (luci al neon, schermi luminosi, disordine visivo), <strong>Tatto</strong> (vestiti rigidi, cuciture, caldo/freddo) e <strong>Olfatto/Gusto</strong> (odori chimici o consistenze alimentari sgradite). Quando tre o quattro canali sono sollecitati contemporaneamente, la memoria di lavoro si satura rapidamente.
+                        </p>
+                    </div>
+
+                    <div class="flex justify-end mt-6 no-print">
+                        <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="bg-rose-700 hover:bg-rose-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                            Passa a Interocezione e Segnali Precoci <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 2: INTEROCEZIONE, SEGNALI PRECOCI DI SATURAZIONE E TERMOSTATO SENSORIALE
+                 ========================================================================= -->
+            <div id="tab2" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- 1. PERCHÉ SPESSO ACCORGIAMO DEL SOVRACCARICO TROPPO TARDI? -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-rose-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-900 text-xs font-bold uppercase tracking-wide">
+                            Fase 2 • Allenare l'Ascolto Interocettivo
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Craig (2009) • Garfinkel et al. (2016)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Il "Cruscotto" del Corpo: Intercettare i Segnali Prima della Zona Rossa</h2>
+                    <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                        Quando siamo immersi in un compito (iperfocalizzazione o tunnel monotropico) oppure quando stiamo spendendo molte energie per adattarci a un contesto sociale, il volume dei segnali corporei interni viene "abbassato". È come guidare un'auto la cui spia della riserva si accende solo quando restano 500 metri di autonomia: si passa dall'apparente normalità al crollo energetico o all'irritabilità improvvisa.
+                    </p>
+
+                    <!-- I 3 Gruppi di Segnali di Allerta Precoce (Zona Gialla) -->
+                    <h3 class="text-base md:text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Riconoscere i Tuoi Segnali di "Zona Gialla" (Allerta Precoce)
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        Prima di arrivare al sovraccarico acuto, il corpo invia sempre piccoli segnali anticipatori. Tocca quelli che riconosci come i tuoi "campanelli d'allarme" personali:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Segnali Corporei -->
+                        <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-amber-950 text-sm mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-bolt-lightning text-amber-600"></i> 1. Segnali Fisici e Somatici
+                                </div>
+                                <ul class="space-y-1.5 text-xs text-slate-700 leading-relaxed mb-3">
+                                    <li>• Serrare la mandibola o tenere le spalle contratte verso le orecchie.</li>
+                                    <li>• Sentire improvvisamente fastidio per gli abiti, i capelli sul viso o la temperatura.</li>
+                                    <li>• Respiro superficiale, senso di pesantezza agli occhi o lieve cefalea frontale.</li>
+                                </ul>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Segnale precoce fisico: tensione a mandibola/spalle, pesantezza agli occhi o improvvisa intolleranza per i vestiti e la temperatura')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-rose-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> È un mio segnale
+                            </button>
+                        </div>
+
+                        <!-- Segnali Cognitivi e Verbali -->
+                        <div class="p-4 rounded-xl bg-rose-50/60 border border-rose-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-rose-950 text-sm mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-comment-slash text-rose-600"></i> 2. Segnali Cognitivi e Verbali
+                                </div>
+                                <ul class="space-y-1.5 text-xs text-slate-700 leading-relaxed mb-3">
+                                    <li>• Fatica crescente a trovare le parole giuste o ad articolare frasi lunghe.</li>
+                                    <li>• Rileggere più volte la stessa riga senza assorbirne il significato.</li>
+                                    <li>• Sentire che anche una domanda semplice (es. <em>"Cosa mangiamo stasera?"</em>) pesa come un macigno.</li>
+                                </ul>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Segnale precoce cognitivo: fatica a parlare, annebbiamento mentale o sentire insopportabile anche una piccola decisione')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-rose-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> È un mio segnale
+                            </button>
+                        </div>
+
+                        <!-- Segnali Percettivi ed Emotivi -->
+                        <div class="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
+                            <div>
+                                <div class="font-bold text-indigo-950 text-sm mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-volume-high text-indigo-600"></i> 3. Segnali Percettivi ed Emotivi
+                                </div>
+                                <ul class="space-y-1.5 text-xs text-slate-700 leading-relaxed mb-3">
+                                    <li>• I suoni normali (posate, notifiche, voci) sembrano improvvisamente amplificati e taglienti.</li>
+                                    <li>• Scatti d'impazienza, irritabilità o lacrime facili per piccoli contrattempi.</li>
+                                    <li>• Goffaggine motoria: far cadere oggetti o urtare contro gli stipiti.</li>
+                                </ul>
+                            </div>
+                            <button onclick="toggleResonance(this, 'Segnale precoce percettivo: i suoni normali diventano taglienti, aumenta l\'irritabilità o si iniziano a urtare/far cadere gli oggetti')" class="resonance-chip w-full py-2 px-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-700 hover:border-rose-500 transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-bookmark"></i> È un mio segnale
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. SIMULATORE INTERATTIVO: IL TERMOSTATO NEURO-SENSORIALE -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl bg-gradient-to-br from-slate-900 via-rose-950 to-indigo-950 text-white shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-rose-400/20 text-rose-200 text-xs font-bold uppercase tracking-wider border border-rose-400/30">
+                            <i class="fa-solid fa-temperature-half mr-1"></i> Simulatore Interattivo • Il Termostato Neuro-Sensoriale
+                        </span>
+                        <span id="sensoryThermoBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            Zona Verde (30%): Sistema Regolato
+                        </span>
+                    </div>
+
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 text-white">Come i Micro-Attriti Saturano il Sistema (e Come Decomprimerlo in Tempo)</h3>
+                    <p class="text-xs md:text-sm text-slate-300 leading-relaxed mb-4">
+                        Il sovraccarico sensoriale raramente dipende da un unico evento estremo: quasi sempre è la <strong>somma di piccoli attriti sensoriali e interocettivi</strong> trascurati per ore. Prova ad aggiungere i fattori di carico o ad attivare le manovre di decompressione:
+                    </p>
+
+                    <div class="w-full bg-slate-800 rounded-full h-4 mb-3 overflow-hidden p-0.5 border border-slate-700">
+                        <div id="sensoryThermoBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 30%"></div>
+                    </div>
+
+                    <p id="sensoryThermoExplanation" class="text-xs md:text-sm text-rose-100 mb-5 min-h-[2.4rem] bg-white/5 p-3 rounded-xl border border-white/10">
+                        In Zona Verde (30%) la corteccia prefrontale ha margine per concentrarsi, ascoltare e gestire gli imprevisti.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 no-print">
+                        <!-- Colonna + Carico (Ostacoli Sensoriali) -->
+                        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-rose-500/30 space-y-2">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-rose-300">Aggiungi Micro-Attriti (Ostacoli)</div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="adjustThermo(20, 'Luci artificiali al neon + schermo luminoso senza pause (+20% di carico visivo).')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 transition-all">
+                                    <i class="fa-solid fa-plus text-rose-400 mr-1"></i> Luci forti / Schermi (+20%)
+                                </button>
+                                <button type="button" onclick="adjustThermo(25, 'Voci sovrapposte, traffico o open-space rumoroso (+25% di fatica di filtraggio uditivo).')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 transition-all">
+                                    <i class="fa-solid fa-plus text-rose-400 mr-1"></i> Rumore / Vociare (+25%)
+                                </button>
+                                <button type="button" onclick="adjustThermo(20, 'Saltare il pasto o non bere per ore durante l\'iper-focus: l\'ipoglicemia abbassa drasticamente la soglia sensoriale (+20%).')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 transition-all">
+                                    <i class="fa-solid fa-plus text-rose-400 mr-1"></i> Fame/Sete ignorata (+20%)
+                                </button>
+                                <button type="button" onclick="adjustThermo(15, 'Indumento scomodo, etichetta che punge o caldo eccessivo (+15% di irritazione tattile continua).')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 transition-all">
+                                    <i class="fa-solid fa-plus text-rose-400 mr-1"></i> Vestito scomodo / Caldo (+15%)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Colonna - Scarico (Alleati Sensoriali) -->
+                        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-emerald-500/30 space-y-2">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Attiva Manovre Regolatorie (Alleati)</div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="adjustThermo(-25, 'Indossare cuffie a cancellazione del rumore o tappi acustici selettivi (-25% di carico immediato).')" class="px-2.5 py-1.5 rounded-lg bg-emerald-900/60 hover:bg-emerald-800/80 border border-emerald-500/40 text-xs text-emerald-100 transition-all">
+                                    <i class="fa-solid fa-minus text-emerald-400 mr-1"></i> Cuffie / Tappi acustici (-25%)
+                                </button>
+                                <button type="button" onclick="adjustThermo(-20, 'Check interocettivo: bere un bicchiere d\'acqua, fare uno spuntino semplice e indossare abiti morbidi (-20%).')" class="px-2.5 py-1.5 rounded-lg bg-emerald-900/60 hover:bg-emerald-800/80 border border-emerald-500/40 text-xs text-emerald-100 transition-all">
+                                    <i class="fa-solid fa-minus text-emerald-400 mr-1"></i> Acqua + Spuntino + Comfort (-20%)
+                                </button>
+                                <button type="button" onclick="adjustThermo(-25, 'Pausa sensoriale di 10 minuti in penombra, silenzio o pressione profonda prima che scatti la Zona Rossa (-25%).')" class="px-2.5 py-1.5 rounded-lg bg-emerald-900/60 hover:bg-emerald-800/80 border border-emerald-500/40 text-xs text-emerald-100 transition-all">
+                                    <i class="fa-solid fa-minus text-emerald-400 mr-1"></i> Pausa buio/pressione (-25%)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab1', document.querySelectorAll('.tab-btn')[0])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna agli 8 Canali Sensoriali
+                    </button>
+                    <button onclick="switchTab('tab3', document.querySelectorAll('.tab-btn')[2])" class="bg-rose-700 hover:bg-rose-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Passa alla Dieta Sensoriale e Ambienti <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 3: ADATTAMENTO AMBIENTALE NEI 3 CONTESTI, STIMMING E MAPPATURA ALLEATI/OSTACOLI
+                 ========================================================================= -->
+            <div id="tab3" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- 1. ADATTARE I 3 CONTESTI DI VITA (CASA, STUDIO/LAVORO, SPOSTAMENTI/VITA SOCIALE) -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 border-l-4 border-l-teal-600">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                            Fase 3 • Progettare la Tua "Dieta Sensoriale" Quotidiana
+                        </span>
+                        <span class="text-xs text-slate-400">Rif.: Dunn (2001) • Kapp et al. (2019)</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Non Forzare il Sistema Nervoso: Adatta l'Ambiente</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mb-5">
+                        Abituarsi passivamente a uno stimolo sensoriale doloroso o sfiancante (come un rumore continuo o una luce abbagliante) spesso non è possibile a livello neurologico: cercare di "resistere" consuma solo preziose risorse prefrontali. La scelta più saggia ed efficace consiste nel <strong>modificare l'ambiente e introdurre ausili sensoriali</strong> nei tre contesti principali della giornata:
+                    </p>
+
+                    <!-- Selettori dei 3 Contesti (Nascosti in stampa perché tutti i pannelli si aprono) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-5 no-print">
+                        <button type="button" onclick="switchEnvPanel('env-home', this)" class="env-tab-btn active-env p-3 rounded-xl border border-slate-200 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-house-chimney"></i> 1. In Casa (Rifugio)
+                        </button>
+                        <button type="button" onclick="switchEnvPanel('env-work', this)" class="env-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-briefcase"></i> 2. Studio e Lavoro
+                        </button>
+                        <button type="button" onclick="switchEnvPanel('env-outside', this)" class="env-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-Compass"></i> 3. Fuori e Socialità
+                        </button>
+                    </div>
+
+                    <!-- Contesto 1: Casa -->
+                    <div id="env-home" class="env-detail-panel p-5 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3">
+                        <h3 class="font-bold text-teal-950 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-house-chimney text-teal-700"></i> 1. Ambiente Domestico: Creare una "Zona a Basso Impatto Sensoriale"
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-700">
+                            <div class="bg-white p-3.5 rounded-xl border border-teal-100">
+                                <strong class="text-teal-900 block mb-1">Illuminazione e Suoni:</strong>
+                                Sostituire la luce centrale fredda con <strong>punti luce caldi e indiretti</strong> (lampade da tavolo, dimmer); ridurre i rumori di fondo tenendo spenta la TV se nessuno la sta guardando attivamente.
+                            </div>
+                            <div class="bg-white p-3.5 rounded-xl border border-teal-100">
+                                <strong class="text-teal-900 block mb-1">Tatto e Decompressione:</strong>
+                                Tenere a portata di mano <strong>abiti casalinghi morbidi privi di cuciture o etichette</strong> da indossare appena si rientra, e allestire un angolo di recupero con cuscini o coperta ponderata.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contesto 2: Studio e Lavoro -->
+                    <div id="env-work" class="env-detail-panel hidden p-5 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3">
+                        <h3 class="font-bold text-indigo-950 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-briefcase text-indigo-700"></i> 2. Studio e Lavoro: Proteggere la Memoria di Lavoro
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-700">
+                            <div class="bg-white p-3.5 rounded-xl border border-indigo-100">
+                                <strong class="text-indigo-900 block mb-1">Schermatura Acustica e Visiva:</strong>
+                                Utilizzare <strong>cuffie a cancellazione del rumore (ANC)</strong> o tappi acustici filtranti negli ambienti condivisi; attivare il filtro luce calda sugli schermi e scegliere una postazione con le spalle al muro per ridurre il movimento periferico.
+                            </div>
+                            <div class="bg-white p-3.5 rounded-xl border border-indigo-100">
+                                <strong class="text-indigo-900 block mb-1">Ancore Interocettive sulla Scrivania:</strong>
+                                Tenere sempre <strong>una borraccia d'acqua visibile e uno spuntino pratico</strong> sulla scrivania per evitare cali glicemici durante le ore di iperfocalizzazione.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contesto 3: Spostamenti e Vita Sociale -->
+                    <div id="env-outside" class="env-detail-panel hidden p-5 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3">
+                        <h3 class="font-bold text-rose-950 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-compass text-rose-700"></i> 3. Spostamenti, Commissioni e Vita Sociale: Il "Kit Portatile"
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-700">
+                            <div class="bg-white p-3.5 rounded-xl border border-rose-100">
+                                <strong class="text-rose-900 block mb-1">Il Kit di Pronto Soccorso in Borsa/Tasca:</strong>
+                                Portare sempre con sé <strong>tappi acustici discreti</strong> (che attenuano il riverbero dei locali lasciando sentire le voci), <strong>occhiali da sole o lenti riposanti</strong>, uno snack d'emergenza e un piccolo oggetto tattile da manipolare.
+                            </div>
+                            <div class="bg-white p-3.5 rounded-xl border border-rose-100">
+                                <strong class="text-rose-900 block mb-1">Strategie Ecologiche Fuori Casa:</strong>
+                                Fare la spesa in orari meno affollati (o usare la spesa online quando la batteria è scarica), scegliere tavoli angolari nei locali e concedersi brevi <strong>pause di 5 minuti in un luogo silenzioso</strong> durante gli eventi lunghi.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. LEGITTIMARE LO STIMMING E IL FIDGETING COME REGOLATORI NEUROFISIOLOGICI -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 bg-gradient-to-r from-indigo-900 to-slate-900 text-white shadow-md">
+                    <div class="flex items-start gap-3.5">
+                        <i class="fa-solid fa-hands-bubbles text-2xl text-teal-300 mt-1"></i>
+                        <div class="space-y-2">
+                            <div class="text-xs font-bold uppercase tracking-wider text-teal-300">Autoregolazione Motoria e Sensoriale</div>
+                            <h3 class="text-lg md:text-xl font-bold text-white">Il Valore Regolatorio dello Stimming e del Fidgeting</h3>
+                            <p class="text-xs md:text-sm text-slate-200 leading-relaxed">
+                                Muovere le mani con un oggetto (<em>fidgeting</em>), dondolarsi lievemente, ascoltare la stessa canzone in ripetizione, accarezzare una superficie morbida o camminare mentre si parla non sono "cattive abitudini nervose da reprimere": sono <strong>meccanismi naturali di autoregolazione</strong>. Fornendo al cervello uno stimolo ritmico, scelto e prevedibile, aiutano a scaricare la tensione accumulata e a mantenere sveglia l'attenzione.
+                            </p>
+                            <div class="pt-2">
+                                <button onclick="toggleResonance(this, 'Legittimare lo Stimming/Fidgeting: concedersi movimenti ritmici, oggetti tattili o stimoli familiari ripetitivi per regolare l\'attenzione e scaricare la tensione')" class="resonance-chip py-2 px-4 rounded-xl border border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center gap-2">
+                                    <i class="fa-regular fa-bookmark"></i> Voglio concedermi questa forma di autoregolazione
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. MAPPATURA PERSONALE: I MIEI ALLEATI SENSORIALI VS I MIEI OSTACOLI SENSORIALI -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8">
+                    <h3 class="text-lg md:text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-rose-600"></i> Mappatura Personale: I Miei Ostacoli vs I Miei Alleati Sensoriali
+                    </h3>
+                    <p class="text-xs md:text-sm text-slate-600 mb-4">
+                        Riconoscere con precisione cosa drena la tua energia sensoriale (<strong>Ostacoli/Antagonisti</strong>) e cosa invece la protegge o la ricarica (<strong>Alleati/Facilitatori</strong>) è il primo passo per costruire il tuo piano personalizzato:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Colonna 1: Ostacoli / Antagonisti Sensoriali -->
+                        <div class="p-4 rounded-xl bg-rose-50/50 border border-rose-200 flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="font-bold text-rose-950 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-xmark text-rose-600"></i> I Miei Principali Ostacoli Sensoriali
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'obstacle')" class="sensory-tag obstacle-item px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700 transition-all">Rumori sovrapposti / Locali con riverbero</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'obstacle')" class="sensory-tag obstacle-item px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700 transition-all">Luci fredde al neon / Sole abbagliante</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'obstacle')" class="sensory-tag obstacle-item px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700 transition-all">Etichette, cuciture o abiti costrittivi</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'obstacle')" class="sensory-tag obstacle-item px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700 transition-all">Caldo afoso o sbalzi termici</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'obstacle')" class="sensory-tag obstacle-item px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700 transition-all">Odori intensi / Profumi chimici</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'obstacle')" class="sensory-tag obstacle-item px-3 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700 transition-all">Fame o sete non percepite in tempo</button>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-rose-200/70 space-y-2">
+                                <label for="customObstacleText" class="block text-xs font-bold text-rose-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pen-to-square text-rose-600"></i> Altro (specifica altri tuoi ostacoli sensoriali):
+                                </label>
+                                <textarea id="customObstacleText" oninput="updateResonanceUI()" rows="2" placeholder="Es. Suoni masticatori, supermercati affollati, contatto fisico imprevisto..." class="w-full rounded-lg border border-rose-200 bg-white p-2.5 text-xs text-slate-800 focus:border-rose-500 focus:outline-none transition-all"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Colonna 2: Alleati / Facilitatori Sensoriali -->
+                        <div class="p-4 rounded-xl bg-emerald-50/50 border border-emerald-200 flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="font-bold text-emerald-950 text-xs uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i> I Miei Principali Alleati Sensoriali
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'ally')" class="sensory-tag ally-item px-3 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700 transition-all">Cuffie antirumore (ANC) o tappi acustici</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'ally')" class="sensory-tag ally-item px-3 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700 transition-all">Luci calde soffuse / Penombra / Occhiali da sole</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'ally')" class="sensory-tag ally-item px-3 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700 transition-all">Abbigliamento morbido e confortevole</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'ally')" class="sensory-tag ally-item px-3 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700 transition-all">Pressione profonda (coperta pesante, doccia calda)</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'ally')" class="sensory-tag ally-item px-3 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700 transition-all">Stimming / Fidgeting / Camminare mentre penso</button>
+                                    <button type="button" onclick="toggleSensoryMapTag(this, 'ally')" class="sensory-tag ally-item px-3 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700 transition-all">Acqua e snack sempre a portata di vista</button>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 border-t border-emerald-200/70 space-y-2">
+                                <label for="customAllyText" class="block text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-pen-to-square text-emerald-600"></i> Altro (specifica altri tuoi alleati sensoriali):
+                                </label>
+                                <textarea id="customAllyText" oninput="updateResonanceUI()" rows="2" placeholder="Es. Ascoltare una traccia familiare in loop, stare in natura, contatto con animali domestici..." class="w-full rounded-lg border border-emerald-200 bg-white p-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none transition-all"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="switchTab('tab2', document.querySelectorAll('.tab-btn')[1])" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Torna all'Interocezione
+                    </button>
+                    <button onclick="switchTab('tab4', document.querySelectorAll('.tab-btn')[3])" class="bg-rose-700 hover:bg-rose-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                        Vai alla Sintesi e Mini-Quiz <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- =========================================================================
+                 TAB 4: SINTESI PERSONALIZZATA, MINI-QUIZ ED ESPORTAZIONE PDF COMPLETA
+                 ========================================================================= -->
+            <div id="tab4" class="tab-content max-w-4xl mx-auto space-y-6 pb-8">
+                
+                <!-- Box Riepilogo Dinamico degli Spunti Selezionati -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl border-t-4 border-t-amber-500">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-bookmark text-amber-500"></i> Lo Specchio del Modulo 7
+                            </h3>
+                            <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                                Riepilogo dei tuoi segnali precoci di saturazione, dei tuoi Ostacoli e dei tuoi Alleati sensoriali selezionati:
+                            </p>
+                        </div>
+                        <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                            <i class="fa-solid fa-file-pdf"></i> Esporta Tutta la Scheda in PDF
+                        </button>
+                    </div>
+
+                    <div id="resonanceSummaryList" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-600">
+                        <em>Non sono ancora stati selezionati spunti o tag nelle schede precedenti.</em>
+                    </div>
+                </div>
+
+                <!-- Mini-Quiz di Consolidamento Modulo 7 (4 Domande) -->
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Mini-Quiz di Consolidamento (Modulo 7)</h2>
+                    <p class="text-slate-600 text-sm md:text-base mb-6 pb-4 border-b border-slate-200">
+                        Verifichiamo insieme i concetti chiave sull'ecologia sensoriale, sull'interocezione e sull'adattamento ambientale.
+                    </p>
+                    
+                    <form id="quizForm" class="space-y-6">
+                        <!-- Q1 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q1-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">1. Perché trovarsi in un ambiente sensorialmente caotico (luci forti, voci sovrapposte, abiti scomodi) peggiora rapidamente anche la concentrazione e la memoria di lavoro?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="A" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">A) Perché filtrare gli stimoli sensoriali in ingresso consuma direttamente risorse esecutive prefrontali, lasciando meno "batteria mentale" per ragionare, ascoltare e prendere decisioni.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="B" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">B) Perché i sensi e la concentrazione non hanno alcun legame tra loro.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q1" value="C" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">C) Perché basta sforzarsi con la volontà per abituarsi a qualsiasi rumore.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q2 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q2-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">2. Che cos'è l'Interocezione e perché è così importante allenarla?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="A" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">A) È la capacità di vedere al buio.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="B" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">B) È il senso che legge i segnali interni del corpo (fame, sete, tensione muscolare, stanchezza): intercettare i segnali precoci in "Zona Gialla" permette di fare una pausa o idratarsi prima di arrivare al crollo o all'irritabilità.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q2" value="C" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">C) È un meccanismo che serve solo durante l'attività sportiva agonistica.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q3 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q3-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">3. Qual è la funzione neurofisiologica dello Stimming, del Fidgeting e della pressione profonda (Propriocezione)?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="A" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">A) Sono abitudini inutili che vanno sempre represse anche quando si è da soli.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="B" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">B) Forniscono un input sensoriale ritmico, prevedibile e scelto autonomamente che aiuta il sistema nervoso a scaricare la tensione, calmare l'allerta e sostenere l'attenzione.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q3" value="C" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">C) Servono solo ad aumentare il disordine nella stanza.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Q4 -->
+                        <div class="quiz-question p-4 rounded-xl bg-slate-50/70 border border-slate-200/80" id="q4-container">
+                            <h3 class="text-base md:text-lg font-semibold text-slate-800 mb-3">4. In cosa consiste costruire una "Dieta Sensoriale" ecologica nella vita adulta?</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="A" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">A) Nel seguire un regime alimentare ipocalorico.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="B" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">B) Nel ridurre attivamente gli ostacoli sensoriali (con cuffie, tappi, luci calde, abiti confortevoli) e inserire piccoli alleati regolatori e pause prima che la batteria si esaurisca.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white transition-colors">
+                                    <input type="radio" name="q4" value="C" class="mt-1 w-4 h-4 text-rose-600">
+                                    <span class="text-sm text-slate-700">C) Nell'esporsi intenzionalmente ai rumori più forti per ore consecutive.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 text-center no-print">
+                            <button type="button" onclick="checkQuiz()" class="bg-rose-700 hover:bg-rose-800 text-white font-semibold py-3 px-8 rounded-xl shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-rose-200">
+                                Verifica le Risposte <i class="fa-solid fa-check ml-2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Risultati Quiz -->
+                    <div id="quizResults" class="hidden mt-6 p-6 rounded-xl border transition-all"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const selectedResonances = new Set();
+        let currentThermoLoad = 30;
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+        };
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-rose-50', 'text-rose-800', 'font-semibold', 'border-rose-200');
+                btn.classList.add('text-slate-600', 'border-transparent');
+                const iconBox = btn.querySelector('span');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-rose-100', 'text-rose-700');
+                    iconBox.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            if (btnElement) {
+                btnElement.classList.remove('text-slate-600', 'border-transparent');
+                btnElement.classList.add('bg-rose-50', 'text-rose-800', 'font-semibold', 'border-rose-200');
+                const activeIconBox = btnElement.querySelector('span');
+                if (activeIconBox) {
+                    activeIconBox.classList.remove('bg-slate-100', 'text-slate-600');
+                    activeIconBox.classList.add('bg-rose-100', 'text-rose-700');
+                }
+            }
+
+            const mainArea = document.getElementById('mainScrollArea');
+            if (mainArea) mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleCheckinChip(btn) {
+            btn.classList.toggle('ring-2');
+            btn.classList.toggle('ring-rose-600');
+            btn.classList.toggle('bg-rose-50');
+            btn.classList.toggle('font-semibold');
+        }
+
+        function switchEnvPanel(panelId, btnElement) {
+            document.querySelectorAll('.env-detail-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(panelId).classList.remove('hidden');
+
+            document.querySelectorAll('.env-tab-btn').forEach(b => {
+                b.classList.remove('active-env');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnElement.classList.remove('bg-white', 'text-slate-700');
+            btnElement.classList.add('active-env');
+        }
+
+        function adjustThermo(delta, message) {
+            currentThermoLoad = Math.max(15, Math.min(100, currentThermoLoad + delta));
+            const bar = document.getElementById('sensoryThermoBar');
+            const badge = document.getElementById('sensoryThermoBadge');
+            const exp = document.getElementById('sensoryThermoExplanation');
+
+            bar.style.width = `${currentThermoLoad}%`;
+            exp.textContent = message;
+
+            bar.classList.remove('bg-emerald-500', 'bg-amber-500', 'bg-rose-500');
+            badge.className = 'px-3 py-1 rounded-full text-xs font-bold border ';
+
+            if (currentThermoLoad <= 45) {
+                bar.classList.add('bg-emerald-500');
+                badge.classList.add('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500/30');
+                badge.textContent = `Zona Verde (${currentThermoLoad}%): Sistema Regolato`;
+            } else if (currentThermoLoad <= 75) {
+                bar.classList.add('bg-amber-500');
+                badge.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/30');
+                badge.textContent = `Zona Gialla (${currentThermoLoad}%): Segnali Precoci di Saturazione`;
+            } else {
+                bar.classList.add('bg-rose-500');
+                badge.classList.add('bg-rose-500/20', 'text-rose-300', 'border-rose-500/30');
+                badge.textContent = `ZONA ROSSA (${currentThermoLoad}%): Sensory Overload! Attiva gli Alleati`;
+            }
+        }
+
+        function toggleSensoryMapTag(btn, type) {
+            const cls = type === 'obstacle' ? 'active-obstacle' : 'active-ally';
+            btn.classList.toggle(cls);
+            updateResonanceUI();
+        }
+
+        function toggleResonance(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedResonances.has(textLabel)) {
+                selectedResonances.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) {
+                    icon.classList.remove('fa-solid', 'fa-check');
+                    icon.classList.add('fa-regular', 'fa-bookmark');
+                }
+            } else {
+                selectedResonances.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) {
+                    icon.classList.remove('fa-regular', 'fa-bookmark');
+                    icon.classList.add('fa-solid', 'fa-check');
+                }
+            }
+            updateResonanceUI();
+        }
+
+        function updateResonanceUI() {
+            document.getElementById('resonanceCount').textContent = selectedResonances.size;
+            const summaryContainer = document.getElementById('resonanceSummaryList');
+
+            const selectedObstacles = Array.from(document.querySelectorAll('.obstacle-item.active-obstacle')).map(el => el.textContent.trim());
+            const selectedAllies = Array.from(document.querySelectorAll('.ally-item.active-ally')).map(el => el.textContent.trim());
+            const customObstacle = (document.getElementById('customObstacleText')?.value || '').trim();
+            const customAlly = (document.getElementById('customAllyText')?.value || '').trim();
+
+            const hasMapData = selectedObstacles.length > 0 || selectedAllies.length > 0 || customObstacle !== '' || customAlly !== '';
+
+            if (selectedResonances.size === 0 && !hasMapData) {
+                summaryContainer.innerHTML = '<em>Non sono ancora stati selezionati spunti o tag nelle schede precedenti.</em>';
+                return;
+            }
+
+            let html = '<div class="space-y-4">';
+
+            if (selectedResonances.size > 0) {
+                html += '<div><div class="text-xs font-bold uppercase tracking-wider text-rose-800 mb-2">Canali e Segnali Riconosciuti:</div><ul class="space-y-2">';
+                selectedResonances.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-lg border border-rose-200 shadow-sm">
+                            <i class="fa-solid fa-circle-check text-rose-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul></div>';
+            }
+
+            if (hasMapData) {
+                html += `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <div class="bg-rose-50/70 p-3.5 rounded-xl border border-rose-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-rose-950 mb-1.5">
+                                <i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Ostacoli / Antagonisti Sensoriali
+                            </div>
+                            <p class="text-xs text-slate-700">${selectedObstacles.length ? selectedObstacles.join(' • ') : '<em>Nessun tag predefinito</em>'}</p>
+                            ${customObstacle ? `<p class="text-xs text-rose-950 bg-white p-2 rounded border border-rose-100 mt-2"><strong>Altro:</strong> ${escapeHtml(customObstacle)}</p>` : ''}
+                        </div>
+                        <div class="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200">
+                            <div class="text-xs font-bold uppercase tracking-wider text-emerald-950 mb-1.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Alleati / Facilitatori Sensoriali
+                            </div>
+                            <p class="text-xs text-slate-700">${selectedAllies.length ? selectedAllies.join(' • ') : '<em>Nessun tag predefinito</em>'}</p>
+                            ${customAlly ? `<p class="text-xs text-emerald-950 bg-white p-2 rounded border border-emerald-100 mt-2"><strong>Altro:</strong> ${escapeHtml(customAlly)}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            summaryContainer.innerHTML = html;
+        }
+
+        function checkQuiz() {
+            const answers = {
+                q1: 'A',
+                q2: 'B',
+                q3: 'B',
+                q4: 'B'
+            };
+            
+            let score = 0;
+            const form = document.getElementById('quizForm');
+            const resultsDiv = document.getElementById('quizResults');
+            
+            document.querySelectorAll('.quiz-question').forEach(q => {
+                q.classList.remove('border-l-4', 'border-l-emerald-500', 'border-l-rose-500', 'bg-emerald-50/40', 'bg-rose-50/40');
+            });
+
+            for (let [question, correctAnswer] of Object.entries(answers)) {
+                const selected = form.querySelector(`input[name="${question}"]:checked`);
+                const container = document.getElementById(`${question}-container`);
+                
+                if (selected && selected.value === correctAnswer) {
+                    score++;
+                    container.classList.add('border-l-4', 'border-l-emerald-500', 'bg-emerald-50/40');
+                } else {
+                    container.classList.add('border-l-4', 'border-l-rose-500', 'bg-rose-50/40');
+                }
+            }
+
+            resultsDiv.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-amber-50', 'border-amber-200');
+            
+            if (score === 4) {
+                resultsDiv.classList.add('bg-emerald-50', 'border-emerald-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-emerald-600"></i> Eccellente! (${score}/4 risposte corrette)
+                    </h4>
+                    <p class="text-emerald-800 text-sm md:text-base leading-relaxed">
+                        I pilastri dell'Ecologia Sensoriale sono chiari: proteggere i sensi e ascoltare i segnali precoci del corpo non è un lusso, ma il modo più diretto per preservare energia esecutiva e benessere emotivo.
+                    </p>
+                `;
+            } else {
+                resultsDiv.classList.add('bg-amber-50', 'border-amber-200');
+                resultsDiv.innerHTML = `
+                    <h4 class="text-xl font-bold text-amber-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600"></i> Rivediamo insieme i punti chiave (${score}/4 corrette)
+                    </h4>
+                    <ul class="list-disc pl-5 text-xs md:text-sm text-slate-700 space-y-1.5 bg-white p-4 rounded-xl border border-amber-200">
+                        <li><strong>Domanda 1 (A):</strong> Filtrare stimoli sensoriali intensi consuma direttamente risorse esecutive e memoria di lavoro.</li>
+                        <li><strong>Domanda 2 (B):</strong> L'interocezione permette di cogliere i segnali precoci ("Zona Gialla") prima del sovraccarico.</li>
+                        <li><strong>Domanda 3 (B):</strong> Stimming, fidgeting e pressione profonda sono efficaci regolatori neurofisiologici.</li>
+                        <li><strong>Domanda 4 (B):</strong> La Dieta Sensoriale riduce gli ostacoli ambientali e integra alleati regolatori nella giornata.</li>
+                    </ul>
+                `;
+            }
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function exportFullStaticPDF() {
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_7_Ecologia_Sensoriale_Interocezione_e_Adattamento.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 7 generato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

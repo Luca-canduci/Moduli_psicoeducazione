@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 6 - Laboratorio di Sblocco Esecutivo e Micro-Stepping</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .step-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-blocker {
+            background-color: #ffe4e6;
+            border-color: #f43f5e;
+            color: #9f1239;
+            font-weight: 600;
+        }
+        .selectable-chip.active-step {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+        .selectable-chip.active-scaffold {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+        }
+        .selectable-chip.active-bookmark {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le sezioni e bussola aperte e statiche)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .step-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .step-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-teal-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Principale -->
+    <header class="bg-gradient-to-r from-indigo-900 via-teal-800 to-emerald-800 text-white px-4 py-5 shadow-md no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-stairs text-teal-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-teal-100 font-bold">Homework • Modulo 6</span>
+                        <span class="text-[11px] text-teal-200 hidden sm:inline">• Area II: Funzioni Esecutive, Tempo e Spazio</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold mt-0.5">Laboratorio di Sblocco Esecutivo e Micro-Stepping</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Indicatore Salvataggio + Esportazione PDF Completa -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-teal-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il PDF con tutte le sezioni dell'homework aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-teal-800 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-teal-800">Programma Clinico Modulare di Psicoeducazione • Modulo 6</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 6: Laboratorio di Sblocco Esecutivo e Micro-Stepping</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Migliarese et al. (2023) • Barkley (2012) • Sirois & Pychyl (2013) • Antshel & Russo (2019).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Anti-Perfezionismo -->
+        <div class="bg-teal-50/90 border border-teal-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-feather-pointed"></i>
+            </span>
+            <div class="text-xs md:text-sm text-teal-950 leading-relaxed flex-1">
+                <strong class="font-bold">Obiettivo della settimana: Vincere l'inerzia d'avvio su un solo compito.</strong> 
+                Non importa finire tutto un progetto enorme: l'esperimento riesce già nel momento in cui trasformi un compito che ti stava bloccando in <strong>un primo micro-passo da meno di 5 minuti</strong>, senza giudicarti se poi decidi di fermarti lasciando un segnalibro di ripresa.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Ripasso 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 6 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-teal-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-teal-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-teal-700"></i> Bussola Rapida: Uscire dalla Paralisi Esecutiva
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Preparare Prima e Scomporre</div>
+                    <p class="text-slate-600 text-xs">Separa la preparazione del materiale dall'esecuzione e dividi la "montagna" in <strong>micro-passi fisici da meno di 5 minuti</strong>.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Scegliere l'Innesco</div>
+                    <p class="text-slate-600 text-xs">Parti dal passo più semplice e gratificante se senti inerzia (<em>Rampa Morbida</em>), oppure da quello prioritario se hai la batteria piena.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Alleati e Segnalibro</div>
+                    <p class="text-slate-600 text-xs">Usa il <em>Body Doubling</em> o condividi la meta con qualcuno, raggruppa i compiti simili e prima di fermarti scrivi sempre da quale punto ripartirai.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigazione a 4 Step -->
+        <nav class="grid grid-cols-2 sm:grid-cols-4 gap-2 no-print">
+            <button onclick="goToStep(1)" id="nav-step-1" class="step-nav-btn bg-teal-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                <i class="fa-solid fa-stairs"></i> 1. Micro-Stepping
+            </button>
+            <button onclick="goToStep(2)" id="nav-step-2" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-bookmark"></i> 2. Alleati e Ripresa
+            </button>
+            <button onclick="goToStep(3)" id="nav-step-3" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-sliders"></i> 3. Check Settimanale
+            </button>
+            <button onclick="goToStep(4)" id="nav-step-4" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-file-pdf"></i> 4. Riepilogo e PDF
+            </button>
+        </nav>
+
+
+        <!-- =========================================================================
+             STEP 1: SMONTARE UNA "MONTAGNA" DELLA SETTIMANA CON IL MICRO-STEPPING
+             ========================================================================= -->
+        <section id="step-1" class="step-section active space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Parte 1 • Dal Blocco all'Azione Microscopica</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Scomporre un Compito Bloccante della Settimana</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Individua un compito (di studio, lavoro, burocrazia o gestione domestica) davanti al quale in questi giorni hai avvertito il "muro invisibile" della paralisi esecutiva o la tentazione di rimandare.
+                    </p>
+                </div>
+
+                <!-- 1A. Cosa stava bloccando l'avvio? -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. Quale ostacolo rendeva faticoso iniziare quel compito? <span class="text-xs font-normal text-slate-500">(Tocca uno o più elementi)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3" id="blocker-reason-chips">
+                        <button type="button" onclick="toggleChip(this, 'blockerReasons', 'active-blocker')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Il compito appariva enorme e senza un primo passo chiaro</button>
+                        <button type="button" onclick="toggleChip(this, 'blockerReasons', 'active-blocker')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Perfezionismo ("Se non ho il tempo di farlo subito benissimo, non inizio")</button>
+                        <button type="button" onclick="toggleChip(this, 'blockerReasons', 'active-blocker')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Attività percepita come noiosa, ripetitiva o burocratica</button>
+                        <button type="button" onclick="toggleChip(this, 'blockerReasons', 'active-blocker')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Timore di sbagliare o del giudizio altrui</button>
+                        <button type="button" onclick="toggleChip(this, 'blockerReasons', 'active-blocker')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Dovevo prima cercare i materiali o capire da dove riprendere</button>
+                        <button type="button" onclick="toggleChip(this, 'blockerReasons', 'active-blocker')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Batteria mentale o sensoriale già scarica</button>
+                    </div>
+                    <input type="text" id="blockerReasonOtherText" oninput="saveData()" placeholder="Altro ostacolo percepito all'avvio (opzionale)..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+                </div>
+
+                <!-- 1B. Laboratorio Pratico: Lo Scompositore del Tuo Compito -->
+                <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-teal-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-hammer"></i> 2. Il Tuo "Scompositore di Montagne" Settimanale
+                        </span>
+                        <span class="text-[11px] text-slate-400">Passi da meno di 5 minuti</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-rose-300 mb-1">Il Compito ("La Montagna") su cui hai applicato o vuoi applicare il Micro-Stepping:</label>
+                        <input type="text" id="targetTaskName" oninput="saveData()" placeholder="Es. Rispondere a 3 mail rimaste indietro / Iniziare il capitolo / Sistemare i documenti..." class="w-full rounded-xl bg-slate-800 border border-slate-600 px-3.5 py-2 text-sm text-white font-semibold focus:border-teal-400 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="bg-slate-800/90 p-3.5 rounded-xl border border-teal-500/40 space-y-1.5">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-teal-300">Micro-Step 1: Preparare il Terreno</div>
+                            <textarea id="step1PrepText" oninput="saveData()" rows="2" placeholder="Es. Mettere sul tavolo solo ciò che serve e aprire il file alla pagina giusta..." class="w-full bg-slate-900/80 rounded-lg border border-slate-700 p-2 text-xs text-slate-100 focus:border-teal-400 focus:outline-none"></textarea>
+                        </div>
+                        <div class="bg-slate-800/90 p-3.5 rounded-xl border border-emerald-500/40 space-y-1.5">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Micro-Step 2: Innesco da 2 Minuti</div>
+                            <textarea id="step2StartText" oninput="saveData()" rows="2" placeholder="Es. Scrivere anche in modo grezzo solo le prime 3 righe o leggere il primo paragrafo..." class="w-full bg-slate-900/80 rounded-lg border border-slate-700 p-2 text-xs text-slate-100 focus:border-emerald-400 focus:outline-none"></textarea>
+                        </div>
+                        <div class="bg-slate-800/90 p-3.5 rounded-xl border border-amber-500/40 space-y-1.5">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-amber-300">Micro-Step 3: Blocco Breve a Tempo</div>
+                            <textarea id="step3BlockText" oninput="saveData()" rows="2" placeholder="Es. Avviare un timer da 10-15 minuti con il permesso di fermarsi al suono..." class="w-full bg-slate-900/80 rounded-lg border border-slate-700 p-2 text-xs text-slate-100 focus:border-amber-400 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1C. Scelta della Modalità di Partenza -->
+                <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-2.5">
+                    <label class="block text-sm font-bold text-teal-950">
+                        3. Quale strategia di partenza si è rivelata più adatta alla tua energia del momento?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="ignition-mode-chips">
+                        <button type="button" onclick="toggleChip(this, 'ignitionMode', 'active-step')" class="selectable-chip px-3 py-1.5 rounded-xl border border-teal-200 bg-white text-xs text-slate-700">Rampa di Lancio Morbida: partire dal passo più semplice e gratificante per scaldare il motore</button>
+                        <button type="button" onclick="toggleChip(this, 'ignitionMode', 'active-step')" class="selectable-chip px-3 py-1.5 rounded-xl border border-teal-200 bg-white text-xs text-slate-700">Priorità a Batteria Piena: partire subito dal nucleo più impegnativo finché avevo energia fresca</button>
+                        <button type="button" onclick="toggleChip(this, 'ignitionMode', 'active-step')" class="selectable-chip px-3 py-1.5 rounded-xl border border-teal-200 bg-white text-xs text-slate-700">Separare la preparazione: preparare gli strumenti la sera prima e iniziare al mattino</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToStep(2)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa agli Alleati Esecutivi e Ripresa <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 2: ALLEATI ESECUTIVI, BATCHING, RICOMPENSE E "SEGNALIBRO DI RIPRESA"
+             ========================================================================= -->
+        <section id="step-2" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Parte 2 • Sostenere il Focus e Gestire le Interruzioni</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Impalcature Esterne e "Segnalibro di Ripresa"</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Indica quali alleati esterni ti hanno aiutato a rimanere sul compito e come hai protetto il punto di ripartenza prima di fare una pausa.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Colonna 1: Impalcature e Attivatori Esterni -->
+                    <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-indigo-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-people-pulling text-indigo-600"></i> 1. Alleati Esecutivi Utilizzati
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Tocca gli strumenti che hanno sostenuto la tua attivazione:</p>
+                            <div class="flex flex-wrap gap-1.5" id="scaffold-used-chips">
+                                <button type="button" onclick="toggleChip(this, 'scaffoldsUsed', 'active-scaffold')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Lavorare in presenza o in collegamento con qualcuno (Body Doubling)</button>
+                                <button type="button" onclick="toggleChip(this, 'scaffoldsUsed', 'active-scaffold')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Comunicare a un amico o familiare il compito e i tempi previsti</button>
+                                <button type="button" onclick="toggleChip(this, 'scaffoldsUsed', 'active-scaffold')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Fare una sola cosa alla volta e raggruppare i compiti simili (Batching)</button>
+                                <button type="button" onclick="toggleChip(this, 'scaffoldsUsed', 'active-scaffold')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Tenere un promemoria visibile sul tavolo per non perdere il filo</button>
+                                <button type="button" onclick="toggleChip(this, 'scaffoldsUsed', 'active-scaffold')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Abbinare una piccola ricompensa piacevole a fine blocco</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-indigo-200/60">
+                            <label class="block text-xs font-bold text-indigo-950 mb-1">Altro attivatore o ricompensa che ha funzionato per te:</label>
+                            <textarea id="scaffoldOtherText" oninput="saveData()" rows="2" placeholder="Es. Mettere una playlist specifica di avvio, lavorare in biblioteca..." class="w-full rounded-lg border border-indigo-200 bg-white p-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Colonna 2: Gestione delle Pause e Segnalibro di Ripresa -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-emerald-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-bookmark text-emerald-600"></i> 2. Pause e "Segnalibro di Ripresa"
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Come hai gestito le interruzioni o il lavoro non terminato in una sola sessione?</p>
+                            <div class="flex flex-wrap gap-1.5" id="bookmark-strategy-chips">
+                                <button type="button" onclick="toggleChip(this, 'bookmarkStrategies', 'active-bookmark')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Ho fissato delle pause prima di arrivare a esaurimento</button>
+                                <button type="button" onclick="toggleChip(this, 'bookmarkStrategies', 'active-bookmark')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Prima di fermarmi ho lasciato scritto il punto esatto da cui ripartire</button>
+                                <button type="button" onclick="toggleChip(this, 'bookmarkStrategies', 'active-bookmark')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Quando non ho finito tutto, ho stabilito già il momento preciso della ripresa</button>
+                                <button type="button" onclick="toggleChip(this, 'bookmarkStrategies', 'active-bookmark')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Mi sono concesso/a di fermarmi senza vivere la pausa come un fallimento</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-emerald-200/60">
+                            <label class="block text-xs font-bold text-emerald-950 mb-1">Scrivi qui un tuo "Segnalibro di Ripresa" per un lavoro attualmente aperto:</label>
+                            <textarea id="bookmarkNoteText" oninput="saveData()" rows="2" placeholder="Es. 'Riprendi giovedì alle 10:00 partendo esattamente dalla lettura del paragrafo 2 sul file aperto'..." class="w-full rounded-lg border border-emerald-200 bg-white p-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(3)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Check Settimanale <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 3: CHECK SETTIMANALE SULL'AVVIO ESECUTIVO (30 SECONDI)
+             ========================================================================= -->
+        <section id="step-3" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Parte 3 • Termometro Veloce (30 secondi)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Bilancio tra Facilità d'Avvio e Gentilezza verso di Sé</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Sposta i due cursori per fotografare come hai vissuto l'avvio dei compiti e le pause in questa settimana:
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Slider 1: Facilità di Avvio con il Micro-Stepping -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-stairs text-teal-600"></i> 1. Efficacia del Micro-Stepping nel Superare il Blocco Iniziale
+                            </label>
+                            <span id="microstepEaseLabel" class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="microstepEaseSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-teal-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Forte paralisi davanti alla montagna)</span>
+                            <span>10 (Il primo passo piccolo ha sbloccato il movimento)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Riposo Autorizzato vs Senso di Colpa -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-heart text-emerald-600"></i> 2. Capacità di Riposare o Fare Pausa Senza Senso di Colpa
+                            </label>
+                            <span id="guiltFreeRestLabel" class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="guiltFreeRestSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-emerald-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Forte auto-rimprovero durante le pause)</span>
+                            <span>10 (Pause vissute come ricarica legittima)</span>
+                        </div>
+                    </div>
+
+                    <!-- Nota finale -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                            Quale singolo strumento anti-paralisi vuoi tenere nel tuo "kit di pronto soccorso esecutivo" per le prossime settimane?
+                        </label>
+                        <input type="text" id="bestExecutiveToolNote" oninput="saveData()" placeholder="Es. Preparare il file aperto la sera prima e darmi il permesso di fare solo 5 minuti..." class="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(4)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera il Riepilogo e PDF <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 4: RIEPILOGO ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="step-4" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • Condivisione</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Esporta l'Homework del Modulo 6 in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutte le sezioni aperte oppure il prospetto sintetico.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-teal-700 hover:bg-teal-800 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica solo il box di riepilogo sintetico">
+                            <i class="fa-solid fa-file-lines"></i> PDF Solo Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all" title="Copia come testo">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-teal-700"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-5 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-teal-800 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-teal-800">Percorso Modulare di Psicoeducazione • Modulo 6</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 6: Sblocco Esecutivo e Micro-Stepping</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Contenuto dinamico iniettato da renderSummary() -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Migliarese et al. (2023) • Barkley (2012) • Sirois & Pychyl (2013)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToStep(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_6_general_v1';
+
+        let appState = {
+            patientName: '',
+            blockerReasons: [],
+            blockerReasonOtherText: '',
+            targetTaskName: '',
+            step1PrepText: '',
+            step2StartText: '',
+            step3BlockText: '',
+            ignitionMode: [],
+            scaffoldsUsed: [],
+            scaffoldOtherText: '',
+            bookmarkStrategies: [],
+            bookmarkNoteText: '',
+            microstepEaseLevel: 6,
+            guiltFreeRestLevel: 6,
+            bestExecutiveToolNote: ''
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToStep(stepNumber) {
+            document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-step-${i}`);
+                if (i === stepNumber) {
+                    btn.className = 'step-nav-btn bg-teal-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stepNumber === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-blocker', 'active-step', 'active-scaffold', 'active-bookmark');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function updateSliders() {
+            const easeVal = document.getElementById('microstepEaseSlider').value;
+            const restVal = document.getElementById('guiltFreeRestSlider').value;
+
+            document.getElementById('microstepEaseLabel').textContent = `${easeVal} / 10`;
+            document.getElementById('guiltFreeRestLabel').textContent = `${restVal} / 10`;
+
+            appState.microstepEaseLevel = easeVal;
+            appState.guiltFreeRestLevel = restVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.blockerReasonOtherText = document.getElementById('blockerReasonOtherText').value;
+            appState.targetTaskName = document.getElementById('targetTaskName').value;
+            appState.step1PrepText = document.getElementById('step1PrepText').value;
+            appState.step2StartText = document.getElementById('step2StartText').value;
+            appState.step3BlockText = document.getElementById('step3BlockText').value;
+            appState.scaffoldOtherText = document.getElementById('scaffoldOtherText').value;
+            appState.bookmarkNoteText = document.getElementById('bookmarkNoteText').value;
+            appState.bestExecutiveToolNote = document.getElementById('bestExecutiveToolNote').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('blockerReasonOtherText').value = appState.blockerReasonOtherText || '';
+            document.getElementById('targetTaskName').value = appState.targetTaskName || '';
+            document.getElementById('step1PrepText').value = appState.step1PrepText || '';
+            document.getElementById('step2StartText').value = appState.step2StartText || '';
+            document.getElementById('step3BlockText').value = appState.step3BlockText || '';
+            document.getElementById('scaffoldOtherText').value = appState.scaffoldOtherText || '';
+            document.getElementById('bookmarkNoteText').value = appState.bookmarkNoteText || '';
+            document.getElementById('bestExecutiveToolNote').value = appState.bestExecutiveToolNote || '';
+
+            document.getElementById('microstepEaseSlider').value = appState.microstepEaseLevel ?? 6;
+            document.getElementById('guiltFreeRestSlider').value = appState.guiltFreeRestLevel ?? 6;
+            document.getElementById('microstepEaseLabel').textContent = `${appState.microstepEaseLevel ?? 6} / 10`;
+            document.getElementById('guiltFreeRestLabel').textContent = `${appState.guiltFreeRestLevel ?? 6} / 10`;
+
+            restoreChipGroup('blocker-reason-chips', appState.blockerReasons, 'active-blocker');
+            restoreChipGroup('ignition-mode-chips', appState.ignitionMode, 'active-step');
+            restoreChipGroup('scaffold-used-chips', appState.scaffoldsUsed, 'active-scaffold');
+            restoreChipGroup('bookmark-strategy-chips', appState.bookmarkStrategies, 'active-bookmark');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const blockR = appState.blockerReasons.length ? appState.blockerReasons.join(' • ') : '<em>Nessun ostacolo selezionato</em>';
+            const ignMode = appState.ignitionMode.length ? appState.ignitionMode.join(' • ') : '<em>Non specificato</em>';
+            const scaffU = appState.scaffoldsUsed.length ? appState.scaffoldsUsed.join(' • ') : '<em>Nessun alleato selezionato</em>';
+            const bookS = appState.bookmarkStrategies.length ? appState.bookmarkStrategies.join(' • ') : '<em>Nessun tag selezionato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">1. Scomposizione di un Compito Bloccante (Micro-Stepping)</div>
+                    <p><strong class="text-rose-700">Ostacoli iniziali osservati:</strong> ${blockR}</p>
+                    ${appState.blockerReasonOtherText ? `<p class="text-rose-950 bg-rose-50 p-2 rounded-lg border border-rose-200 text-xs"><strong>Altro ostacolo:</strong> ${escapeHtml(appState.blockerReasonOtherText)}</p>` : ''}
+                    <p><strong>Compito ("La Montagna") affrontato:</strong> ${appState.targetTaskName ? escapeHtml(appState.targetTaskName) : '<em>Non specificato</em>'}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        <div class="bg-teal-50/80 p-2.5 rounded-lg border border-teal-200">
+                            <div class="font-bold text-teal-900 mb-0.5">1. Preparare il Terreno:</div>
+                            <div class="text-slate-700">${appState.step1PrepText ? escapeHtml(appState.step1PrepText) : '<em>-</em>'}</div>
+                        </div>
+                        <div class="bg-emerald-50/80 p-2.5 rounded-lg border border-emerald-200">
+                            <div class="font-bold text-emerald-900 mb-0.5">2. Innesco da 2 Minuti:</div>
+                            <div class="text-slate-700">${appState.step2StartText ? escapeHtml(appState.step2StartText) : '<em>-</em>'}</div>
+                        </div>
+                        <div class="bg-amber-50/80 p-2.5 rounded-lg border border-amber-200">
+                            <div class="font-bold text-amber-900 mb-0.5">3. Blocco a Tempo:</div>
+                            <div class="text-slate-700">${appState.step3BlockText ? escapeHtml(appState.step3BlockText) : '<em>-</em>'}</div>
+                        </div>
+                    </div>
+                    <p class="pt-1"><strong class="text-teal-800">Modalità di partenza scelta:</strong> ${ignMode}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-800">2. Alleati Esecutivi e "Segnalibro di Ripresa"</div>
+                    <p><strong class="text-indigo-700">Impalcature esterne utilizzate:</strong> ${scaffU}</p>
+                    ${appState.scaffoldOtherText ? `<p class="text-indigo-950 bg-indigo-50 p-2 rounded-lg border border-indigo-200 text-xs"><strong>Altro attivatore / ricompensa:</strong> ${escapeHtml(appState.scaffoldOtherText)}</p>` : ''}
+                    <p><strong class="text-emerald-700">Gestione delle pause e interruzioni:</strong> ${bookS}</p>
+                    ${appState.bookmarkNoteText ? `<p class="text-emerald-950 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200 text-xs"><strong>Il mio "Segnalibro di Ripresa" annotato:</strong> "${escapeHtml(appState.bookmarkNoteText)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">3. Bilancio Settimanale</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Efficacia del Micro-Stepping all'Avvio</span>
+                                <span class="text-teal-700 font-bold">${appState.microstepEaseLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-teal-600 h-2 rounded-full" style="width: ${appState.microstepEaseLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Pause Autorizzate Senza Senso di Colpa</span>
+                                <span class="text-emerald-700 font-bold">${appState.guiltFreeRestLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: ${appState.guiltFreeRestLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    ${appState.bestExecutiveToolNote ? `<p class="text-teal-950 bg-teal-50 p-3 rounded-lg border border-teal-200 text-xs"><strong>Strumento da tenere nel mio kit anti-paralisi:</strong> "${escapeHtml(appState.bestExecutiveToolNote)}"</p>` : ''}
+                </div>
+            `;
+        }
+
+        // SCARICA SOLO IL BOX SINTETICO IN PDF
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_6_Sintesi_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF di sintesi scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        // SCARICA IL PDF COMPLETO CON TUTTE LE SEZIONI E LA BUSSOLA APERTE E STATICHE
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_6_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 6: LABORATORIO DI SBLOCCO ESECUTIVO E MICRO-STEPPING ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. SCOMPOSIZIONE DI UN COMPITO BLOCCANTE",
+                "• Ostacoli osservati: " + (appState.blockerReasons.join(', ') || '-'),
+                appState.blockerReasonOtherText ? "• Altro ostacolo: " + appState.blockerReasonOtherText : null,
+                "• Compito affrontato: " + (appState.targetTaskName || '-'),
+                "• Micro-Step 1 (Preparazione): " + (appState.step1PrepText || '-'),
+                "• Micro-Step 2 (Innesco 2 min): " + (appState.step2StartText || '-'),
+                "• Micro-Step 3 (Blocco a tempo): " + (appState.step3BlockText || '-'),
+                "• Modalità di partenza scelta: " + (appState.ignitionMode.join(', ') || '-'),
+                "",
+                "2. ALLEATI ESECUTIVI E SEGNALIBRO DI RIPRESA",
+                "• Impalcature esterne utilizzate: " + (appState.scaffoldsUsed.join(', ') || '-'),
+                appState.scaffoldOtherText ? "• Altro attivatore / ricompensa: " + appState.scaffoldOtherText : null,
+                "• Gestione delle pause: " + (appState.bookmarkStrategies.join(', ') || '-'),
+                appState.bookmarkNoteText ? "• Segnalibro di Ripresa annotato: " + appState.bookmarkNoteText : null,
+                "",
+                "3. BILANCIO SETTIMANALE",
+                "• Efficacia del Micro-Stepping all'avvio: " + appState.microstepEaseLevel + "/10",
+                "• Pause autorizzate senza senso di colpa: " + appState.guiltFreeRestLevel + "/10",
+                appState.bestExecutiveToolNote ? "• Strumento da tenere nel kit anti-paralisi: " + appState.bestExecutiveToolNote : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                blockerReasons: [],
+                blockerReasonOtherText: '',
+                targetTaskName: '',
+                step1PrepText: '',
+                step2StartText: '',
+                step3BlockText: '',
+                ignitionMode: [],
+                scaffoldsUsed: [],
+                scaffoldOtherText: '',
+                bookmarkStrategies: [],
+                bookmarkNoteText: '',
+                microstepEaseLevel: 6,
+                guiltFreeRestLevel: 6,
+                bestExecutiveToolNote: ''
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-blocker', 'active-step', 'active-scaffold', 'active-bookmark');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToStep(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

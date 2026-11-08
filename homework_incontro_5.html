@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 5 - Esperimenti su Tempo, Agenda e Spazio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .step-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-time {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+        .selectable-chip.active-agenda {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-clutter {
+            background-color: #ffe4e6;
+            border-color: #f43f5e;
+            color: #9f1239;
+            font-weight: 600;
+        }
+        .selectable-chip.active-space {
+            background-color: #e0f2fe;
+            border-color: #0284c7;
+            color: #075985;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le sezioni e bussola aperte e statiche)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .step-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .step-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-teal-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Principale -->
+    <header class="bg-gradient-to-r from-teal-900 via-cyan-800 to-sky-900 text-white px-4 py-5 shadow-md no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-clock-rotate-left text-teal-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-teal-100 font-bold">Homework • Modulo 5</span>
+                        <span class="text-[11px] text-teal-200 hidden sm:inline">• Area II: Funzioni Esecutive, Tempo e Spazio</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold mt-0.5">Esperimenti su Tempo Visibile, Agenda e Spazio</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide: Indicatore Salvataggio + Esportazione PDF Completa -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-teal-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il PDF con tutte le sezioni dell'homework aperte">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all" title="Stampa o Salva in PDF tutte le sezioni aperte">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-teal-800 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-teal-800">Programma Clinico Modulare di Psicoeducazione • Modulo 5</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 5: Esperimenti su Tempo Visibile, Agenda e Spazio</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Migliarese et al. (2023) • Barkley (2012) • Noreika et al. (2013) • Kofler et al. (2020).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Anti-Perfezionismo -->
+        <div class="bg-teal-50/90 border border-teal-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-feather-pointed"></i>
+            </span>
+            <div class="text-xs md:text-sm text-teal-950 leading-relaxed flex-1">
+                <strong class="font-bold">Approccio da laboratorio gentile:</strong> 
+                Non ti chiediamo di diventare una macchina del tempo perfetta né di riordinare tutta la casa in una settimana. Scegli <strong>un piccolo esperimento sul tempo/agenda</strong> e <strong>un piccolo accorgimento su un solo angolo del tuo spazio</strong>, usando le etichette rapide qui sotto.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-100 text-teal-900 border border-teal-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Ripasso 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 5 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-teal-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-teal-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-teal-700"></i> Bussola Rapida: Tempo, Agenda Unica e Spazio
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Cuscinetti di Transizione</div>
+                    <p class="text-slate-600 text-xs">Per compensare la <em>Time Blindness</em>, calcola sempre i tempi invisibili di preparazione, spostamento e decompressione prima e dopo un impegno.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Agenda Unica e Visibile</div>
+                    <p class="text-slate-600 text-xs">Un solo contenitore centrale tenuto sempre aperto in un posto fisso (o come widget in prima schermata), con uno spazio per parcheggiare al volo le idee.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Spazio a Basso Attrito</div>
+                    <p class="text-slate-600 text-xs">Una "casa fissa" per gli oggetti essenziali nel punto in cui li usi, contenitori trasparenti/aperti e micro-riordino con timer da 10 minuti.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigazione a 4 Step -->
+        <nav class="grid grid-cols-2 sm:grid-cols-4 gap-2 no-print">
+            <button onclick="goToStep(1)" id="nav-step-1" class="step-nav-btn bg-teal-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                <i class="fa-solid fa-hourglass-half"></i> 1. Tempo e Agenda
+            </button>
+            <button onclick="goToStep(2)" id="nav-step-2" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-boxes-stacked"></i> 2. Spazio e Oggetti
+            </button>
+            <button onclick="goToStep(3)" id="nav-step-3" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-sliders"></i> 3. Check Settimanale
+            </button>
+            <button onclick="goToStep(4)" id="nav-step-4" class="step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-file-pdf"></i> 4. Riepilogo e PDF
+            </button>
+        </nav>
+
+
+        <!-- =========================================================================
+             STEP 1: TEMPO VISIBILE, TIME BLINDNESS E AGENDA UNICA
+             ========================================================================= -->
+        <section id="step-1" class="step-section active space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Parte 1 • Percezione del Tempo e Memoria Esterna</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Osservare la Time Blindness e Sperimentare l'Agenda Unica</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Ripensa a come si è comportato il tuo "orologio interno" in questi giorni e scegli quali accorgimenti hai provato (o vuoi impostare) per esternalizzare il tempo.
+                    </p>
+                </div>
+
+                <!-- 1A. Cosa hai osservato rispetto al tempo -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. Quali meccanismi legati al tempo hai notato questa settimana? <span class="text-xs font-normal text-slate-500">(Tocca uno o più elementi)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2 mb-3" id="time-observation-chips">
+                        <button type="button" onclick="toggleChip(this, 'timeObservations', 'active-time')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Sottostimare il tempo necessario per prepararmi o uscire di casa</button>
+                        <button type="button" onclick="toggleChip(this, 'timeObservations', 'active-time')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Entrare in "Waiting Mode" (blocco in attesa di un appuntamento pomeridiano)</button>
+                        <button type="button" onclick="toggleChip(this, 'timeObservations', 'active-time')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Perdere la cognizione del tempo mentre ero immerso/a in un'attività</button>
+                        <button type="button" onclick="toggleChip(this, 'timeObservations', 'active-time')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Incastrare troppi impegni uno dietro l'altro senza cuscinetti di pausa</button>
+                        <button type="button" onclick="toggleChip(this, 'timeObservations', 'active-time')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Dimenticare una scadenza o un impegno perché non era scritto in vista</button>
+                    </div>
+                    <textarea id="timeObservationOtherText" oninput="saveData()" rows="2" placeholder="Altro / Se vuoi, racconta brevemente un episodio specifico legato alla gestione del tempo in settimana..." class="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-800 focus:bg-white focus:border-teal-600 focus:outline-none transition-all"></textarea>
+                </div>
+
+                <!-- 1B. Esperimento sull'Agenda Unica e sui Cuscinetti di Tempo -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cuscinetti e Tempo Visibile -->
+                    <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200/80 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-teal-950 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-stopwatch text-teal-600"></i> 2. Strategie per Rendere il Tempo Visibile
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Quale strumento hai sperimentato (o vuoi attivare) per aiutarti con gli orari?</p>
+                            <div class="flex flex-wrap gap-1.5" id="time-strategy-chips">
+                                <button type="button" onclick="toggleChip(this, 'timeStrategies', 'active-time')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Aggiungere 15–30 minuti di "Cuscinetto di Transizione" prima e dopo un impegno</button>
+                                <button type="button" onclick="toggleChip(this, 'timeStrategies', 'active-time')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Mettere una sveglia per "Iniziare a prepararsi" (non solo per l'ora dell'appuntamento)</button>
+                                <button type="button" onclick="toggleChip(this, 'timeStrategies', 'active-time')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Usare un timer visivo per uscire dalla "Waiting Mode" in sicurezza</button>
+                                <button type="button" onclick="toggleChip(this, 'timeStrategies', 'active-time')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Preparare la sera prima borsa, vestiti e necessario per l'uscita</button>
+                            </div>
+                        </div>
+                        <input type="text" id="timeStrategyOtherText" oninput="saveData()" placeholder="Altra strategia sul tempo (specifica)..." class="w-full rounded-lg border border-teal-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-teal-500 focus:outline-none">
+                    </div>
+
+                    <!-- Configurazione dell'Agenda Unica -->
+                    <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-amber-950 font-bold text-sm mb-1">
+                                <i class="fa-solid fa-book-bookmark text-amber-600"></i> 3. La Mia "Agenda Unica" Sostenibile
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Come hai impostato la tua memoria esterna per non abbandonarla?</p>
+                            <div class="flex flex-wrap gap-1.5" id="agenda-setup-chips">
+                                <button type="button" onclick="toggleChip(this, 'agendaSetup', 'active-agenda')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">Ho scelto un solo strumento centrale (eliminando i foglietti sparsi)</button>
+                                <button type="button" onclick="toggleChip(this, 'agendaSetup', 'active-agenda')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">La tengo in un posto fisso sempre aperta e visibile (o widget in prima schermata)</button>
+                                <button type="button" onclick="toggleChip(this, 'agendaSetup', 'active-agenda')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">Uso una sezione "Parcheggio Idee" per scrivere al volo i pensieri che mi distraggono</button>
+                                <button type="button" onclick="toggleChip(this, 'agendaSetup', 'active-agenda')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white text-xs text-slate-700">Pianifico scegliendo al massimo 1–3 priorità realistiche al giorno</button>
+                            </div>
+                        </div>
+                        <input type="text" id="agendaSetupOtherText" oninput="saveData()" placeholder="Quale agenda/app hai scelto e in quale posto fisso la tieni?..." class="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToStep(2)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa all'Esperimento sullo Spazio <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 2: INGEGNERIA DELLO SPAZIO A BASSO ATTRITO
+             ========================================================================= -->
+        <section id="step-2" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-sky-700">Parte 2 • Organizzazione Visiva e Riduzione dell'Attrito</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Un Piccolo Intervento sul Tuo Spazio Quotidiano</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Invece di pensare a tutta la casa o a tutto l'ufficio, scegli <strong>un solo punto critico</strong> che tende ad accumulare disordine o a farti perdere oggetti, e abbina un "promotore dell'ordine" a basso sforzo.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Colonna 1: Il Punto Critico Scelto -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-rose-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass-location text-rose-500"></i> 1. Il Punto Critico e la Causa del Disordine
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Su quale superficie o problema spaziale hai scelto di intervenire?</p>
+                            <div class="flex flex-wrap gap-1.5" id="clutter-zone-chips">
+                                <button type="button" onclick="toggleChip(this, 'clutterZones', 'active-clutter')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Smarrimento frequente di chiavi, portafoglio, occhiali o badge</button>
+                                <button type="button" onclick="toggleChip(this, 'clutterZones', 'active-clutter')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Scrivania o tavolo sommersi da carte e oggetti lasciati a vista</button>
+                                <button type="button" onclick="toggleChip(this, 'clutterZones', 'active-clutter')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Sedia" o accumulo di vestiti usati a metà</button>
+                                <button type="button" onclick="toggleChip(this, 'clutterZones', 'active-clutter')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Borsa, zaino o automobile senza posti fissi</button>
+                                <button type="button" onclick="toggleChip(this, 'clutterZones', 'active-clutter')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Piano cucina o comodino sovraccarichi</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-rose-200/60">
+                            <label class="block text-xs font-bold text-rose-950 mb-1">Altro (specifica la zona o il motivo per cui lì si crea disordine):</label>
+                            <textarea id="clutterZoneOtherText" oninput="saveData()" rows="2" placeholder="Es. Appoggio tutto sul tavolo dell'ingresso perché l'armadio è troppo scomodo da aprire..." class="w-full rounded-lg border border-rose-200 bg-white p-2 text-xs text-slate-800 focus:border-rose-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Colonna 2: Il Promotore dell'Ordine Sperimentato -->
+                    <div class="p-4 rounded-2xl bg-sky-50/50 border border-sky-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-sky-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles text-sky-600"></i> 2. Il "Promotore dell'Ordine" Applicato
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Quale soluzione pratica hai introdotto per ridurre lo sforzo?</p>
+                            <div class="flex flex-wrap gap-1.5" id="space-solution-chips">
+                                <button type="button" onclick="toggleChip(this, 'spaceSolutions', 'active-space')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-sky-200 bg-white text-xs text-slate-700">Creare una "Casa Fissa" (es. svuotatasche) nel punto esatto in cui appoggio gli oggetti</button>
+                                <button type="button" onclick="toggleChip(this, 'spaceSolutions', 'active-space')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-sky-200 bg-white text-xs text-slate-700">Usare una cesta aperta o un contenitore trasparente per categoria</button>
+                                <button type="button" onclick="toggleChip(this, 'spaceSolutions', 'active-space')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-sky-200 bg-white text-xs text-slate-700">Fare una micro-sessione di riordino con un timer chiuso da 10 minuti</button>
+                                <button type="button" onclick="toggleChip(this, 'spaceSolutions', 'active-space')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-sky-200 bg-white text-xs text-slate-700">Usare una "Scatola di Transito" per non vagare da una stanza all'altra mentre riordino</button>
+                                <button type="button" onclick="toggleChip(this, 'spaceSolutions', 'active-space')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-sky-200 bg-white text-xs text-slate-700">Eliminare o mettere via una parte degli oggetti superflui dalla superficie</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-sky-200/60">
+                            <label class="block text-xs font-bold text-sky-950 mb-1">Altro (descrivi la modifica pratica che hai provato):</label>
+                            <textarea id="spaceSolutionOtherText" oninput="saveData()" rows="2" placeholder="Es. Ho messo una cesta aperta accanto alla sedia per i vestiti semi-puliti invece di piegarli..." class="w-full rounded-lg border border-sky-200 bg-white p-2 text-xs text-slate-800 focus:border-sky-600 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(3)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Check Settimanale <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 3: CHECK SETTIMANALE SU TEMPO E SPAZIO (30 SECONDI)
+             ========================================================================= -->
+        <section id="step-3" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Parte 3 • Termometro Veloce (30 secondi)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Come Ti Sei Sentito/a Rispetto al Tempo e allo Spazio?</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Usa i due cursori per fotografare l'andamento di questi giorni:
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Slider 1: Gestione del Tempo e dei Cuscinetti -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-hourglass-half text-teal-600"></i> 1. Senso di Controllo sul Tempo e Visibilità dell'Agenda
+                            </label>
+                            <span id="timeControlLabel" class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="timeControlSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-teal-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Sensazione costante di rincorrere il tempo)</span>
+                            <span>10 (Tempi più realistici e agenda sempre sott'occhio)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Calma Visiva nello Spazio -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-couch text-sky-600"></i> 2. Sensazione di Calma Visiva e Funzionalità del Tuo Spazio
+                            </label>
+                            <span id="spaceCalmLabel" class="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="spaceCalmSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-sky-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[11px] text-slate-400">
+                            <span>1 (Forte sovraccarico visivo per il disordine)</span>
+                            <span>10 (Oggetti essenziali al loro posto con meno sforzo)</span>
+                        </div>
+                    </div>
+
+                    <!-- Nota conclusiva -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                            Quale singolo piccolo accorgimento (sul tempo o sullo spazio) ha funzionato meglio e vuoi mantenere anche la prossima settimana?
+                        </label>
+                        <input type="text" id="keepHabitNote" oninput="saveData()" placeholder="Es. Tenere l'agenda aperta sul tavolo della colazione e lo svuotatasche all'ingresso..." class="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStep(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStep(4)" class="bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera il Riepilogo e PDF <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STEP 4: RIEPILOGO ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="step-4" class="step-section space-y-5">
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • Condivisione</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Esporta l'Homework del Modulo 5 in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutte le sezioni aperte oppure il prospetto sintetico.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-teal-700 hover:bg-teal-800 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica solo il box di riepilogo sintetico">
+                            <i class="fa-solid fa-file-lines"></i> PDF Solo Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all" title="Copia come testo">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-teal-700"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-5 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-teal-800 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-teal-800">Percorso Modulare di Psicoeducazione • Modulo 5</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 5: Tempo Visibile, Agenda Unica e Spazio</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Contenuto dinamico iniettato da renderSummary() -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Migliarese et al. (2023) • Barkley (2012) • Noreika et al. (2013) • Kofler et al. (2020)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToStep(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_5_general_v1';
+
+        let appState = {
+            patientName: '',
+            timeObservations: [],
+            timeObservationOtherText: '',
+            timeStrategies: [],
+            timeStrategyOtherText: '',
+            agendaSetup: [],
+            agendaSetupOtherText: '',
+            clutterZones: [],
+            clutterZoneOtherText: '',
+            spaceSolutions: [],
+            spaceSolutionOtherText: '',
+            timeControlLevel: 6,
+            spaceCalmLevel: 6,
+            keepHabitNote: ''
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToStep(stepNumber) {
+            document.querySelectorAll('.step-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-step-${i}`);
+                if (i === stepNumber) {
+                    btn.className = 'step-nav-btn bg-teal-700 text-white font-semibold p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'step-nav-btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-medium p-3 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stepNumber === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-time', 'active-agenda', 'active-clutter', 'active-space');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function updateSliders() {
+            const timeVal = document.getElementById('timeControlSlider').value;
+            const spaceVal = document.getElementById('spaceCalmSlider').value;
+
+            document.getElementById('timeControlLabel').textContent = `${timeVal} / 10`;
+            document.getElementById('spaceCalmLabel').textContent = `${spaceVal} / 10`;
+
+            appState.timeControlLevel = timeVal;
+            appState.spaceCalmLevel = spaceVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.timeObservationOtherText = document.getElementById('timeObservationOtherText').value;
+            appState.timeStrategyOtherText = document.getElementById('timeStrategyOtherText').value;
+            appState.agendaSetupOtherText = document.getElementById('agendaSetupOtherText').value;
+            appState.clutterZoneOtherText = document.getElementById('clutterZoneOtherText').value;
+            appState.spaceSolutionOtherText = document.getElementById('spaceSolutionOtherText').value;
+            appState.keepHabitNote = document.getElementById('keepHabitNote').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('timeObservationOtherText').value = appState.timeObservationOtherText || '';
+            document.getElementById('timeStrategyOtherText').value = appState.timeStrategyOtherText || '';
+            document.getElementById('agendaSetupOtherText').value = appState.agendaSetupOtherText || '';
+            document.getElementById('clutterZoneOtherText').value = appState.clutterZoneOtherText || '';
+            document.getElementById('spaceSolutionOtherText').value = appState.spaceSolutionOtherText || '';
+            document.getElementById('keepHabitNote').value = appState.keepHabitNote || '';
+
+            document.getElementById('timeControlSlider').value = appState.timeControlLevel ?? 6;
+            document.getElementById('spaceCalmSlider').value = appState.spaceCalmLevel ?? 6;
+            document.getElementById('timeControlLabel').textContent = `${appState.timeControlLevel ?? 6} / 10`;
+            document.getElementById('spaceCalmLabel').textContent = `${appState.spaceCalmLevel ?? 6} / 10`;
+
+            restoreChipGroup('time-observation-chips', appState.timeObservations, 'active-time');
+            restoreChipGroup('time-strategy-chips', appState.timeStrategies, 'active-time');
+            restoreChipGroup('agenda-setup-chips', appState.agendaSetup, 'active-agenda');
+            restoreChipGroup('clutter-zone-chips', appState.clutterZones, 'active-clutter');
+            restoreChipGroup('space-solution-chips', appState.spaceSolutions, 'active-space');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const timeObs = appState.timeObservations.length ? appState.timeObservations.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const timeStrat = appState.timeStrategies.length ? appState.timeStrategies.join(' • ') : '<em>Nessuna strategia selezionata</em>';
+            const agSetup = appState.agendaSetup.length ? appState.agendaSetup.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const clZones = appState.clutterZones.length ? appState.clutterZones.join(' • ') : '<em>Nessun punto critico selezionato</em>';
+            const spSols = appState.spaceSolutions.length ? appState.spaceSolutions.join(' • ') : '<em>Nessun promotore selezionato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">1. Percezione del Tempo, Cuscinetti e Agenda Unica</div>
+                    <p><strong>Meccanismi osservati sul tempo:</strong> ${timeObs}</p>
+                    ${appState.timeObservationOtherText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.timeObservationOtherText)}"</p>` : ''}
+                    <p><strong class="text-teal-700">Strategie sul tempo visibile e cuscinetti:</strong> ${timeStrat}</p>
+                    ${appState.timeStrategyOtherText ? `<p class="text-teal-950 bg-teal-50 p-2 rounded-lg border border-teal-200 text-xs"><strong>Altra strategia sul tempo:</strong> ${escapeHtml(appState.timeStrategyOtherText)}</p>` : ''}
+                    <p><strong class="text-amber-700">Impostazione dell'Agenda Unica:</strong> ${agSetup}</p>
+                    ${appState.agendaSetupOtherText ? `<p class="text-amber-950 bg-amber-50 p-2 rounded-lg border border-amber-200 text-xs"><strong>Dettagli Agenda / Posto fisso:</strong> ${escapeHtml(appState.agendaSetupOtherText)}</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-800">2. Esperimento sullo Spazio a Basso Attrito</div>
+                    <p><strong class="text-rose-700">Punto critico / Causa del disordine:</strong> ${clZones}</p>
+                    ${appState.clutterZoneOtherText ? `<p class="text-rose-950 bg-rose-50 p-2 rounded-lg border border-rose-200 text-xs"><strong>Altro (Punto critico):</strong> ${escapeHtml(appState.clutterZoneOtherText)}</p>` : ''}
+                    <p><strong class="text-sky-700">Promotore dell'ordine sperimentato:</strong> ${spSols}</p>
+                    ${appState.spaceSolutionOtherText ? `<p class="text-sky-950 bg-sky-50 p-2 rounded-lg border border-sky-200 text-xs"><strong>Altro (Soluzione spaziale):</strong> ${escapeHtml(appState.spaceSolutionOtherText)}</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">3. Bilancio Settimanale</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Senso di Controllo sul Tempo e Agenda</span>
+                                <span class="text-teal-700 font-bold">${appState.timeControlLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-teal-600 h-2 rounded-full" style="width: ${appState.timeControlLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Calma Visiva e Funzionalità dello Spazio</span>
+                                <span class="text-sky-700 font-bold">${appState.spaceCalmLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-sky-600 h-2 rounded-full" style="width: ${appState.spaceCalmLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    ${appState.keepHabitNote ? `<p class="text-teal-950 bg-teal-50 p-3 rounded-lg border border-teal-200 text-xs"><strong>Accorgimento che voglio mantenere anche la prossima settimana:</strong> "${escapeHtml(appState.keepHabitNote)}"</p>` : ''}
+                </div>
+            `;
+        }
+
+        // SCARICA SOLO IL BOX SINTETICO IN PDF
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_5_Sintesi_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF di sintesi scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        // SCARICA IL PDF COMPLETO CON TUTTE LE SEZIONI E LA BUSSOLA APERTE E STATICHE
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_5_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 5: TEMPO VISIBILE, AGENDA UNICA E SPAZIO ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. PERCEZIONE DEL TEMPO E AGENDA UNICA",
+                "• Meccanismi osservati sul tempo: " + (appState.timeObservations.join(', ') || '-'),
+                appState.timeObservationOtherText ? "• Episodio / Note: " + appState.timeObservationOtherText : null,
+                "• Strategie sul tempo visibile e cuscinetti: " + (appState.timeStrategies.join(', ') || '-'),
+                appState.timeStrategyOtherText ? "• Altra strategia sul tempo: " + appState.timeStrategyOtherText : null,
+                "• Impostazione dell'Agenda Unica: " + (appState.agendaSetup.join(', ') || '-'),
+                appState.agendaSetupOtherText ? "• Dettagli Agenda / Posto fisso: " + appState.agendaSetupOtherText : null,
+                "",
+                "2. ESPERIMENTO SULLO SPAZIO A BASSO ATTRITO",
+                "• Punto critico scelto: " + (appState.clutterZones.join(', ') || '-'),
+                appState.clutterZoneOtherText ? "• Altro (Punto critico): " + appState.clutterZoneOtherText : null,
+                "• Promotore dell'ordine sperimentato: " + (appState.spaceSolutions.join(', ') || '-'),
+                appState.spaceSolutionOtherText ? "• Altro (Soluzione spaziale): " + appState.spaceSolutionOtherText : null,
+                "",
+                "3. BILANCIO SETTIMANALE",
+                "• Senso di controllo sul tempo e agenda: " + appState.timeControlLevel + "/10",
+                "• Calma visiva e funzionalità dello spazio: " + appState.spaceCalmLevel + "/10",
+                appState.keepHabitNote ? "• Accorgimento da mantenere: " + appState.keepHabitNote : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                timeObservations: [],
+                timeObservationOtherText: '',
+                timeStrategies: [],
+                timeStrategyOtherText: '',
+                agendaSetup: [],
+                agendaSetupOtherText: '',
+                clutterZones: [],
+                clutterZoneOtherText: '',
+                spaceSolutions: [],
+                spaceSolutionOtherText: '',
+                timeControlLevel: 6,
+                spaceCalmLevel: 6,
+                keepHabitNote: ''
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-time', 'active-agenda', 'active-clutter', 'active-space');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToStep(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

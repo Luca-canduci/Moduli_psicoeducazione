@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 8 - Laboratorio Onda Emotiva, Decodifica RSD e Brain Spinning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .lab-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .lab-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-wave {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+        }
+        .selectable-chip.active-facilitator {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-interference {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+        .selectable-chip.active-rsd {
+            background-color: #fce7f3;
+            border-color: #db2777;
+            color: #831843;
+            font-weight: 600;
+        }
+        .selectable-chip.active-spin {
+            background-color: #f3e8ff;
+            border-color: #7c3aed;
+            color: #4c1d95;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti i laboratori aperti e statici)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .lab-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .lab-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-violet-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Panoramico -->
+    <header class="bg-gradient-to-r from-indigo-950 via-purple-900 to-rose-900 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-water text-rose-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-rose-100 font-bold">Homework • Modulo 8</span>
+                        <span class="text-[11px] text-purple-200 hidden sm:inline">• Area III: Sensorialità, Emozioni ed Energia</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold mt-0.5">Laboratorio Pratico: Onda Emotiva, Decodifica RSD e Stop Brain Spinning</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-purple-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Mini-Laboratori -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="goToLab(1)" id="nav-lab-1" class="lab-nav-btn bg-indigo-600 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-wave-square"></i> 1. L'Onda & i 10 Min
+                </button>
+                <button onclick="goToLab(2)" id="nav-lab-2" class="lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-shield-heart"></i> 2. Smonta l'RSD
+                </button>
+                <button onclick="goToLab(3)" id="nav-lab-3" class="lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-power-off"></i> 3. Stop Vortice
+                </button>
+                <button onclick="goToLab(4)" id="nav-lab-4" class="lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-id-card"></i> 4. Card & PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-indigo-900 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-indigo-800">Programma Clinico Modulare di Psicoeducazione • Modulo 8</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 8: Onda Emotiva, Decodifica RSD e Stop Brain Spinning</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Shaw et al. (2014) • Mazefsky et al. (2013) • Surman et al. (2013) • Dodson (2016) • Migliarese et al. (2023).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Guida e Bottone Bussola Rapida -->
+        <div class="bg-purple-50/90 border border-purple-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-compass"></i>
+            </span>
+            <div class="text-xs md:text-sm text-purple-950 leading-relaxed flex-1">
+                <strong class="font-bold">Un laboratorio pratico, non un esame:</strong> 
+                Non possiamo impedire a un'onda emotiva o a una fitta di Sensibilità al Rifiuto (RSD) di accendersi, ma possiamo cambiare ciò che facciamo nei <strong>primi 10 minuti</strong>. Puoi compilare anche uno solo dei tre mini-laboratori in base a ciò che è accaduto questa settimana!
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-purple-100 text-purple-900 border border-purple-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Bussola 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 8 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-purple-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-purple-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-purple-700"></i> I 3 Strumenti del Modulo 8
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. La Regola dei 10 Minuti</div>
+                    <p class="text-slate-600 text-xs">Nel picco dell'onda la corteccia prefrontale è disconnessa. Sospendere l'invio di messaggi e raffreddare il corpo evita il "secondo picco" da rimuginio.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Decodificare l'Allarme RSD</div>
+                    <p class="text-slate-600 text-xs">La fitta allo stomaco per una critica o un silenzio è un falso allarme neurobiologico. Cercare 3 spiegazioni neutre disinnesca la catastrofe.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Spegnere il Brain Spinning</div>
+                    <p class="text-slate-600 text-xs">Scaricare su carta le azioni per domani (Cassetto A) e dare al cervello uno stimolo sensoriale monotono e calmo (Cassetto B).</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             LABORATORIO 1: TRACCIATORE DELL'ONDA EMOTIVA + FACILITATORI VS INTERFERENZE
+             ========================================================================= -->
+        <section id="lab-1" class="lab-section active space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-indigo-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Laboratorio 1 • Osservare l'Onda Senza Giudicarsi</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Ricostruisci un'Onda Emotiva della Settimana in 3 Passi</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Ripensa a un episodio di questi giorni in cui hai sentito un'emozione (frustrazione, rabbia, ansia, sconforto o entusiasmo travolgente) salire rapidamente da zero a cento.
+                    </p>
+                </div>
+
+                <!-- Timeline Orizzontale in 3 Fasi dell'Onda -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- FASE A: La Scintilla e la Batteria di Partenza -->
+                    <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold uppercase">Passo A • Prima dell'Onda</span>
+                                <i class="fa-solid fa-battery-quarter text-indigo-600"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-2">Com'era la tua batteria fisica/sensoriale quando è scattata la scintilla?</h3>
+                            <div class="flex flex-wrap gap-1.5" id="wave-precondition-chips">
+                                <button type="button" onclick="toggleChip(this, 'wavePreconditions', 'active-wave')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Stanchezza di fine giornata</button>
+                                <button type="button" onclick="toggleChip(this, 'wavePreconditions', 'active-wave')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Fame / Sete / Ipoglicemia</button>
+                                <button type="button" onclick="toggleChip(this, 'wavePreconditions', 'active-wave')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Sovraccarico acustico o visivo</button>
+                                <button type="button" onclick="toggleChip(this, 'wavePreconditions', 'active-wave')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Fretta o imprevisto improvviso</button>
+                                <button type="button" onclick="toggleChip(this, 'wavePreconditions', 'active-wave')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-700">Interruzione brusca mentre ero concentrato/a</button>
+                            </div>
+                        </div>
+                        <input type="text" id="waveTriggerText" oninput="saveData()" placeholder="Qual è stata la scintilla (trigger)?..." class="w-full rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none">
+                    </div>
+
+                    <!-- FASE B: I Segnali Corporei nel Picco -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold uppercase">Passo B • Il Picco (0–5 min)</span>
+                                <i class="fa-solid fa-heart-pulse text-rose-600"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-2">Quali segnali hai avvertito nel corpo e nella mente nei primi istanti?</h3>
+                            <div class="flex flex-wrap gap-1.5" id="wave-body-chips">
+                                <button type="button" onclick="toggleChip(this, 'waveBodySignals', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Fitta allo stomaco o nodo alla gola</button>
+                                <button type="button" onclick="toggleChip(this, 'waveBodySignals', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Calore al viso / Battito accelerato</button>
+                                <button type="button" onclick="toggleChip(this, 'waveBodySignals', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Urgenza impulsiva di rispondere o spiegarsi subito</button>
+                                <button type="button" onclick="toggleChip(this, 'waveBodySignals', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Tensione muscolare / Voce che si alza</button>
+                                <button type="button" onclick="toggleChip(this, 'waveBodySignals', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Blocco delle parole (inizio di Shutdown)</button>
+                            </div>
+                        </div>
+                        <input type="text" id="waveBodyOtherText" oninput="saveData()" placeholder="Altro segnale fisico o emotivo notato..." class="w-full rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-rose-500 focus:outline-none">
+                    </div>
+
+                    <!-- FASE C: Il Bivio dei 10 Minuti -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase">Passo C • Il Bivio</span>
+                                <i class="fa-solid fa-code-branch text-emerald-600"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-2">Quale mossa sei riuscito/a a mettere in atto (o è avvenuta)?</h3>
+                            <div class="flex flex-wrap gap-1.5" id="wave-bivio-chips">
+                                <button type="button" onclick="toggleChip(this, 'waveBivioActions', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Ho sospeso la risposta per almeno 10–15 minuti</button>
+                                <button type="button" onclick="toggleChip(this, 'waveBivioActions', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Mi sono spostato/a fisicamente o ho bevuto acqua fresca</button>
+                                <button type="button" onclick="toggleChip(this, 'waveBivioActions', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Ho chiesto un "Time-Out" per parlarne a mente fredda</button>
+                                <button type="button" onclick="toggleChip(this, 'waveBivioActions', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Ho risposto a caldo, ma dopo ho riconosciuto il meccanismo</button>
+                            </div>
+                        </div>
+                        <input type="text" id="waveBivioOtherText" oninput="saveData()" placeholder="Come si è conclusa l'onda?..." class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+                    </div>
+
+                </div>
+
+                <!-- VALUTAZIONE: FACILITATORI DELLA REGOLAZIONE VS INTERFERENZE -->
+                <div class="pt-2 border-t border-slate-100">
+                    <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Valutazione dell'Onda: I Tuoi Facilitatori vs Le Tue Interferenze
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Facilitatori -->
+                        <div class="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200 space-y-2.5">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Questi sono i tuoi FACILITATORI della calma
+                            </div>
+                            <p class="text-[11px] text-slate-600">Cosa ha aiutato l'onda a scendere senza provocare un secondo picco?</p>
+                            <div class="flex flex-wrap gap-1.5" id="emo-facilitators-chips">
+                                <button type="button" onclick="toggleChip(this, 'emoFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Non avere il telefono in mano nei primi 10 minuti</button>
+                                <button type="button" onclick="toggleChip(this, 'emoFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Raffreddamento fisico (acqua fresca, camminare, silenzio)</button>
+                                <button type="button" onclick="toggleChip(this, 'emoFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Ricordarmi che l'intensità acuta è temporanea e fisiologica</button>
+                                <button type="button" onclick="toggleChip(this, 'emoFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Aver mangiato/riposato prima di affrontare il discorso</button>
+                            </div>
+                        </div>
+
+                        <!-- Interferenze -->
+                        <div class="p-4 rounded-2xl bg-rose-50/40 border border-rose-200 space-y-2.5">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800">
+                                <i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Queste sono le tue INTERFERENZE (Amplificatori)
+                            </div>
+                            <p class="text-[11px] text-slate-600">Cosa ha alimentato o prolungato l'attivazione emotiva?</p>
+                            <div class="flex flex-wrap gap-1.5" id="emo-interferences-chips">
+                                <button type="button" onclick="toggleChip(this, 'emoInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Voler chiarire o risolvere tutto immediatamente a caldo</button>
+                                <button type="button" onclick="toggleChip(this, 'emoInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Rileggere continuamente lo stesso messaggio ricevuto</button>
+                                <button type="button" onclick="toggleChip(this, 'emoInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Essere in debito di sonno o in sovraccarico sensoriale</button>
+                                <button type="button" onclick="toggleChip(this, 'emoInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Giudicarmi severamente per aver provato quell'emozione</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToLab(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Laboratorio 2: Smonta l'Allarme RSD <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             LABORATORIO 2: IL DECODIFICATORE RSD DAL VIVO + COSTRUTTORE DI FRASI "TIME-OUT"
+             ========================================================================= -->
+        <section id="lab-2" class="lab-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-rose-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Laboratorio 2 • Disinnescare la Sensibilità al Rifiuto (RSD)</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Il "Tribunale dei Fatti": Allarme RSD vs Realtà Oggettiva</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Quando scatta l'RSD per un tono di voce, un messaggio breve o un'osservazione, il nostro cervello scrive in un secondo una "storia catastrofica". Smontiamola insieme su un episodio di questi giorni:
+                    </p>
+                </div>
+
+                <!-- 1. L'Episodio Neutro -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-1.5">
+                        1. Quale episodio ha fatto scattare la fitta di rifiuto o il timore di aver deluso qualcuno?
+                    </label>
+                    <input type="text" id="rsdEventInput" oninput="saveData()" placeholder="Es. Un messaggio visualizzato senza risposta, una persona cara silenziosa, una correzione sul lavoro..." class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-rose-500 focus:outline-none">
+                </div>
+
+                <!-- 2. I Due Piatti della Bilancia: Cosa urlava l'RSD vs Spiegazioni Alternative -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Piatto 1: La Lettura Catastrofica dell'Allarme RSD -->
+                    <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-rose-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-bell text-rose-600"></i> 2. Cosa ha urlato subito l'Allarme RSD?
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Tocca l'interpretazione automatica che si è accesa nella mente:</p>
+                            <div class="flex flex-wrap gap-1.5" id="rsd-alarm-chips">
+                                <button type="button" onclick="toggleChip(this, 'rsdAlarmThoughts', 'active-rsd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Ce l'ha sicuramente con me / Ho fatto qualcosa di sbagliato"</button>
+                                <button type="button" onclick="toggleChip(this, 'rsdAlarmThoughts', 'active-rsd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Ho deluso le aspettative, ora cambierà opinione su di me"</button>
+                                <button type="button" onclick="toggleChip(this, 'rsdAlarmThoughts', 'active-rsd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Devo giustificarmi subito o chiedere scusa in anticipo"</button>
+                                <button type="button" onclick="toggleChip(this, 'rsdAlarmThoughts', 'active-rsd')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">"Meglio chiudermi e sparire prima di essere rifiutato/a"</button>
+                            </div>
+                        </div>
+                        <input type="text" id="rsdAlarmOtherText" oninput="saveData()" placeholder="Altro pensiero automatico RSD..." class="w-full rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-rose-500 focus:outline-none">
+                    </div>
+
+                    <!-- Piatto 2: Le Spiegazioni Reali Non Ostili -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-emerald-950 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-glasses text-emerald-600"></i> 3. Il Filtro di Realtà: Spiegazioni Alternative
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Quali sono le spiegazioni più probabili che NON dipendono da una tua colpa?</p>
+                            <div class="flex flex-wrap gap-1.5" id="rsd-reality-chips">
+                                <button type="button" onclick="toggleChip(this, 'rsdRealityChecks', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">L'altra persona era semplicemente stanca, di fretta o assorta nei suoi pensieri</button>
+                                <button type="button" onclick="toggleChip(this, 'rsdRealityChecks', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Un messaggio sintetico è solo comunicazione rapida, non ostilità</button>
+                                <button type="button" onclick="toggleChip(this, 'rsdRealityChecks', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Una correzione riguarda un singolo dettaglio operativo (il 5%), non il mio valore</button>
+                                <button type="button" onclick="toggleChip(this, 'rsdRealityChecks', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Non ho prove oggettive che sia arrabbiata con me: aspetto prima di trarre conclusioni</button>
+                            </div>
+                        </div>
+                        <input type="text" id="rsdRealityOtherText" oninput="saveData()" placeholder="Scrivi un'altra spiegazione realistica e rassicurante..." class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none">
+                    </div>
+
+                </div>
+
+                <!-- NOVITÀ INTERATTIVA: IL GENERATORE DI FRASI "TIME-OUT" SALVA-RELAZIONI -->
+                <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-comment-medical"></i> 4. Costruttore di Frasi "Time-Out" Pronte all'Uso
+                        </span>
+                        <span class="text-[11px] text-slate-400">Finirà nella tua Card Tascabile nello Step 4</span>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Quando sei nel picco dell'onda o dell'RSD, trovare le parole per chiedere tempo senza sembrare bruschi è difficilissimo. Clicca su una delle frasi pronte qui sotto (o personalizzala) per averla sempre a portata di mano:
+                    </p>
+                    <div class="flex flex-wrap gap-2 no-print">
+                        <button type="button" onclick="setTimeoutPhrase('«Tengo molto a quello che mi stai dicendo, ma ora ho la mente satura e voglio risponderti bene: datemi 20 minuti di silenzio e ne riparliamo.»')" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs text-rose-100 transition-all text-left">
+                            In presenza (Partner / Famiglia)
+                        </button>
+                        <button type="button" onclick="setTimeoutPhrase('«Ho letto il tuo messaggio! In questo momento sono nel mezzo di alcune cose e voglio risponderti con la giusta attenzione: ti scrivo domani mattina a mente fresca.»')" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs text-indigo-100 transition-all text-left">
+                            Via Messaggio / WhatsApp
+                        </button>
+                        <button type="button" onclick="setTimeoutPhrase('«Grazie per il riscontro. Mi prendo un momento per rivedere tutti i punti con calma e ti aggiorno a breve.»')" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs text-emerald-100 transition-all text-left">
+                            Sul Lavoro / Studio
+                        </button>
+                    </div>
+                    <input type="text" id="timeoutPhraseInput" oninput="saveData()" placeholder="Scegli un modello sopra o scrivi qui la tua frase Time-Out preferita..." class="w-full rounded-xl bg-slate-800 border border-slate-600 px-3.5 py-2.5 text-xs md:text-sm text-white font-medium focus:border-rose-400 focus:outline-none">
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToLab(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToLab(3)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Laboratorio 3: Stop al Brain Spinning <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             LABORATORIO 3: CABINA DI SPEGNIMENTO DEL BRAIN SPINNING (SMISTAMENTO + ANCORA)
+             ========================================================================= -->
+        <section id="lab-3" class="lab-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-purple-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Laboratorio 3 • Spegnere il Motore Mentale a Fine Giornata</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Svuotare il "Brain Spinning" e Cambiare Canale Sensoriale</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Quando i pensieri girano in loop (riavvolgendo conversazioni passate o elencando cose da fare), dire a se stessi <em>"Non ci pensare!"</em> non funziona. Sperimentiamo lo smistamento esterno e l'ancora sensoriale:
+                    </p>
+                </div>
+
+                <!-- 1. I 2 Cassetti di Smistamento Settimanale -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-900"><i class="fa-solid fa-calendar-check mr-1"></i> Cassetto A • Promemoria Solubili</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600">
+                            Quali pensieri ricorrenti riguardavano cose pratiche da fare e hai scaricato (o puoi scaricare ora) fuori dalla testa?
+                        </p>
+                        <textarea id="spinBoxAText" oninput="saveData()" rows="3" placeholder="Es. Ho scritto sull'agenda le 2 commissioni di domani così da smettere di ripetermele a mente a letto..." class="w-full rounded-xl border border-amber-200 bg-white p-2.5 text-xs text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-purple-900"><i class="fa-solid fa-box-archive mr-1"></i> Cassetto B • Replay da Lasciare Andare</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600">
+                            Quale conversazione passata o scenario ipotetico girava a vuoto senza che tu potessi farci nulla in quel momento?
+                        </p>
+                        <textarea id="spinBoxBText" oninput="saveData()" rows="3" placeholder="Es. Continuavo a ripensare a una risposta data oggi pomeriggio o a simulare discussioni future..." class="w-full rounded-xl border border-purple-200 bg-white p-2.5 text-xs text-slate-800 focus:border-purple-600 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- 2. Quale Interruttore Sensoriale hai provato per cambiare canale? -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <label class="block text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-headphones text-purple-600"></i> Quale "Interruttore Fisico o Sensoriale" ti ha aiutato a cambiare canale?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="spin-breaker-chips">
+                        <button type="button" onclick="toggleChip(this, 'spinBreakers', 'active-spin')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Ascoltare un audiolibro, un podcast calmo o una storia già familiare</button>
+                        <button type="button" onclick="toggleChip(this, 'spinBreakers', 'active-spin')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Fare un "Brain Dump" su carta o nota vocale di 2 minuti</button>
+                        <button type="button" onclick="toggleChip(this, 'spinBreakers', 'active-spin')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Rumore marrone / suono della pioggia per coprire il silenzio</button>
+                        <button type="button" onclick="toggleChip(this, 'spinBreakers', 'active-spin')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Cambio di temperatura (acqua fresca su viso/polsi o doccia calda)</button>
+                        <button type="button" onclick="toggleChip(this, 'spinBreakers', 'active-spin')" class="selectable-chip px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-700">Pressione profonda (coperta pesante) o movimento fisico</button>
+                    </div>
+                    <input type="text" id="spinBreakerOtherText" oninput="saveData()" placeholder="Altro interruttore contro il Brain Spinning che funziona per te..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-600 focus:outline-none">
+                </div>
+
+                <!-- 3. Ipotesi per la Prossima Settimana -->
+                <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-2">
+                    <label class="block text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> IPOTESI: Quale piccola modifica vuoi provare la prossima volta che senti salire l'onda o il vortice?
+                    </label>
+                    <input type="text" id="nextWaveHypothesis" oninput="saveData()" placeholder="Es. Posare subito il telefono in un'altra stanza per 15 minuti e usare la mia frase Time-Out..." class="w-full rounded-xl border border-indigo-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-indigo-600 focus:outline-none">
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToLab(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToLab(4)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera la Tua Card Tascabile e il PDF <i class="fa-solid fa-id-card"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             LABORATORIO 4: CARD TASCABILE DI PRONTO SOCCORSO EMOTIVO E REPORT PDF
+             ========================================================================= -->
+        <section id="lab-4" class="lab-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • La Tua Card & Report Clinico</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">La Tua "Card di Pronto Soccorso Emotivo" e PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutti i laboratori aperti oppure la sintesi con la tua Card Tascabile.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica solo la Card e il box di riepilogo">
+                            <i class="fa-solid fa-id-card"></i> PDF Card + Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-indigo-700"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-600 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-indigo-900 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-indigo-800">Percorso Modulare di Psicoeducazione • Modulo 8</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 8: Onda Emotiva, Decodifica RSD e Brain Spinning</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- NOVITÀ VISIVA: LA CARD TASCABILE DI PRONTO SOCCORSO EMOTIVO -->
+                    <div id="pocketSosCard" class="rounded-2xl bg-gradient-to-r from-indigo-950 via-purple-900 to-rose-900 text-white p-5 shadow-md space-y-3">
+                        <!-- Popolata dinamicamente via JS -->
+                    </div>
+
+                    <!-- Contenuto analitico dei 3 Laboratori iniettato da renderSummary() -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Shaw et al. (2014) • Mazefsky et al. (2013) • Dodson (2016) • Migliarese et al. (2023)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToLab(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_8_general_v1';
+
+        let appState = {
+            patientName: '',
+            wavePreconditions: [],
+            waveTriggerText: '',
+            waveBodySignals: [],
+            waveBodyOtherText: '',
+            waveBivioActions: [],
+            waveBivioOtherText: '',
+            emoFacilitators: [],
+            emoInterferences: [],
+            rsdEventInput: '',
+            rsdAlarmThoughts: [],
+            rsdAlarmOtherText: '',
+            rsdRealityChecks: [],
+            rsdRealityOtherText: '',
+            timeoutPhraseInput: '',
+            spinBoxAText: '',
+            spinBoxBText: '',
+            spinBreakers: [],
+            spinBreakerOtherText: '',
+            nextWaveHypothesis: ''
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToLab(labNum) {
+            document.querySelectorAll('.lab-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`lab-${labNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-lab-${i}`);
+                if (i === labNum) {
+                    btn.className = 'lab-nav-btn bg-indigo-600 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (labNum === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-wave', 'active-facilitator', 'active-interference', 'active-rsd', 'active-spin');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function setTimeoutPhrase(phrase) {
+            document.getElementById('timeoutPhraseInput').value = phrase;
+            saveData();
+            showToast('Frase Time-Out selezionata e salvata nella tua Card!');
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.waveTriggerText = document.getElementById('waveTriggerText').value;
+            appState.waveBodyOtherText = document.getElementById('waveBodyOtherText').value;
+            appState.waveBivioOtherText = document.getElementById('waveBivioOtherText').value;
+            appState.rsdEventInput = document.getElementById('rsdEventInput').value;
+            appState.rsdAlarmOtherText = document.getElementById('rsdAlarmOtherText').value;
+            appState.rsdRealityOtherText = document.getElementById('rsdRealityOtherText').value;
+            appState.timeoutPhraseInput = document.getElementById('timeoutPhraseInput').value;
+            appState.spinBoxAText = document.getElementById('spinBoxAText').value;
+            appState.spinBoxBText = document.getElementById('spinBoxBText').value;
+            appState.spinBreakerOtherText = document.getElementById('spinBreakerOtherText').value;
+            appState.nextWaveHypothesis = document.getElementById('nextWaveHypothesis').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('waveTriggerText').value = appState.waveTriggerText || '';
+            document.getElementById('waveBodyOtherText').value = appState.waveBodyOtherText || '';
+            document.getElementById('waveBivioOtherText').value = appState.waveBivioOtherText || '';
+            document.getElementById('rsdEventInput').value = appState.rsdEventInput || '';
+            document.getElementById('rsdAlarmOtherText').value = appState.rsdAlarmOtherText || '';
+            document.getElementById('rsdRealityOtherText').value = appState.rsdRealityOtherText || '';
+            document.getElementById('timeoutPhraseInput').value = appState.timeoutPhraseInput || '';
+            document.getElementById('spinBoxAText').value = appState.spinBoxAText || '';
+            document.getElementById('spinBoxBText').value = appState.spinBoxBText || '';
+            document.getElementById('spinBreakerOtherText').value = appState.spinBreakerOtherText || '';
+            document.getElementById('nextWaveHypothesis').value = appState.nextWaveHypothesis || '';
+
+            restoreChipGroup('wave-precondition-chips', appState.wavePreconditions, 'active-wave');
+            restoreChipGroup('wave-body-chips', appState.waveBodySignals, 'active-interference');
+            restoreChipGroup('wave-bivio-chips', appState.waveBivioActions, 'active-facilitator');
+            restoreChipGroup('emo-facilitators-chips', appState.emoFacilitators, 'active-facilitator');
+            restoreChipGroup('emo-interferences-chips', appState.emoInterferences, 'active-interference');
+            restoreChipGroup('rsd-alarm-chips', appState.rsdAlarmThoughts, 'active-rsd');
+            restoreChipGroup('rsd-reality-chips', appState.rsdRealityChecks, 'active-facilitator');
+            restoreChipGroup('spin-breaker-chips', appState.spinBreakers, 'active-spin');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const pocketCard = document.getElementById('pocketSosCard');
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const chosenPhrase = appState.timeoutPhraseInput
+                ? escapeHtml(appState.timeoutPhraseInput)
+                : '«Tengo molto a quello che mi stai dicendo, ma ora ho bisogno di 15 minuti per riordinare le idee e risponderti a mente fresca.»';
+
+            const chosenSpinBreakers = appState.spinBreakers.length
+                ? appState.spinBreakers.join(' • ')
+                : 'Scaricare i promemoria su carta + usare uno stimolo uditivo/somatico calmo';
+
+            // 1. Popola la Card Tascabile SOS
+            pocketCard.innerHTML = `
+                <div class="flex items-center justify-between border-b border-white/15 pb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-widest text-rose-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-life-ring"></i> Card Tascabile di Pronto Soccorso Emotivo
+                    </span>
+                    <span class="text-[11px] text-purple-200">Regola dei Primi 10 Minuti</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-rose-200 uppercase text-[10px] tracking-wider block mb-1">La Mia Frase "Time-Out" Pronta all'Uso:</strong>
+                        <p class="text-white font-medium italic">${chosenPhrase}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-emerald-200 uppercase text-[10px] tracking-wider block mb-1">I Miei Interruttori per Cambiare Canale:</strong>
+                        <p class="text-white">${chosenSpinBreakers}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Popola il Report dei 3 Laboratori
+            const preCond = appState.wavePreconditions.length ? appState.wavePreconditions.join(' • ') : '<em>Non specificato</em>';
+            const bodySig = appState.waveBodySignals.length ? appState.waveBodySignals.join(' • ') : '<em>Non specificato</em>';
+            const bivioAct = appState.waveBivioActions.length ? appState.waveBivioActions.join(' • ') : '<em>Non specificato</em>';
+            const facList = appState.emoFacilitators.length ? appState.emoFacilitators.join(' • ') : '<em>Nessun facilitatore selezionato</em>';
+            const intList = appState.emoInterferences.length ? appState.emoInterferences.join(' • ') : '<em>Nessuna interferenza selezionata</em>';
+
+            const rsdAlarms = appState.rsdAlarmThoughts.length ? appState.rsdAlarmThoughts.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const rsdReal = appState.rsdRealityChecks.length ? appState.rsdRealityChecks.join(' • ') : '<em>Nessuna spiegazione selezionata</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-800">1. Tracciatore dell'Onda Emotiva e Valutazione</div>
+                    <p><strong>Batteria di partenza:</strong> ${preCond}</p>
+                    ${appState.waveTriggerText ? `<p><strong>Scintilla (Trigger):</strong> "${escapeHtml(appState.waveTriggerText)}"</p>` : ''}
+                    <p><strong class="text-rose-700">Segnali nel picco (0–5 min):</strong> ${bodySig} ${appState.waveBodyOtherText ? `(${escapeHtml(appState.waveBodyOtherText)})` : ''}</p>
+                    <p><strong class="text-emerald-700">Mossa al bivio dei 10 minuti:</strong> ${bivioAct} ${appState.waveBivioOtherText ? `(${escapeHtml(appState.waveBivioOtherText)})` : ''}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+                        <div class="bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+                            <strong class="text-emerald-900 block">I Miei FACILITATORI:</strong> ${facList}
+                        </div>
+                        <div class="bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                            <strong class="text-rose-900 block">Le Mie INTERFERENZE:</strong> ${intList}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-800">2. Decodifica della Sensibilità al Rifiuto (RSD)</div>
+                    ${appState.rsdEventInput ? `<p><strong>Episodio osservato:</strong> "${escapeHtml(appState.rsdEventInput)}"</p>` : ''}
+                    <p><strong class="text-rose-700">Lettura dell'Allarme RSD:</strong> ${rsdAlarms} ${appState.rsdAlarmOtherText ? `• ${escapeHtml(appState.rsdAlarmOtherText)}` : ''}</p>
+                    <p><strong class="text-emerald-700">Spiegazioni Alternative Reali:</strong> ${rsdReal} ${appState.rsdRealityOtherText ? `• ${escapeHtml(appState.rsdRealityOtherText)}` : ''}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-purple-800">3. Smistamento del Brain Spinning e Ipotesi Futura</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-amber-50/80 p-2.5 rounded-lg border border-amber-200">
+                            <strong class="text-amber-900 block">Cassetto A (Promemoria pratici):</strong>
+                            ${appState.spinBoxAText ? escapeHtml(appState.spinBoxAText) : '<em>-</em>'}
+                        </div>
+                        <div class="bg-purple-50/80 p-2.5 rounded-lg border border-purple-200">
+                            <strong class="text-purple-900 block">Cassetto B (Replay archiviati):</strong>
+                            ${appState.spinBoxBText ? escapeHtml(appState.spinBoxBText) : '<em>-</em>'}
+                        </div>
+                    </div>
+                    ${appState.spinBreakerOtherText ? `<p class="text-xs text-purple-950"><strong>Altro interruttore utile:</strong> ${escapeHtml(appState.spinBreakerOtherText)}</p>` : ''}
+                    ${appState.nextWaveHypothesis ? `<p class="text-indigo-950 bg-indigo-50 p-2.5 rounded-lg border border-indigo-200 text-xs"><strong>Ipotesi per la prossima onda/vortice:</strong> "${escapeHtml(appState.nextWaveHypothesis)}"</p>` : ''}
+                </div>
+            `;
+        }
+
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_8_Card_e_Sintesi_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF con Card Tascabile e Sintesi scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura laboratori e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_8_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutti i laboratori aperti scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 8: ONDA EMOTIVA, DECODIFICA RSD E STOP BRAIN SPINNING ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. TRACCIATORE DELL'ONDA EMOTIVA",
+                "• Batteria di partenza: " + (appState.wavePreconditions.join(', ') || '-'),
+                appState.waveTriggerText ? "• Scintilla (Trigger): " + appState.waveTriggerText : null,
+                "• Segnali nel picco: " + (appState.waveBodySignals.join(', ') || '-'),
+                "• Mossa al bivio dei 10 min: " + (appState.waveBivioActions.join(', ') || '-'),
+                "• I miei FACILITATORI: " + (appState.emoFacilitators.join(', ') || '-'),
+                "• Le mie INTERFERENZE: " + (appState.emoInterferences.join(', ') || '-'),
+                "",
+                "2. DECODIFICA RSD E FRASE TIME-OUT",
+                appState.rsdEventInput ? "• Episodio: " + appState.rsdEventInput : null,
+                "• Allarme RSD: " + (appState.rsdAlarmThoughts.join(', ') || '-'),
+                "• Spiegazioni alternative reali: " + (appState.rsdRealityChecks.join(', ') || '-'),
+                appState.timeoutPhraseInput ? "• La mia Frase Time-Out: " + appState.timeoutPhraseInput : null,
+                "",
+                "3. STOP BRAIN SPINNING",
+                appState.spinBoxAText ? "• Cassetto A (Promemoria domani): " + appState.spinBoxAText : null,
+                appState.spinBoxBText ? "• Cassetto B (Replay archiviato): " + appState.spinBoxBText : null,
+                "• Interruttori sensoriali: " + (appState.spinBreakers.join(', ') || '-'),
+                appState.nextWaveHypothesis ? "• Ipotesi per la prossima occasione: " + appState.nextWaveHypothesis : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                wavePreconditions: [],
+                waveTriggerText: '',
+                waveBodySignals: [],
+                waveBodyOtherText: '',
+                waveBivioActions: [],
+                waveBivioOtherText: '',
+                emoFacilitators: [],
+                emoInterferences: [],
+                rsdEventInput: '',
+                rsdAlarmThoughts: [],
+                rsdAlarmOtherText: '',
+                rsdRealityChecks: [],
+                rsdRealityOtherText: '',
+                timeoutPhraseInput: '',
+                spinBoxAText: '',
+                spinBoxBText: '',
+                spinBreakers: [],
+                spinBreakerOtherText: '',
+                nextWaveHypothesis: ''
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-wave', 'active-facilitator', 'active-interference', 'active-rsd', 'active-spin');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToLab(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

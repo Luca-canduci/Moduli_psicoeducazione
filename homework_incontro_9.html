@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 9 - Protocollo Semaforo e Bilancio dei Cucchiai</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .lab-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .lab-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-green {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-yellow {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-red {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+        .selectable-chip.active-ally {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti i laboratori aperti e statici)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .lab-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .lab-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Panoramico -->
+    <header class="bg-gradient-to-r from-slate-900 via-teal-900 to-amber-900 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-traffic-light text-amber-300 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200 font-bold">Homework • Modulo 9</span>
+                        <span class="text-[11px] text-teal-200 hidden sm:inline">• Area III: Sensorialità, Emozioni ed Energia</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold mt-0.5">Il Tuo Protocollo Semaforo e il Bilancio dei Cucchiai</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-teal-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Laboratori -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="goToLab(1)" id="nav-lab-1" class="lab-nav-btn bg-teal-800 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-traffic-light"></i> 1. Semaforo SOS
+                </button>
+                <button onclick="goToLab(2)" id="nav-lab-2" class="lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-utensil-spoon"></i> 2. Audit Cucchiai
+                </button>
+                <button onclick="goToLab(3)" id="nav-lab-3" class="lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-battery-half"></i> 3. Pacing & Skill Loss
+                </button>
+                <button onclick="goToLab(4)" id="nav-lab-4" class="lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-shield-heart"></i> 4. Passaporto & PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-teal-900 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-teal-800">Programma Clinico Modulare di Psicoeducazione • Modulo 9</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 9: Protocollo Semaforo, Bilancio dei Cucchiai e Prevenzione Burnout</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Raymaker et al. (2020) • Higgins et al. (2021) • Arnold et al. (2023) • Miserandino (2003).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Guida Anti-Sovraccarico -->
+        <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-feather-pointed"></i>
+            </span>
+            <div class="text-xs md:text-sm text-amber-950 leading-relaxed flex-1">
+                <strong class="font-bold">Zero fatica aggiuntiva:</strong> 
+                Questo homework è progettato per <strong>farti risparmiare cucchiai</strong>, non per consumarne altri! Quando siamo in *Meltdown* o *Shutdown* non riusciamo a spiegare agli altri di cosa abbiamo bisogno: preparando ora con calma il tuo **Semaforo Personale**, avrai un "manuale di istruzioni" già pronto per te e per chi ti sta vicino.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Bussola 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 9 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-teal-800 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-teal-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-teal-700"></i> I 3 Pilastri del Modulo 9
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Meltdown vs Shutdown</div>
+                    <p class="text-slate-600 text-xs">Sono risposte involontarie di emergenza del sistema nervoso: il <strong>Meltdown</strong> scarica all'esterno, lo <strong>Shutdown</strong> spegne parole e movimento per proteggere il cervello.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Burnout e Skill Loss</div>
+                    <p class="text-slate-600 text-xs">A differenza della depressione, il Burnout neurodivergente non guarisce "forzandosi a uscire", ma <strong>sottraendo carico</strong>. La perdita temporanea di abilità (<em>Skill Loss</em>) è reversibile.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Pacing dei Cucchiai</div>
+                    <p class="text-slate-600 text-xs">Non spendere mai il 100% della batteria: alterna impegni pesanti e finestre vuote di recupero, lasciando 2 cucchiai di margine per gli imprevisti.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             LABORATORIO 1: IL COSTRUTTORE DEL "PROTOCOLLO SEMAFORO" (VERDE / GIALLO / ROSSO)
+             ========================================================================= -->
+        <section id="lab-1" class="lab-section active space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-teal-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-800">Laboratorio 1 • Il Tuo Manuale di Sicurezza Personale</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Costruisci il Tuo "Protocollo Semaforo" (Verde, Giallo, Rosso)</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Tocca le etichette che descrivono cosa ti mantiene in equilibrio in <strong>Zona Verde</strong>, come accorgerti che stai entrando in <strong>Zona Gialla</strong> e quale protocollo attivare in <strong>Zona Rossa</strong>:
+                    </p>
+                </div>
+
+                <!-- LE 3 FASCE DEL SEMAFORO -->
+                <div class="space-y-4">
+                    
+                    <!-- ZONA VERDE -->
+                    <div class="p-5 rounded-2xl bg-emerald-50/50 border-l-4 border-l-emerald-600 border border-emerald-200 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                                    <i class="fa-solid fa-battery-full"></i>
+                                </span>
+                                <div>
+                                    <h3 class="font-extrabold text-emerald-950 text-sm md:text-base">ZONA VERDE • Batteria in Equilibrio (Manutenzione)</h3>
+                                    <p class="text-xs text-slate-600">Cosa mantiene stabile il tuo sistema nervoso nelle giornate buone?</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5" id="green-zone-chips">
+                            <button type="button" onclick="toggleChip(this, 'greenZoneItems', 'active-green')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Avere orari prevedibili e cuscinetti di pausa tra gli impegni</button>
+                            <button type="button" onclick="toggleChip(this, 'greenZoneItems', 'active-green')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Dedicarmi ogni giorno per 30–60 min ai miei interessi speciali</button>
+                            <button type="button" onclick="toggleChip(this, 'greenZoneItems', 'active-green')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Dormire a sufficienza e fare pasti regolari senza saltarli</button>
+                            <button type="button" onclick="toggleChip(this, 'greenZoneItems', 'active-green')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Usare cuffie antirumore o luci calde prima ancora di stancarmi</button>
+                            <button type="button" onclick="toggleChip(this, 'greenZoneItems', 'active-green')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Poter togliere la "maschera sociale" (Unmasking) in casa</button>
+                        </div>
+                        <input type="text" id="greenZoneCustomText" oninput="saveData()" placeholder="Altro elemento che ti mantiene in Zona Verde (opzionale)..." class="w-full rounded-xl border border-emerald-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                    </div>
+
+                    <!-- ZONA GIALLA -->
+                    <div class="p-5 rounded-2xl bg-amber-50/50 border-l-4 border-l-amber-500 border border-amber-200 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </span>
+                                <div>
+                                    <h3 class="font-extrabold text-amber-950 text-sm md:text-base">ZONA GIALLA • Spia della Riserva (Frenare Prima del Crollo)</h3>
+                                    <p class="text-xs text-slate-600">Quali sono i tuoi segnali di pre-sovraccarico e quale "freno d'emergenza" attivi?</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5" id="yellow-zone-chips">
+                            <button type="button" onclick="toggleChip(this, 'yellowZoneItems', 'active-yellow')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Segnale: Suoni, luci o piccoli imprevisti diventano improvvisamente intollerabili</button>
+                            <button type="button" onclick="toggleChip(this, 'yellowZoneItems', 'active-yellow')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Segnale: Fatica a trovare le parole, risposte monosillabiche o irritabilità</button>
+                            <button type="button" onclick="toggleChip(this, 'yellowZoneItems', 'active-yellow')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Azione: Rimandare subito commissioni non urgenti e passare a un pasto pronto</button>
+                            <button type="button" onclick="toggleChip(this, 'yellowZoneItems', 'active-yellow')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Azione: Prendermi 20–30 minuti di silenzio e penombra a "zero parole"</button>
+                            <button type="button" onclick="toggleChip(this, 'yellowZoneItems', 'active-yellow')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Azione: Bere acqua, fare uno spuntino e indossare abiti morbidi</button>
+                        </div>
+                        <input type="text" id="yellowZoneCustomText" oninput="saveData()" placeholder="Altro segnale o freno che usi in Zona Gialla (opzionale)..." class="w-full rounded-xl border border-amber-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-600 focus:outline-none">
+                    </div>
+
+                    <!-- ZONA ROSSA -->
+                    <div class="p-5 rounded-2xl bg-rose-50/50 border-l-4 border-l-rose-600 border border-rose-200 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                                    <i class="fa-solid fa-bolt-lightning"></i>
+                                </span>
+                                <div>
+                                    <h3 class="font-extrabold text-rose-950 text-sm md:text-base">ZONA ROSSA • Meltdown o Shutdown in Corso (Protezione Totale)</h3>
+                                    <p class="text-xs text-slate-600">Cosa ti aiuta davvero (e cosa chiedi agli altri di NON fare) quando scatta il salvavita?</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5" id="red-zone-chips">
+                            <button type="button" onclick="toggleChip(this, 'redZoneItems', 'active-red')" class="selectable-chip px-3 py-1.5 rounded-xl border border-rose-200 bg-white text-xs text-slate-700">NON farmi domande a raffica ("Perché fai così? Parla!") e non chiedermi decisioni</button>
+                            <button type="button" onclick="toggleChip(this, 'redZoneItems', 'active-red')" class="selectable-chip px-3 py-1.5 rounded-xl border border-rose-200 bg-white text-xs text-slate-700">NON toccarmi senza preavviso e non scambiare il mio silenzio per ostilità</button>
+                            <button type="button" onclick="toggleChip(this, 'redZoneItems', 'active-red')" class="selectable-chip px-3 py-1.5 rounded-xl border border-rose-200 bg-white text-xs text-slate-700">AIUTA: Lasciarmi andare in una stanza tranquilla, buia e silenziosa senza colpa</button>
+                            <button type="button" onclick="toggleChip(this, 'redZoneItems', 'active-red')" class="selectable-chip px-3 py-1.5 rounded-xl border border-rose-200 bg-white text-xs text-slate-700">AIUTA: Permettermi di comunicare con un messaggio scritto o un gesto se non riesco a parlare</button>
+                            <button type="button" onclick="toggleChip(this, 'redZoneItems', 'active-red')" class="selectable-chip px-3 py-1.5 rounded-xl border border-rose-200 bg-white text-xs text-slate-700">AIUTA: Coperta pesante, acqua fresca e riposo da "convalescenza" nelle ore successive</button>
+                        </div>
+                        <input type="text" id="redZoneCustomText" oninput="saveData()" placeholder="Scrivi qui la tua Parola Codice o il segnale con cui avvisi che sei in Zona Rossa (es. 'Batteria Zero' / emoji 🪫)..." class="w-full rounded-xl border border-rose-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-rose-600 focus:outline-none">
+                    </div>
+
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToLab(2)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Laboratorio 2: Audit dei Cucchiai <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             LABORATORIO 2: AUDIT DEI "VAMPIRI DI CUCCHIAI" VS "SALVA-CUCCHIAI" (OSTACOLI VS ALLEATI)
+             ========================================================================= -->
+        <section id="lab-2" class="lab-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-amber-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Laboratorio 2 • Contabilità Energetica Reale</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Dove Sono Finiti i Tuoi Cucchiai Questa Settimana?</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Individua quali fattori hanno drenato più energia del previsto (<strong>Ostacoli / Vampiri di Cucchiai</strong>) e quali accorgimenti ti hanno permesso di risparmiarne o recuperarne (<strong>Alleati / Salva-Cucchiai</strong>).
+                    </p>
+                </div>
+
+                <!-- Confronto a 2 Colonne: VAMPIRI DI CUCCHIAI (OSTACOLI) vs SALVA-CUCCHIAI (ALLEATI) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Colonna 1: Ostacoli / Vampiri di Cucchiai -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-fire-flame-Simple text-rose-600 mr-1"></i> I Tuoi OSTACOLI ("Vampiri di Cucchiai")
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Cosa ti ha fatto andare in riserva o in debito energetico in questi giorni?</p>
+                            <div class="flex flex-wrap gap-1.5" id="spoon-vampires-chips">
+                                <button type="button" onclick="toggleChip(this, 'spoonVampires', 'active-red')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Masking sociale prolungato (dover apparire brillanti e performanti)</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonVampires', 'active-red')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Aver incastrato due o più impegni pesanti nella stessa giornata</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonVampires', 'active-red')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Ambienti affollati, rumorosi o spostamenti caotici nel traffico</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonVampires', 'active-red')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Micro-decisioni continue (cosa cucinare, a chi rispondere, burocrazia)</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonVampires', 'active-red')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Aver detto "sì" a una richiesta quando ero già senza cucchiai</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonVampires', 'active-red')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Cambi di programma improvvisi che hanno rotto la routine</button>
+                            </div>
+                        </div>
+                        <input type="text" id="spoonVampireOtherText" oninput="saveData()" placeholder="Altro vampiro energetico della settimana..." class="w-full rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-rose-500 focus:outline-none">
+                    </div>
+
+                    <!-- Colonna 2: Alleati / Salva-Cucchiai -->
+                    <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-teal-800 bg-teal-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-plug-circle-bolt text-teal-600 mr-1"></i> I Tuoi ALLEATI ("Salva-Cucchiai")
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2.5">Cosa ti ha permesso di risparmiare o recuperare cucchiai preziosi?</p>
+                            <div class="flex flex-wrap gap-1.5" id="spoon-savers-chips">
+                                <button type="button" onclick="toggleChip(this, 'spoonSavers', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Lasciare 2 cucchiai di margine senza riempire tutta l'agenda</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonSavers', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Semplificare i pasti (cibi pronti/confortanti a zero fatica esecutiva)</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonSavers', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Usare ausili sensoriali (cuffie ANC, tappi, occhiali da sole)</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonSavers', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Declinare o accorciare un'uscita sociale per proteggere il recupero</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonSavers', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Fare una pausa al buio/silenzio prima di essere del tutto a zero</button>
+                                <button type="button" onclick="toggleChip(this, 'spoonSavers', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-teal-200 bg-white text-xs text-slate-700">Lavorare da remoto o scegliere comunicazioni scritte anziché telefonate</button>
+                            </div>
+                        </div>
+                        <input type="text" id="spoonSaverOtherText" oninput="saveData()" placeholder="Altro alleato energetico che ha funzionato..." class="w-full rounded-lg border border-teal-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-teal-600 focus:outline-none">
+                    </div>
+
+                </div>
+
+                <!-- ESERCIZIO DI SOTTRAZIONE DEL CARICO (PREVENZIONE BURNOUT) -->
+                <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-2.5">
+                    <label class="block text-sm font-bold text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-scissors"></i> L'Esercizio della "Sottrazione": Quale richiesta non essenziale tagli o semplifichi questa settimana?
+                    </label>
+                    <p class="text-xs text-slate-300">
+                        Nel Burnout e nel sovraccarico non si guarisce aggiungendo altri compiti, ma <strong>togliendo un peso</strong>. Indica una cosa che decidi consapevolmente di rimandare, delegare o fare al "minimo vitale":
+                    </p>
+                    <input type="text" id="loadSubtractionText" oninput="saveData()" placeholder="Es. Questa settimana non mi forzo ad andare a quella cena rumorosa e uso piatti pronti due sere..." class="w-full rounded-xl bg-slate-800 border border-slate-600 px-3.5 py-2.5 text-xs md:text-sm text-white focus:border-amber-400 focus:outline-none">
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToLab(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToLab(3)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai al Laboratorio 3: Alternanza e Skill Loss <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             LABORATORIO 3: REGOLA DELL'ALTERNANZA E VALIDAZIONE DELLO "SKILL LOSS"
+             ========================================================================= -->
+        <section id="lab-3" class="lab-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-indigo-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Laboratorio 3 • Proteggere le Giornate Critiche e Accogliere lo Skill Loss</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Applicare la "Regola dell'Alternanza" e Togliere la Colpa</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Pianifichiamo in anticipo il recupero attorno al giorno più impegnativo della settimana e riconosciamo senza giudizio eventuali abilità temporaneamente affaticate.
+                    </p>
+                </div>
+
+                <!-- 1. Pianificatore dell'Alternanza -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-rose-700">
+                            <i class="fa-solid fa-calendar-xmark mr-1"></i> 1. Il Giorno / Evento a Più Alto Consumo di Cucchiai:
+                        </label>
+                        <p class="text-[11px] text-slate-600">Qual è stato (o sarà nei prossimi giorni) il momento più drenante della settimana?</p>
+                        <textarea id="highDrainDayText" oninput="saveData()" rows="2" placeholder="Es. Giovedì (giornata intera in presenza + riunione pomeridiana)..." class="w-full rounded-xl border border-slate-300 bg-white p-2.5 text-xs text-slate-800 focus:border-teal-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-emerald-800">
+                            <i class="fa-solid fa-couch mr-1"></i> 2. Il Cuscinetto di Recupero Protetto (Regola dell'Alternanza):
+                        </label>
+                        <p class="text-[11px] text-slate-600">Quale finestra vuota di decompressione blocchi in agenda subito dopo?</p>
+                        <textarea id="recoveryBufferText" oninput="saveData()" rows="2" placeholder="Es. Giovedì sera zero impegni sociali, cena già pronta e venerdì mattina lavoro più leggero..." class="w-full rounded-xl border border-emerald-200 bg-white p-2.5 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- 2. Riconoscere e De-colpevolizzare lo "Skill Loss" (Perdita Temporanea di Abilità) -->
+                <div class="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3">
+                    <label class="block text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <i class="fa-solid fa-heart-circle-check text-indigo-600"></i> 3. Check sullo "Skill Loss": Su quali funzioni il tuo cervello ti sta chiedendo una tregua temporanea?
+                    </label>
+                    <p class="text-xs text-slate-600">
+                        Se in questo periodo fai più fatica a svolgere alcune di queste attività rispetto al passato, <strong>non stai regredendo</strong>: il tuo sistema nervoso sta solo risparmiando batteria. Tocca quelle su cui scegli di abbassare subito le pretese:
+                    </p>
+                    <div class="flex flex-wrap gap-2" id="skill-loss-chips">
+                        <button type="button" onclick="toggleChip(this, 'skillLossAreas', 'active-ally')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Fare telefonate o rispondere subito ai messaggi</button>
+                        <button type="button" onclick="toggleChip(this, 'skillLossAreas', 'active-ally')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Cucinare pasti elaborati o fare la spesa nei negozi affollati</button>
+                        <button type="button" onclick="toggleChip(this, 'skillLossAreas', 'active-ally')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Reggere conversazioni di gruppo o indossare la "maschera sociale"</button>
+                        <button type="button" onclick="toggleChip(this, 'skillLossAreas', 'active-ally')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Gestire più compiti contemporaneamente o tollerare gli imprevisti</button>
+                        <button type="button" onclick="toggleChip(this, 'skillLossAreas', 'active-ally')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Mantenere l'ordine perfetto in casa</button>
+                    </div>
+                </div>
+
+                <!-- 3. Cursori Rapidi di Autovalutazione -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-battery-half text-teal-700"></i> 1. Livello Medio dei Tuoi "Cucchiai" a Fine Giornata
+                            </label>
+                            <span id="spoonsLeftLabel" class="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">5 / 12 🥄</span>
+                        </div>
+                        <input type="range" id="spoonsLeftSlider" min="0" max="12" value="5" oninput="updateSliders()" class="w-full accent-teal-700 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>0 🥄 (In debito energetico)</span>
+                            <span>12 🥄 (Riserva piena)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-feather text-emerald-600"></i> 2. Gentilezza verso di Te (Zero Colpa nel Recupero)
+                            </label>
+                            <span id="selfCompassionLabel" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">7 / 10</span>
+                        </div>
+                        <input type="range" id="selfCompassionSlider" min="1" max="10" value="7" oninput="updateSliders()" class="w-full accent-emerald-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>1 (Mi rimprovero se sono stanco/a)</span>
+                            <span>10 (Rispetto il mio bisogno di ricarica)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToLab(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToLab(4)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera il Tuo Passaporto Semaforo e PDF <i class="fa-solid fa-shield-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             LABORATORIO 4: IL PASSAPORTO SEMAFORO SOS ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="lab-4" class="lab-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • Il Tuo Passaporto Energetico</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Il Tuo "Semaforo SOS" e Report Completo in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Puoi scaricare l'intero homework oppure il Passaporto Semaforo (utile anche da condividere con chi ti sta vicino).</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-teal-800 hover:bg-teal-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il Semaforo SOS e la sintesi">
+                            <i class="fa-solid fa-traffic-light"></i> PDF Semaforo + Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-teal-800"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-teal-700 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-teal-900 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-teal-800">Percorso Modulare di Psicoeducazione • Modulo 9</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 9: Protocollo Semaforo e Pacing dei Cucchiai</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- SCHEDA VISIVA: IL PASSAPORTO SEMAFORO VERDE / GIALLO / ROSSO -->
+                    <div id="semaforoVisualCard" class="rounded-2xl bg-slate-900 text-white p-5 shadow-md space-y-4">
+                        <!-- Popolato dinamicamente via JS -->
+                    </div>
+
+                    <!-- Contenuto analitico dei Laboratori 2 e 3 -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Raymaker et al. (2020) • Higgins et al. (2021) • Arnold et al. (2023) • Miserandino (2003)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToLab(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_9_general_v1';
+
+        let appState = {
+            patientName: '',
+            greenZoneItems: [],
+            greenZoneCustomText: '',
+            yellowZoneItems: [],
+            yellowZoneCustomText: '',
+            redZoneItems: [],
+            redZoneCustomText: '',
+            spoonVampires: [],
+            spoonVampireOtherText: '',
+            spoonSavers: [],
+            spoonSaverOtherText: '',
+            loadSubtractionText: '',
+            highDrainDayText: '',
+            recoveryBufferText: '',
+            skillLossAreas: [],
+            spoonsLeftLevel: 5,
+            selfCompassionLevel: 7
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToLab(labNum) {
+            document.querySelectorAll('.lab-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`lab-${labNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-lab-${i}`);
+                if (i === labNum) {
+                    btn.className = 'lab-nav-btn bg-teal-800 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'lab-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (labNum === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-green', 'active-yellow', 'active-red', 'active-ally');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function updateSliders() {
+            const spVal = document.getElementById('spoonsLeftSlider').value;
+            const scVal = document.getElementById('selfCompassionSlider').value;
+
+            document.getElementById('spoonsLeftLabel').textContent = `${spVal} / 12 🥄`;
+            document.getElementById('selfCompassionLabel').textContent = `${scVal} / 10`;
+
+            appState.spoonsLeftLevel = spVal;
+            appState.selfCompassionLevel = scVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.greenZoneCustomText = document.getElementById('greenZoneCustomText').value;
+            appState.yellowZoneCustomText = document.getElementById('yellowZoneCustomText').value;
+            appState.redZoneCustomText = document.getElementById('redZoneCustomText').value;
+            appState.spoonVampireOtherText = document.getElementById('spoonVampireOtherText').value;
+            appState.spoonSaverOtherText = document.getElementById('spoonSaverOtherText').value;
+            appState.loadSubtractionText = document.getElementById('loadSubtractionText').value;
+            appState.highDrainDayText = document.getElementById('highDrainDayText').value;
+            appState.recoveryBufferText = document.getElementById('recoveryBufferText').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('greenZoneCustomText').value = appState.greenZoneCustomText || '';
+            document.getElementById('yellowZoneCustomText').value = appState.yellowZoneCustomText || '';
+            document.getElementById('redZoneCustomText').value = appState.redZoneCustomText || '';
+            document.getElementById('spoonVampireOtherText').value = appState.spoonVampireOtherText || '';
+            document.getElementById('spoonSaverOtherText').value = appState.spoonSaverOtherText || '';
+            document.getElementById('loadSubtractionText').value = appState.loadSubtractionText || '';
+            document.getElementById('highDrainDayText').value = appState.highDrainDayText || '';
+            document.getElementById('recoveryBufferText').value = appState.recoveryBufferText || '';
+
+            document.getElementById('spoonsLeftSlider').value = appState.spoonsLeftLevel ?? 5;
+            document.getElementById('selfCompassionSlider').value = appState.selfCompassionLevel ?? 7;
+            document.getElementById('spoonsLeftLabel').textContent = `${appState.spoonsLeftLevel ?? 5} / 12 🥄`;
+            document.getElementById('selfCompassionLabel').textContent = `${appState.selfCompassionLevel ?? 7} / 10`;
+
+            restoreChipGroup('green-zone-chips', appState.greenZoneItems, 'active-green');
+            restoreChipGroup('yellow-zone-chips', appState.yellowZoneItems, 'active-yellow');
+            restoreChipGroup('red-zone-chips', appState.redZoneItems, 'active-red');
+            restoreChipGroup('spoon-vampires-chips', appState.spoonVampires, 'active-red');
+            restoreChipGroup('spoon-savers-chips', appState.spoonSavers, 'active-ally');
+            restoreChipGroup('skill-loss-chips', appState.skillLossAreas, 'active-ally');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const semaforoCard = document.getElementById('semaforoVisualCard');
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const greenText = appState.greenZoneItems.length ? appState.greenZoneItems.join(' • ') : 'Routine prevedibili, pause sensoriali e spazi di unmasking.';
+            const yellowText = appState.yellowZoneItems.length ? appState.yellowZoneItems.join(' • ') : 'Ridurre subito gli stimoli, rimandare il superfluo e fare 20 min di silenzio.';
+            const redText = appState.redZoneItems.length ? appState.redZoneItems.join(' • ') : 'Zero domande a caldo, comunicazione non verbale e riposo in penombra.';
+
+            // 1. Popola il Passaporto Semaforo SOS
+            semaforoCard.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2.5">
+                    <span class="text-xs font-bold uppercase tracking-widest text-amber-300 flex items-center gap-2">
+                        <i class="fa-solid fa-traffic-light"></i> Il Mio Passaporto Semaforo (Guida Rapida di Regolazione)
+                    </span>
+                    ${appState.redZoneCustomText ? `<span class="px-2.5 py-0.5 rounded-full bg-rose-500/30 border border-rose-400/40 text-[11px] text-rose-200 font-bold">Segnale SOS: "${escapeHtml(appState.redZoneCustomText)}"</span>` : ''}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div class="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/40">
+                        <strong class="text-emerald-300 uppercase text-[10px] tracking-wider block mb-1">🟢 ZONA VERDE (Equilibrio):</strong>
+                        <p class="text-slate-100 leading-relaxed">${greenText} ${appState.greenZoneCustomText ? `• ${escapeHtml(appState.greenZoneCustomText)}` : ''}</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-amber-950/70 border border-amber-500/40">
+                        <strong class="text-amber-300 uppercase text-[10px] tracking-wider block mb-1">🟡 ZONA GIALLA (Frenata Precoce):</strong>
+                        <p class="text-slate-100 leading-relaxed">${yellowText} ${appState.yellowZoneCustomText ? `• ${escapeHtml(appState.yellowZoneCustomText)}` : ''}</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-rose-950/70 border border-rose-500/40">
+                        <strong class="text-rose-300 uppercase text-[10px] tracking-wider block mb-1">🔴 ZONA ROSSA (Meltdown / Shutdown):</strong>
+                        <p class="text-slate-100 leading-relaxed">${redText}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Popola il Report dei Laboratori 2 e 3
+            const vampList = appState.spoonVampires.length ? appState.spoonVampires.join(' • ') : '<em>Nessun ostacolo selezionato</em>';
+            const saveList = appState.spoonSavers.length ? appState.spoonSavers.join(' • ') : '<em>Nessun alleato selezionato</em>';
+            const skillList = appState.skillLossAreas.length ? appState.skillLossAreas.join(' • ') : '<em>Nessun tag selezionato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">1. Bilancio Energetico: Ostacoli ("Vampiri") vs Alleati ("Salva-Cucchiai")</div>
+                    <p><strong class="text-rose-700">I miei OSTACOLI energetici:</strong> ${vampList} ${appState.spoonVampireOtherText ? `(${escapeHtml(appState.spoonVampireOtherText)})` : ''}</p>
+                    <p><strong class="text-teal-700">I miei ALLEATI energetici:</strong> ${saveList} ${appState.spoonSaverOtherText ? `(${escapeHtml(appState.spoonSaverOtherText)})` : ''}</p>
+                    ${appState.loadSubtractionText ? `<p class="text-amber-950 bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-xs"><strong>Sottrazione del carico (Cosa taglio o semplifico):</strong> "${escapeHtml(appState.loadSubtractionText)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-800">2. Regola dell'Alternanza e Tregua sullo Skill Loss</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                            <strong class="text-rose-800 block">Giorno / Impegno più drenante:</strong>
+                            ${appState.highDrainDayText ? escapeHtml(appState.highDrainDayText) : '<em>Non specificato</em>'}
+                        </div>
+                        <div class="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200">
+                            <strong class="text-emerald-900 block">Cuscinetto di recupero protetto:</strong>
+                            ${appState.recoveryBufferText ? escapeHtml(appState.recoveryBufferText) : '<em>Non specificato</em>'}
+                        </div>
+                    </div>
+                    <p class="text-xs"><strong class="text-indigo-800">Aree di Skill Loss su cui abbasso le pretese senza colpa:</strong> ${skillList}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Cucchiai Rimasti a Fine Giornata</span>
+                                <span class="text-teal-700 font-bold">${appState.spoonsLeftLevel} / 12 🥄</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-teal-600 h-2 rounded-full" style="width: ${(appState.spoonsLeftLevel / 12) * 100}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Gentilezza e Permesso di Ricarica</span>
+                                <span class="text-emerald-700 font-bold">${appState.selfCompassionLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: ${appState.selfCompassionLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_9_Passaporto_Semaforo_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF Passaporto Semaforo scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura laboratori e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_9_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutti i laboratori aperti scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 9: PROTOCOLLO SEMAFORO E BILANCIO DEI CUCCHIAI ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. IL MIO PROTOCOLLO SEMAFORO",
+                "• ZONA VERDE (Equilibrio): " + (appState.greenZoneItems.join(', ') || '-'),
+                "• ZONA GIALLA (Riserva / Frenata): " + (appState.yellowZoneItems.join(', ') || '-'),
+                "• ZONA ROSSA (Meltdown / Shutdown): " + (appState.redZoneItems.join(', ') || '-'),
+                appState.redZoneCustomText ? "• Parola Codice / Segnale SOS: " + appState.redZoneCustomText : null,
+                "",
+                "2. AUDIT DEI CUCCHIAI (OSTACOLI VS ALLEATI)",
+                "• Ostacoli (Vampiri di cucchiai): " + (appState.spoonVampires.join(', ') || '-'),
+                "• Alleati (Salva-cucchiai): " + (appState.spoonSavers.join(', ') || '-'),
+                appState.loadSubtractionText ? "• Sottrazione del carico: " + appState.loadSubtractionText : null,
+                "",
+                "3. ALTERNANZA E SKILL LOSS",
+                appState.highDrainDayText ? "• Giorno/Impegno più drenante: " + appState.highDrainDayText : null,
+                appState.recoveryBufferText ? "• Cuscinetto di recupero protetto: " + appState.recoveryBufferText : null,
+                "• Aree di Skill Loss su cui abbasso le pretese: " + (appState.skillLossAreas.join(', ') || '-'),
+                "• Cucchiai rimasti a fine giornata: " + appState.spoonsLeftLevel + "/12",
+                "• Gentilezza verso di me: " + appState.selfCompassionLevel + "/10"
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                greenZoneItems: [],
+                greenZoneCustomText: '',
+                yellowZoneItems: [],
+                yellowZoneCustomText: '',
+                redZoneItems: [],
+                redZoneCustomText: '',
+                spoonVampires: [],
+                spoonVampireOtherText: '',
+                spoonSavers: [],
+                spoonSaverOtherText: '',
+                loadSubtractionText: '',
+                highDrainDayText: '',
+                recoveryBufferText: '',
+                skillLossAreas: [],
+                spoonsLeftLevel: 5,
+                selfCompassionLevel: 7
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-green', 'active-yellow', 'active-red', 'active-ally');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToLab(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

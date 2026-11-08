@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 9 - Prevenzione e Gestione di Meltdown, Shutdown e Burnout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .step-panel {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .protocol-chip.selected {
+            background-color: #ecfdf5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+        }
+        .state-selector-btn.active-state {
+            background-color: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            box-shadow: 0 6px 15px -3px rgba(15, 23, 42, 0.25);
+        }
+        .spoon-activity-btn {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .spoon-activity-btn.active-drain {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+        .spoon-activity-btn.active-recharge {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le tappe e i pannelli aperti)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode .step-panel {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.25rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .state-detail-card {
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+        body.pdf-export-mode .tf-explanation-box {
+            display: block !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .step-panel {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .state-detail-card {
+                display: block !important;
+                margin-bottom: 14px !important;
+            }
+            .tf-explanation-box {
+                display: block !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Panoramico -->
+    <header class="bg-gradient-to-r from-slate-900 via-teal-900 to-amber-900 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-battery-half text-xl text-amber-300"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200">Modulo 9 • Area III</span>
+                        <span class="text-[11px] text-teal-200 hidden sm:inline">• Sensorialità, Emozioni ed Energia</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight mt-0.5">Prevenzione e Gestione di Meltdown, Shutdown e Burnout</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide + Contatore Piano Salvavita -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end md:self-auto">
+                <button onclick="switchStep(4)" class="bg-slate-950/60 hover:bg-slate-900 border border-amber-400/40 px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-shield-heart text-amber-300"></i>
+                    <span>Piano Salvavita: <strong id="protocolCountBadge" class="text-white font-bold">0</strong></span>
+                </button>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale a 4 Tappe -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button onclick="switchStep(1)" id="stepper-btn-1" class="stepper-btn bg-teal-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-bolt-lightning"></i> 1. Meltdown & Shutdown
+                </button>
+                <button onclick="switchStep(2)" id="stepper-btn-2" class="stepper-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-fire-flame-Simple"></i> 2. Burnout vs Depressione
+                </button>
+                <button onclick="switchStep(3)" id="stepper-btn-3" class="stepper-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-utensil-spoon"></i> 3. I 12 Cucchiai
+                </button>
+                <button onclick="switchStep(4)" id="stepper-btn-4" class="stepper-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-check-double"></i> 4. Vero/Falso & Piano
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainScrollArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-8">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+        <div class="print-only-header hidden border-b-2 border-teal-900 pb-4 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-teal-800">Programma Clinico Modulare di Psicoeducazione • Area III</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 9: Prevenzione e Gestione di Meltdown, Shutdown e Burnout</h1>
+                    <p class="text-xs text-slate-500 mt-1">Rif. Scientifici: Raymaker et al. (2020) • Higgins et al. (2021) • Arnold et al. (2023) • Miserandino (2003).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             TAPPA 1: IL SALVAVITA NEUROBIOLOGICO (MELTDOWN VS SHUTDOWN VS BURNOUT)
+             ========================================================================= -->
+        <section id="step-1" class="step-panel active space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-teal-700">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                        Tappa 1 • Quando il Sistema Nervoso Attiva il "Salvavita"
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Raymaker et al. (2020) • Porges (2011)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Non sono "Capricci" né "Cambi d'Umore": Sono Risposte di Emergenza</h2>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                    Quando in un impianto elettrico vengono collegati troppi elettrodomestici contemporaneamente, il contatore scatta per impedire che i fili si brucino. Allo stesso modo, quando il nostro sistema nervoso riceve più stimoli sensoriali, imprevisti, decisioni esecutive o pressioni relazionali di quanti la corteccia prefrontale riesca a elaborare, scatta una <strong>risposta neurofisiologica involontaria di protezione</strong>. Conoscere la differenza tra <strong>Meltdown</strong>, <strong>Shutdown</strong> e <strong>Burnout</strong> permette di smettere di colpevolizzarsi e di intervenire nel modo giusto.
+                </p>
+
+                <!-- STRUMENTO INTERATTIVO 1: IL MONITOR DIAGNOSTICO DEI 3 STATI DI SOVRACCARICO -->
+                <div class="bg-slate-100 p-4 md:p-6 rounded-2xl border border-slate-200 space-y-5">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h3 class="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-display text-teal-700"></i> Esploratore Diagnostico: Tocca i 3 Stati per Confrontarli
+                        </h3>
+                        <span class="text-xs text-slate-500">Nel PDF verranno stampati tutti e 3 aperti</span>
+                    </div>
+
+                    <!-- Bottoni Selettori dei 3 Stati -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 no-print">
+                        <button type="button" onclick="selectOverloadState('meltdown', this)" class="state-selector-btn active-state p-3.5 rounded-2xl border border-slate-300 text-left transition-all flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 text-lg">
+                                <i class="fa-solid fa-bolt-lightning"></i>
+                            </span>
+                            <div>
+                                <div class="font-bold text-sm">1. MELTDOWN</div>
+                                <div class="text-[11px] opacity-80">Scarica Esternalizzata Acuta</div>
+                            </div>
+                        </button>
+
+                        <button type="button" onclick="selectOverloadState('shutdown', this)" class="state-selector-btn bg-white text-slate-700 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-left transition-all flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 text-lg">
+                                <i class="fa-solid fa-power-off"></i>
+                            </span>
+                            <div>
+                                <div class="font-bold text-sm">2. SHUTDOWN</div>
+                                <div class="text-[11px] opacity-80">Spegnimento Protettivo Interno</div>
+                            </div>
+                        </button>
+
+                        <button type="button" onclick="selectOverloadState('burnout', this)" class="state-selector-btn bg-white text-slate-700 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-left transition-all flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-lg">
+                                <i class="fa-solid fa-battery-empty"></i>
+                            </span>
+                            <div>
+                                <div class="font-bold text-sm">3. BURNOUT AuDHD</div>
+                                <div class="text-[11px] opacity-80">Esaurimento Protratto delle Risorse</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- CARD STATO 1: MELTDOWN -->
+                    <div id="state-card-meltdown" class="state-detail-card bg-white rounded-2xl p-5 md:p-6 border-l-4 border-l-rose-600 shadow-sm space-y-4">
+                        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-rose-600">Risposta Simpatica Acuta ("Fight or Flight" da Sovraccarico)</span>
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-900">1. Il Meltdown: Quando la Pentola a Pressione Trabocca</h4>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold">Durata tipica: Da 15–30 min a qualche ora (più "hangover" post-crisi)</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs md:text-sm">
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <strong class="text-slate-800 block mb-1"><i class="fa-solid fa-eye text-rose-500 mr-1"></i> Come si manifesta:</strong>
+                                Pianto irrefrenabile, esplosione verbale o rabbia reattiva improvvisa, bisogno fisico di scappare dalla stanza, agitazione motoria o lancio/rottura involontaria di un oggetto per scaricare l'energia nervosa.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200">
+                                <strong class="text-rose-900 block mb-1"><i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Cosa lo PEGGIORA subito:</strong>
+                                Sentirsi fare domande a raffica (<em>"Ma perché fai così? Calmati!"</em>), ricevere rimproveri, essere toccati senza preavviso o essere costretti a continuare la conversazione.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                                <strong class="text-emerald-900 block mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Cosa AIUTA davvero:</strong>
+                                Ridurre immediatamente tutti gli input: uscire dalla stanza, silenzio totale, abbassare le luci, acqua fresca e zero richieste finché il battito non è tornato normale.
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" onclick="toggleProtocolItem(this, 'Protocollo Meltdown: Uscire subito dalla situazione sovraccaricante, azzerare domande e spiegazioni a caldo e concedersi recupero al buio/silenzio')" class="protocol-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Piano Salvavita
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARD STATO 2: SHUTDOWN -->
+                    <div id="state-card-shutdown" class="state-detail-card hidden bg-white rounded-2xl p-5 md:p-6 border-l-4 border-l-indigo-600 shadow-sm space-y-4">
+                        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Risposta Vagale Dorsale ("Freeze / Modalità Aereo" del Sistema Nervoso)</span>
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-900">2. Lo Shutdown: Quando il Cervello Stacca la Spina per Proteggersi</h4>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold">Durata tipica: Da un'ora a 1–2 giorni di recupero</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs md:text-sm">
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <strong class="text-slate-800 block mb-1"><i class="fa-solid fa-eye text-indigo-500 mr-1"></i> Come si manifesta:</strong>
+                                Le parole si bloccano in gola (fatica estrema o impossibilità temporanea di parlare), sguardo fisso, annebbiamento cognitivo, pesantezza muscolare estrema (sentirsi "di piombo") e bisogno urgente di chiudersi sotto le coperte.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200">
+                                <strong class="text-rose-900 block mb-1"><i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Cosa lo PEGGIORA subito:</strong>
+                                Essere forzati a parlare a voce (<em>"Rispondimi! Perché fai muro?"</em>), scambiare il blocco per "muso lungo" o freddezza volontaria, o pretendere decisioni immediate.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                                <strong class="text-emerald-900 block mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Cosa AIUTA davvero:</strong>
+                                Permettere la comunicazione non verbale (un messaggio scritto o un gesto della mano), pressione profonda (coperta pesante), penombra e riposo solitario privo di aspettative.
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" onclick="toggleProtocolItem(this, 'Protocollo Shutdown: Non forzarsi a parlare a voce quando le parole si bloccano; usare un messaggio/gesto pre-concordato e riposare in penombra')" class="protocol-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Piano Salvavita
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARD STATO 3: BURNOUT NEURODIVERGENTE -->
+                    <div id="state-card-burnout" class="state-detail-card hidden bg-white rounded-2xl p-5 md:p-6 border-l-4 border-l-amber-600 shadow-sm space-y-4">
+                        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Sindrome da Esaurimento Cumulativo delle Risorse Interne</span>
+                                <h4 class="text-lg md:text-xl font-extrabold text-slate-900">3. Il Burnout Neurodivergente: Quando il Conto Energetico è in Rosso Fisso</h4>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">Durata tipica: Settimane o mesi (spesso &ge; 3 mesi)</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs md:text-sm">
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <strong class="text-slate-800 block mb-1"><i class="fa-solid fa-layer-group text-amber-600 mr-1"></i> La Triade Clinica:</strong>
+                                1) <strong>Esaurimento cronico</strong> (che non passa con una sola notte di sonno);<br>
+                                2) <strong>Perdita temporanea di abilità (Skill Loss)</strong>;<br>
+                                3) <strong>Crollo della tolleranza agli stimoli</strong> (luci e suoni prima gestibili diventano intollerabili).
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200">
+                                <strong class="text-rose-900 block mb-1"><i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Da cosa è innescato:</strong>
+                                Mesi o anni di <strong>Masking prolungato</strong>, sovraccarico lavorativo/familiare senza accomodamenti, grandi transizioni di vita o aver ignorato sistematicamente i propri limiti sensoriali.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200">
+                                <strong class="text-emerald-900 block mb-1"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Come se ne esce:</strong>
+                                Riduzione drastica delle richieste non essenziali, <em>unmasking</em>, riposo sensoriale profondo, ritorno agli interessi speciali in solitudine e ripresa graduale col bilancio energetico.
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" onclick="toggleProtocolItem(this, 'Prevenzione Burnout: Riconoscere il calo di tolleranza agli stimoli e lo Skill Loss come segnali per tagliare subito i carichi non essenziali')" class="protocol-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Piano Salvavita
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 no-print">
+                <button onclick="switchStep(2)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Tappa 2: Burnout vs Depressione e Skill Loss <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             TAPPA 2: BURNOUT NEURODIVERGENTE VS DEPRESSIONE & CAPIRE LO "SKILL LOSS"
+             ========================================================================= -->
+        <section id="step-2" class="step-panel space-y-6">
+            
+            <!-- 1. LA BUSSOLA DIFFERENZIALE: BURNOUT VS DEPRESSIONE -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-600">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wide">
+                        Tappa 2 • Una Distinzione Clinica Cruciale
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Raymaker et al. (2020) • Higgins et al. (2021)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Burnout Neurodivergente vs Depressione: Perché la "Cura" è Opposta?</h2>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                    Dall'esterno, una persona in Burnout Neurodivergente (che passa molto tempo a letto al buio, non risponde ai messaggi e fatica a lavarsi o cucinare) viene spessissimo scambiata per una persona con una Depressione Maggiore classica. Sebbene le due condizioni possano talvolta coesistere, <strong>confondere il Burnout con la Depressione porta a un errore terapeutico molto rischioso</strong>: nella depressione classica si consiglia l'<em>attivazione comportamentale</em> (<em>"Sforzati di uscire, vedi gli amici, riempi la giornata di stimoli!"</em>), ma se applichiamo questo consiglio a chi è in Burnout Neurodivergente, <strong>consumiamo le ultime gocce di batteria aggravando il crollo</strong>.
+                </p>
+
+                <!-- Tabella Comparativa Visiva -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 mb-6">
+                    <table class="w-full text-left border-collapse text-xs md:text-sm">
+                        <thead>
+                            <tr class="bg-slate-900 text-white">
+                                <th class="p-3.5 font-bold">Dimensione</th>
+                                <th class="p-3.5 font-bold text-slate-300">Depressione Maggiore Classica</th>
+                                <th class="p-3.5 font-bold text-amber-300">Burnout Neurodivergente (AuDHD / Autistico)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr>
+                                <td class="p-3.5 font-bold text-slate-800">1. Rapporto con i propri Interessi (Anedonia)</td>
+                                <td class="p-3.5 text-slate-600"><strong>Perdita di piacere globale:</strong> nulla interessa più, senso di vuoto, apatia e assenza di desiderio anche verso le proprie passioni.</td>
+                                <td class="p-3.5 text-slate-800 bg-amber-50/40"><strong>L'interesse esiste ancora</strong> (e anzi gli interessi speciali in solitudine sono spesso l'unica cosa che dà conforto), ma manca l'energia fisica/esecutiva per sostenere il resto del mondo.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3.5 font-bold text-slate-800">2. Cosa succede se ti forzi a uscire in gruppo?</td>
+                                <td class="p-3.5 text-slate-600">Spesso l'attivazione comportamentale graduale migliora il tono dell'umore e rompe l'isolamento depressivo.</td>
+                                <td class="p-3.5 text-slate-800 bg-amber-50/40"><strong>Peggiora drasticamente l'esaurimento:</strong> uscire in luoghi rumorosi e fare <em>masking</em> quando si è già in riserva spinge verso Meltdown o Shutdown più profondi.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3.5 font-bold text-slate-800">3. Sintomi Sensoriali ed Esecutivi</td>
+                                <td class="p-3.5 text-slate-600">Rallentamento psicomotorio e pensieri di autosvalutazione/colpa, senza marcata ipersensibilità a luci o suoni.</td>
+                                <td class="p-3.5 text-slate-800 bg-amber-50/40"><strong>Ipersensibilità sensoriale estrema</strong> + <strong>Skill Loss</strong> (non riuscire più a fare cose pratiche o sociali che prima venivano gestite) e perdita della capacità di indossare la "maschera".</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3.5 font-bold text-slate-800">4. La Medicina di Recupero</td>
+                                <td class="p-3.5 text-slate-600">Ristrutturazione cognitiva + Attivazione comportamentale + Supporto farmacologico antidepressivo.</td>
+                                <td class="p-3.5 text-emerald-950 bg-emerald-50/70 font-medium"><strong>Sottrazione del carico:</strong> riposo sensoriale autorizzato, riduzione delle richieste sociali, <em>unmasking</em> e semplificazione estrema della vita quotidiana.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 2. CAPIRE E DE-COLPEVOLIZZARE LO "SKILL LOSS" (PERDITA TEMPORANEA DI ABILITÀ) -->
+                <div class="p-5 md:p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-teal-950 text-white space-y-4">
+                    <div class="flex items-start gap-3.5">
+                        <i class="fa-solid fa-screwdriver-wrench text-2xl text-amber-300 mt-1"></i>
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">Rassicurazione Neurobiologica • La Perdita Temporanea di Abilità (Skill Loss)</div>
+                            <h3 class="text-lg md:text-xl font-bold text-white mb-2">«Ma fino all'anno scorso riuscivo a fare tutte queste cose: perché ora non ci riesco più?!»</h3>
+                            <p class="text-xs md:text-sm text-slate-200 leading-relaxed mb-3">
+                                Uno degli aspetti più spaventosi del Burnout è accorgersi di non riuscire più a compiere azioni che in passato facevamo ogni giorno: fare una telefonata, guidare nel traffico, cucinare una cena, reggere una riunione o "indossare la maschera sociale". È fondamentale sapere che <strong>non stai "regredendo" in modo permanente</strong>: quando la batteria centrale è in riserva critica, il cervello disattiva temporaneamente le funzioni più costose (come il <em>camouflaging</em> e il multitasking esecutivo) per risparmiare energia vitale. Non appena il bilancio energetico risale, le abilità tornano accessibili.
+                            </p>
+                            <button type="button" onclick="toggleProtocolItem(this, 'Validazione dello Skill Loss: Se in un periodo di sovraccarico fatico a fare cose che prima mi riuscivano, non mi giudico: semplifico al minimo vitale finché la batteria non si ricarica')" class="protocol-chip py-2 px-4 rounded-xl border border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questo principio nel mio Piano Salvavita
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStep(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna a Meltdown e Shutdown
+                </button>
+                <button onclick="switchStep(3)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Tappa 3: Il Simulatore dei 12 Cucchiai <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             TAPPA 3: PACING ENERGETICO E SIMULATORE VISIVO DEI "12 CUCCHIAI" (SPOON THEORY)
+             ========================================================================= -->
+        <section id="step-3" class="step-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-emerald-600">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wide">
+                        Tappa 3 • Il Pacing Energetico ("Contabilità dei Cucchiai")
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Miserandino (2003) • Raymaker et al. (2020)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Pianificare per "Costo Energetico", Non Solo per Orario</h2>
+                <p class="text-slate-600 text-xs md:text-sm leading-relaxed mb-5">
+                    Un'ora sul divano a leggere il proprio argomento preferito e un'ora in un centro commerciale affollato durano entrambe 60 minuti sull'orologio, ma hanno un <strong>costo neurobiologico completamente diverso</strong>. La metafora dei <strong>"Cucchiai di Energia" (Spoon Theory)</strong> ci aiuta a rendere visibile la nostra riserva giornaliera: ogni mattina partiamo con un numero finito di cucchiai (es. <strong>12 Cucchiai</strong>). Se spendiamo 15 cucchiai in un giorno, i 3 cucchiai extra vengono "presi in prestito a usura" dalla giornata di domani, portandoci dritti al crollo.
+                </p>
+
+                <!-- SIMULATORE INTERATTIVO DEI 12 CUCCHIAI -->
+                <div class="bg-slate-900 text-white p-5 md:p-7 rounded-3xl border border-slate-700 space-y-5">
+                    
+                    <!-- Cruscotto Visivo dei Cucchiai -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-amber-300">Il Tuo Budget Energetico Giornaliero</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-white mt-0.5">Componi una Giornata Sostenibile Senza Andare in Rosso</h3>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="spoonCountStatusBadge" class="px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                Cucchiai Rimasti: 12 / 12
+                            </span>
+                            <button type="button" onclick="resetSpoonPlanner()" class="no-print text-xs text-slate-400 hover:text-white underline">
+                                Azzera giornata
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Vassoio Visivo delle Icone Cucchiaio -->
+                    <div id="spoonVisualTray" class="grid grid-cols-6 sm:grid-cols-12 gap-2 p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 text-center">
+                        <!-- Popolato dinamicamente via JS -->
+                    </div>
+
+                    <p id="spoonFeedbackMessage" class="text-xs md:text-sm text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10">
+                        Tocca le attività qui sotto per aggiungerle alla tua giornata tipo e osserva come le pause di ricarica (+Cucchiai) ti permettono di restare in equilibrio:
+                    </p>
+
+                    <!-- Selettore Attività (Costi vs Ricariche) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <!-- Colonna 1: Attività che Consumano Cucchiai -->
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-rose-500/30 space-y-2.5">
+                            <div class="text-xs font-bold uppercase tracking-wider text-rose-300 flex items-center justify-between">
+                                <span><i class="fa-solid fa-fire-flame-Simple mr-1"></i> Attività che Consumano Cucchiai</span>
+                                <span class="text-[10px] text-slate-400">Tocca per attivare/disattivare</span>
+                            </div>
+                            <div class="space-y-2" id="spoonDrainButtons">
+                                <button type="button" onclick="toggleSpoonActivity(this, -1)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Prepararsi al mattino e spostamento nel traffico</span>
+                                    <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 ml-2">-1 🥄</span>
+                                </button>
+                                <button type="button" onclick="toggleSpoonActivity(this, -4)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Mattinata di lavoro/studio in ambiente rumoroso o con interruzioni</span>
+                                    <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 ml-2">-4 🥄</span>
+                                </button>
+                                <button type="button" onclick="toggleSpoonActivity(this, -2)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Telefonata burocratica o commissione imprevista</span>
+                                    <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 ml-2">-2 🥄</span>
+                                </button>
+                                <button type="button" onclick="toggleSpoonActivity(this, -3)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Spesa al supermercato nell'ora di punta (luci + folla + scelte)</span>
+                                    <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 ml-2">-3 🥄</span>
+                                </button>
+                                <button type="button" onclick="toggleSpoonActivity(this, -4)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Cena o serata sociale in gruppo indossando la "maschera" (Masking)</span>
+                                    <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 ml-2">-4 🥄</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Colonna 2: Accomodamenti e Ricariche (+Cucchiai) -->
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-emerald-500/30 space-y-2.5">
+                            <div class="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center justify-between">
+                                <span><i class="fa-solid fa-plug-circle-bolt mr-1"></i> Accomodamenti che Restituiscono Cucchiai</span>
+                                <span class="text-[10px] text-slate-400">Tocca per attivare</span>
+                            </div>
+                            <div class="space-y-2" id="spoonRechargeButtons">
+                                <button type="button" onclick="toggleSpoonActivity(this, 2)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Usare cuffie antirumore (ANC) / lavorare da remoto in silenzio</span>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold shrink-0 ml-2">+2 🥄</span>
+                                </button>
+                                <button type="button" onclick="toggleSpoonActivity(this, 2)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Finestra di 30 min a "zero parole" e penombra al rientro a casa</span>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold shrink-0 ml-2">+2 🥄</span>
+                                </button>
+                                <button type="button" onclick="toggleSpoonActivity(this, 2)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Pasto di emergenza pronto (zero fatica culinaria) o spesa online</span>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold shrink-0 ml-2">+2 🥄</span>
+                                </button>
+                                <button type="button" onclick="toggleSpoonActivity(this, 3)" class="spoon-activity-btn w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                    <span>Immergersi nel proprio interesse speciale o rimandare un'uscita se stanchi</span>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold shrink-0 ml-2">+3 🥄</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Le 3 Regole d'Oro del Pacing Energetico -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1">1. La Regola dell'Alternanza</div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Dopo un evento ad alto consumo (es. una giornata intensa di lavoro in presenza o un viaggio), non programmare mai un secondo impegno sociale la sera stessa o il giorno dopo.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleProtocolItem(this, 'Regola dell\'Alternanza: Dopo un impegno ad alto costo sensoriale/sociale, programmare sempre una finestra vuota di recupero')" class="protocol-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al Piano
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1">2. Tenere 2 Cucchiai di Riserva</div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Non pianificare mai la giornata spendendo il 100% della tua energia teorica: lascia sempre <strong>2 cucchiai di margine</strong> per assorbire gli imprevisti senza andare in Meltdown.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleProtocolItem(this, 'Margine di Sicurezza: Non riempire mai la giornata al 100%, lasciando 2 cucchiai di riserva per gli imprevisti')" class="protocol-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al Piano
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1">3. "Igiene Post-Crisi" (Zero Colpa)</div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Se capita un Meltdown o uno Shutdown, il giorno successivo il sistema nervoso ha i postumi di una tempesta neurochimica: trattati come se avessi l'influenza (riposo, idratazione, zero rimproveri).
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleProtocolItem(this, 'Igiene Post-Crisi: Dopo un Meltdown o uno Shutdown, concedersi riposo da convalescenza senza auto-rimprovero')" class="protocol-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al Piano
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStep(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna a Burnout vs Depressione
+                </button>
+                <button onclick="switchStep(4)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Tappa 4: Carte Vero/Falso e Piano Salvavita <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             TAPPA 4: IL TUO PIANO SALVAVITA PERSONALIZZATO E CARTE "VERO O FALSO"
+             ========================================================================= -->
+        <section id="step-4" class="step-panel space-y-6 pb-8">
+            
+            <!-- 1. IL TUO PIANO SALVAVITA ENERGETICO -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-500">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-shield-heart text-teal-700"></i> Il Tuo Piano Salvavita Energetico (Modulo 9)
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                            I protocolli di gestione di Meltdown, Shutdown e Pacing dei Cucchiai che hai selezionato durante l'esplorazione:
+                        </p>
+                    </div>
+                    <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                        <i class="fa-solid fa-file-pdf"></i> Esporta Tutto in PDF
+                    </button>
+                </div>
+
+                <div id="protocolSummaryContainer" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 mb-4">
+                    <!-- Popolato via JS -->
+                </div>
+
+                <div>
+                    <label for="customSafeSignalNote" class="block text-xs font-bold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-comment-medical text-teal-700 mr-1"></i> Quale "Segnale o Parola Codice" vuoi concordare con chi ti sta vicino quando senti che stai entrando in Shutdown o Meltdown?
+                    </label>
+                    <input type="text" id="customSafeSignalNote" oninput="renderProtocolSummary()" placeholder="Es. «Quando dico 'Batteria Zero' o mando l'emoji 🪫, significa che ho bisogno di 30 minuti di silenzio e buio senza domande.»" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- 2. NUOVO FORMATO DI CONSOLIDAMENTO: CARTE INTERATTIVE "VERO O FALSO NEUROBIOLOGICO" -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 space-y-5">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                        Verifica Interattiva • Vero o Falso Neurobiologico
+                    </span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-2">Smontiamo i Miti sul Sovraccarico e sul Burnout</h2>
+                    <p class="text-xs md:text-sm text-slate-600 mt-1">
+                        Metti alla prova le 4 affermazioni qui sotto cliccando su <strong>Vero</strong> o <strong>Falso</strong> per sbloccare la spiegazione clinica:
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Carta V/F 1 -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Affermazione 1 • Shutdown</span>
+                            <p class="font-bold text-slate-800 text-sm mt-1">
+                                «Quando una persona in Shutdown non risponde alle domande, lo fa volontariamente per punire l'altro o tenere il muso.»
+                            </p>
+                        </div>
+                        <div class="flex gap-2 no-print">
+                            <button type="button" onclick="answerTrueFalse(1, false, true, this)" class="tf-btn-1 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-rose-50 text-xs font-bold text-slate-700">VERO</button>
+                            <button type="button" onclick="answerTrueFalse(1, false, false, this)" class="tf-btn-1 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-emerald-50 text-xs font-bold text-slate-700">FALSO</button>
+                        </div>
+                        <div id="tf-exp-1" class="tf-explanation-box hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
+                            <strong>FALSO!</strong> Lo Shutdown è uno spegnimento protettivo involontario: le aree del linguaggio (area di Broca) e le funzioni esecutive vanno temporaneamente in risparmio energetico estremo. Non è mai ostilità, ma bisogno fisiologico di silenzio.
+                        </div>
+                    </div>
+
+                    <!-- Carta V/F 2 -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Affermazione 2 • Burnout vs Depressione</span>
+                            <p class="font-bold text-slate-800 text-sm mt-1">
+                                «Se sei in Burnout Neurodivergente, la cura migliore è forzarti a uscire tutte le sere in mezzo alla gente per distrarti.»
+                            </p>
+                        </div>
+                        <div class="flex gap-2 no-print">
+                            <button type="button" onclick="answerTrueFalse(2, false, true, this)" class="tf-btn-2 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-rose-50 text-xs font-bold text-slate-700">VERO</button>
+                            <button type="button" onclick="answerTrueFalse(2, false, false, this)" class="tf-btn-2 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-emerald-50 text-xs font-bold text-slate-700">FALSO</button>
+                        </div>
+                        <div id="tf-exp-2" class="tf-explanation-box hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
+                            <strong>FALSO!</strong> A differenza della depressione classica, il Burnout nasce da un cronico eccesso di richieste e <em>masking</em>. Forzarsi a socializzare in ambienti rumorosi consuma gli ultimi cucchiai residui; il recupero richiede invece sottrazione di stimoli e riposo autentico.
+                        </div>
+                    </div>
+
+                    <!-- Carta V/F 3 -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Affermazione 3 • Skill Loss</span>
+                            <p class="font-bold text-slate-800 text-sm mt-1">
+                                «Perdere temporaneamente la capacità di organizzarsi, cucinare o reggere gli imprevisti durante il Burnout (Skill Loss) è reversibile.»
+                            </p>
+                        </div>
+                        <div class="flex gap-2 no-print">
+                            <button type="button" onclick="answerTrueFalse(3, true, true, this)" class="tf-btn-3 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-emerald-50 text-xs font-bold text-slate-700">VERO</button>
+                            <button type="button" onclick="answerTrueFalse(3, true, false, this)" class="tf-btn-3 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-rose-50 text-xs font-bold text-slate-700">FALSO</button>
+                        </div>
+                        <div id="tf-exp-3" class="tf-explanation-box hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
+                            <strong>VERO!</strong> Le abilità non sono andate perdute per sempre: il cervello ha solo messo in stand-by le funzioni più dispendiose per proteggere il sistema. Riducendo il carico e rispettando i tempi di ricarica, le competenze tornano disponibili.
+                        </div>
+                    </div>
+
+                    <!-- Carta V/F 4 -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Affermazione 4 • Contabilità dei Cucchiai</span>
+                            <p class="font-bold text-slate-800 text-sm mt-1">
+                                «Usare ausili sensoriali (cuffie), semplificare i pasti e fare pause silenziose prima di essere esausti permette di guadagnare cucchiai preziosi nella giornata.»
+                            </p>
+                        </div>
+                        <div class="flex gap-2 no-print">
+                            <button type="button" onclick="answerTrueFalse(4, true, true, this)" class="tf-btn-4 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-emerald-50 text-xs font-bold text-slate-700">VERO</button>
+                            <button type="button" onclick="answerTrueFalse(4, true, false, this)" class="tf-btn-4 flex-1 py-2 rounded-xl border border-slate-300 bg-white hover:bg-rose-50 text-xs font-bold text-slate-700">FALSO</button>
+                        </div>
+                        <div id="tf-exp-4" class="tf-explanation-box hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950">
+                            <strong>VERO!</strong> Il Pacing Energetico funziona per prevenzione: risparmiare cucchiai sulle attività ad alto attrito impedisce di entrare in "debito energetico" a fine giornata.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStep(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna ai 12 Cucchiai
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const selectedProtocols = new Set();
+        const MAX_SPOONS = 12;
+        let currentSpoons = 12;
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+            renderSpoonTray();
+            renderProtocolSummary();
+        };
+
+        // Navigazione Orizzontale a 4 Tappe
+        function switchStep(stepNum) {
+            document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`step-${stepNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`stepper-btn-${i}`);
+                if (i === stepNum) {
+                    btn.className = 'stepper-btn bg-teal-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'stepper-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stepNum === 4) {
+                renderProtocolSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Selettore Monitor Diagnostico (Meltdown / Shutdown / Burnout)
+        function selectOverloadState(stateKey, btnEl) {
+            document.querySelectorAll('.state-detail-card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`state-card-${stateKey}`).classList.remove('hidden');
+
+            document.querySelectorAll('.state-selector-btn').forEach(b => {
+                b.classList.remove('active-state');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnEl.classList.remove('bg-white', 'text-slate-700');
+            btnEl.classList.add('active-state');
+        }
+
+        // Simulatore Visivo dei 12 Cucchiai (Tappa 3)
+        function toggleSpoonActivity(btnEl, delta) {
+            const isDrain = delta < 0;
+            const activeClass = isDrain ? 'active-drain' : 'active-recharge';
+
+            if (btnEl.classList.contains(activeClass)) {
+                btnEl.classList.remove(activeClass);
+                currentSpoons -= delta; // Annulla l'effetto
+            } else {
+                btnEl.classList.add(activeClass);
+                currentSpoons += delta; // Applica l'effetto
+            }
+            renderSpoonTray();
+        }
+
+        function resetSpoonPlanner() {
+            currentSpoons = 12;
+            document.querySelectorAll('.spoon-activity-btn').forEach(b => {
+                b.classList.remove('active-drain', 'active-recharge');
+            });
+            renderSpoonTray();
+            showToast('Budget giornaliero riportato a 12 Cucchiai!');
+        }
+
+        function renderSpoonTray() {
+            const tray = document.getElementById('spoonVisualTray');
+            const badge = document.getElementById('spoonCountStatusBadge');
+            const msg = document.getElementById('spoonFeedbackMessage');
+            if (!tray) return;
+
+            let html = '';
+            const displaySpoons = Math.max(0, Math.min(14, currentSpoons));
+
+            for (let i = 1; i <= 12; i++) {
+                const isAvailable = i <= displaySpoons;
+                html += `
+                    <div class="p-2 rounded-xl border ${
+                        isAvailable
+                            ? 'bg-amber-500/20 border-amber-400/50 text-amber-300'
+                            : 'bg-slate-900 border-slate-800 text-slate-700 opacity-40'
+                    } flex flex-col items-center justify-center transition-all">
+                        <i class="fa-solid fa-utensil-spoon text-base"></i>
+                        <span class="text-[9px] font-bold mt-1">#${i}</span>
+                    </div>
+                `;
+            }
+            tray.innerHTML = html;
+
+            if (currentSpoons >= 3) {
+                badge.className = 'px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+                badge.textContent = `Cucchiai Rimasti: ${currentSpoons} / 12 (In Equilibrio)`;
+                msg.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> <strong>Giornata Sostenibile:</strong> Hai ancora ${currentSpoons} cucchiai di margine. Il tuo sistema nervoso arriva a sera senza entrare in debito energetico.`;
+            } else if (currentSpoons >= 0) {
+                badge.className = 'px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+                badge.textContent = `Cucchiai Rimasti: ${currentSpoons} / 12 (Riserva Al Limite)`;
+                msg.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> <strong>Attenzione alla Zona Gialla:</strong> Sei quasi a zero cucchiai. Attiva uno degli accomodamenti verdi a destra (+🥄) per proteggere la serata!`;
+            } else {
+                badge.className = 'px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-rose-500/30 text-rose-200 border border-rose-500/50';
+                badge.textContent = `DEBITO ENERGETICO: ${currentSpoons} 🥄 (Rischio Meltdown/Shutdown!)`;
+                msg.innerHTML = `<i class="fa-solid fa-bolt-lightning text-rose-400 mr-1"></i> <strong>Sovraccarico (Debito di ${Math.abs(currentSpoons)} cucchiai):</strong> Stai prendendo energia "in prestito" da domani! Togli un impegno rosso o attiva subito le ricariche verdi a destra.`;
+            }
+        }
+
+        // Gestione Piano Salvavita
+        function toggleProtocolItem(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedProtocols.has(textLabel)) {
+                selectedProtocols.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) icon.className = 'fa-solid fa-plus text-[10px]';
+            } else {
+                selectedProtocols.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) icon.className = 'fa-solid fa-check text-[10px]';
+                showToast('Aggiunto al tuo Piano Salvavita!');
+            }
+            document.getElementById('protocolCountBadge').textContent = selectedProtocols.size;
+            renderProtocolSummary();
+        }
+
+        function renderProtocolSummary() {
+            const container = document.getElementById('protocolSummaryContainer');
+            const customSignal = (document.getElementById('customSafeSignalNote')?.value || '').trim();
+
+            if (selectedProtocols.size === 0 && !customSignal) {
+                container.innerHTML = `<em>Non hai ancora aggiunto protocolli al tuo Piano Salvavita. Clicca sui pulsanti "+ Aggiungi al mio Piano" nelle tappe 1, 2 e 3.</em>`;
+                return;
+            }
+
+            let html = '<div class="space-y-3">';
+            if (selectedProtocols.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedProtocols.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-teal-200 shadow-sm">
+                            <i class="fa-solid fa-shield-halved text-teal-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (customSignal) {
+                html += `
+                    <div class="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-950">
+                        <strong class="uppercase tracking-wider block text-[10px] text-teal-700 mb-0.5">Il Mio Segnale / Parola Codice di Emergenza:</strong>
+                        "${escapeHtml(customSignal)}"
+                    </div>
+                `;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Gestione Carte Vero / Falso (Tappa 4)
+        function answerTrueFalse(cardNum, correctIsTrue, userSaidTrue, btnEl) {
+            document.querySelectorAll(`.tf-btn-${cardNum}`).forEach(b => {
+                b.classList.remove('bg-emerald-600', 'bg-rose-600', 'text-white');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+
+            const isCorrect = (correctIsTrue === userSaidTrue);
+            btnEl.classList.remove('bg-white', 'text-slate-700');
+            btnEl.classList.add(isCorrect ? 'bg-emerald-600' : 'bg-rose-600', 'text-white');
+
+            const exp = document.getElementById(`tf-exp-${cardNum}`);
+            exp.classList.remove('hidden');
+        }
+
+        // Esportazione PDF con tutte le sezioni aperte
+        function exportFullStaticPDF() {
+            renderProtocolSummary();
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_9_Prevenzione_Meltdown_Shutdown_e_Burnout.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 9 scaricato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

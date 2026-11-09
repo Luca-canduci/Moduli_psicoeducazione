@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 10 - Relazioni, Doppia Empatia e Facilitatori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .station-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .station-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-problem {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-bridge {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+        }
+        .selectable-chip.active-outcome {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+        .selectable-chip.active-facilitator {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-interference {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le stazioni aperte e statiche)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .station-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .station-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Panoramico Area IV -->
+    <header class="bg-gradient-to-r from-amber-900 via-orange-800 to-teal-900 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-comments text-amber-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-amber-100 font-bold">Homework • Modulo 10</span>
+                        <span class="text-[11px] text-amber-200 hidden sm:inline">• Area IV: Relazioni, Comunicazione e Limiti</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold mt-0.5">Laboratorio Relazionale: Frasi-Ponte, Facilitatori e Manuale d'Uso</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-amber-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale delle 4 Stazioni -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="goToStation(1)" id="nav-station-1" class="station-nav-btn bg-amber-700 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-people-arrows"></i> 1. Problema & Ponte
+                </button>
+                <button onclick="goToStation(2)" id="nav-station-2" class="station-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-sliders"></i> 2. Facilitatori vs Interferenze
+                </button>
+                <button onclick="goToStation(3)" id="nav-station-3" class="station-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-address-card"></i> 3. Il Mio Manuale d'Uso
+                </button>
+                <button onclick="goToStation(4)" id="nav-station-4" class="station-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> 4. Card & PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-amber-800 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-amber-800">Programma Clinico Modulare di Psicoeducazione • Modulo 10</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 10: Relazioni, Doppia Empatia e Facilitatori</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Milton (2012) • Crompton et al. (2020) • Migliarese et al. (2023) • Kooij et al. (2019).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Guida -->
+        <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-handshake-angle"></i>
+            </span>
+            <div class="text-xs md:text-sm text-amber-950 leading-relaxed flex-1">
+                <strong class="font-bold">Obiettivo della settimana: Tradurre il tuo codice, non forzare una maschera.</strong> 
+                Migliorare una relazione significativa non significa "recitare meglio", ma <strong>togliere i fraintendimenti</strong> spiegando con semplicità come funziona la tua attenzione e creando condizioni favorevoli al dialogo.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Bussola 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 10 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-amber-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-amber-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-amber-700"></i> Bussola Rapida del Modulo 10
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. La Doppia Empatia</div>
+                    <p class="text-slate-600 text-xs">I malintesi nascono dall'incontro tra due codici diversi (esplicito/diretto vs implicito/sottinteso). Le <strong>Frasi-Ponte</strong> traducono l'intenzione reale.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Facilitatori vs Interferenze</div>
+                    <p class="text-slate-600 text-xs">Allontanare il telefono, spegnere i rumori di fondo e scegliere un momento senza fretta protegge la memoria di lavoro durante il dialogo.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Ancore Scritte e Parole-Chiave</div>
+                    <p class="text-slate-600 text-xs">Chiedere il "titolo/punto centrale" nei discorsi lunghi e farsi inviare un promemoria scritto di due righe per le cose importanti da ricordare.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             STAZIONE 1: RELAZIONI (PROBLEMA -> COMPITO / FRASE-PONTE -> ESITO)
+             ========================================================================= -->
+        <section id="station-1" class="station-section active space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-amber-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Stazione 1 • Sperimentare sul Campo</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Costruire un Ponte in una Relazione per Te Significativa</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Pensa a una relazione importante (partner, amico/a, familiare, collega) in cui si verifica spesso un piccolo attrito o fraintendimento comunicativo.
+                    </p>
+                </div>
+
+                <!-- 1. PROBLEMA RELAZIONALE -->
+                <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
+                    <label class="block text-sm font-bold text-amber-950 flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass text-amber-600"></i> 1. PROBLEMA: Individua la dinamica sulla quale vorresti migliorare
+                    </label>
+                    <p class="text-xs text-slate-600">Tocca il cortocircuito che ti capita più spesso in questa relazione:</p>
+                    <div class="flex flex-wrap gap-2" id="rel-problem-chips">
+                        <button type="button" onclick="toggleChip(this, 'relProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Perdere il filo quando l'altra persona fa un discorso lungo o mentre sono concentrato/a su altro</button>
+                        <button type="button" onclick="toggleChip(this, 'relProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Interrompere o finire le frasi dell'altro per paura che il pensiero mi sfugga di mente</button>
+                        <button type="button" onclick="toggleChip(this, 'relProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Non cogliere i sottintesi o le richieste indirette ("Dovresti arrivarci da solo/a")</button>
+                        <button type="button" onclick="toggleChip(this, 'relProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Sentirmi dire che sembro "distratto/a o freddo/a" perché non guardo fisso negli occhi o parlo poco a fine giornata</button>
+                        <button type="button" onclick="toggleChip(this, 'relProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Dimenticare accordi, commissioni o cose dette solo a voce mentre ero di fretta</button>
+                        <button type="button" onclick="toggleChip(this, 'relProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Reagire in modo brusco quando l'altro cambia i programmi all'ultimo minuto</button>
+                    </div>
+                    <textarea id="relProblemCustomText" oninput="saveData()" rows="2" placeholder="Con chi avviene questa dinamica e come si manifesta? (es. 'Con il mio partner quando mi parla mentre sto cucinando o guardando il telefono')..." class="w-full rounded-xl border border-amber-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 2. COMPITO / AZIONE O FRASE-PONTE -->
+                <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3">
+                    <label class="block text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <i class="fa-solid fa-bridge text-indigo-600"></i> 2. COMPITO: Quale azione o "Frase-Ponte" hai scelto di attuare?
+                    </label>
+                    <p class="text-xs text-slate-600">Scegli una mossa concreta tra le strategie del Modulo 10:</p>
+                    <div class="flex flex-wrap gap-2" id="rel-action-chips">
+                        <button type="button" onclick="toggleChip(this, 'relActions', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Posare fisicamente il telefono e spegnere la TV appena inizia un dialogo importante</button>
+                        <button type="button" onclick="toggleChip(this, 'relActions', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Usare la Frase-Ponte sull'ascolto («Se non ti guardo fisso o muovo le mani è perché così ti ascolto meglio!»)</button>
+                        <button type="button" onclick="toggleChip(this, 'relActions', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Chiedere all'altro di dirmi le cose in modo esplicito e diretto senza sottintesi</button>
+                        <button type="button" onclick="toggleChip(this, 'relActions', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Chiedere un messaggio scritto di due righe su WhatsApp per le commissioni o date importanti</button>
+                        <button type="button" onclick="toggleChip(this, 'relActions', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Annotare una parola-chiave su un foglio invece di interrompere mentre l'altro parla</button>
+                        <button type="button" onclick="toggleChip(this, 'relActions', 'active-bridge')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Chiedere «In questo momento preferisci solo sfogarti o vuoi che cerchiamo una soluzione pratica?»</button>
+                    </div>
+                    <textarea id="relActionCustomText" oninput="saveData()" rows="2" placeholder="Scrivi qui l'azione o la Frase-Ponte specifica che hai provato in settimana..." class="w-full rounded-xl border border-indigo-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-indigo-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 3. ESITO DELL'AZIONE -->
+                <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3">
+                    <label class="block text-sm font-bold text-teal-950 flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check text-teal-600"></i> 3. ESITO DELL'AZIONE: Ora mettila in atto! Come è andata?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="rel-outcome-chips">
+                        <button type="button" onclick="toggleChip(this, 'relOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">Sì, ha funzionato: il clima è stato molto più disteso e ci siamo capiti meglio</button>
+                        <button type="button" onclick="toggleChip(this, 'relOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">In parte: all'inizio mi è scappato l'automatismo, ma poi ho riparato usando la Frase-Ponte</button>
+                        <button type="button" onclick="toggleChip(this, 'relOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">È stato difficile sul momento, ma ho capito quali interferenze ambientali ci hanno ostacolato</button>
+                    </div>
+                    <input type="text" id="relOutcomeNotes" oninput="saveData()" placeholder="Come ha reagito l'altra persona o come ti sei sentito/a?..." class="w-full rounded-xl border border-teal-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToStation(2)" class="bg-amber-700 hover:bg-amber-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa alle Valutazioni (Facilitatori vs Interferenze) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 2: VALUTAZIONI (FACILITATORI VS INTERFERENZE) E IPOTESI
+             ========================================================================= -->
+        <section id="station-2" class="station-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-teal-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-800">Stazione 2 • Valutazioni e Ipotesi</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Riconosci i Tuoi "Facilitatori" e le Tue "Interferenze" nella Relazione</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Osserva quali elementi pratici e ambientali hanno aiutato la comunicazione in settimana e quali invece l'hanno ostacolata.
+                    </p>
+                </div>
+
+                <!-- Tabella a 2 Colonne: FACILITATORI vs INTERFERENZE -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Colonna Sinistra: QUESTI SONO I TUOI FACILITATORI -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Questi sono i tuoi FACILITATORI
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">Elementi che hanno favorito la relazione e l'ascolto:</h3>
+                            <p class="text-xs text-slate-500 mb-2.5">(Situazione tranquilla, non avere il cellulare in mano, essersi presi il giusto tempo, ecc.)</p>
+                            <div class="flex flex-wrap gap-1.5" id="rel-facilitators-chips">
+                                <button type="button" onclick="toggleChip(this, 'relFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Situazione tranquilla e silenziosa senza TV o rumori di fondo</button>
+                                <button type="button" onclick="toggleChip(this, 'relFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Aver posato il cellulare lontano durante la conversazione</button>
+                                <button type="button" onclick="toggleChip(this, 'relFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Parlare mentre camminavamo fianco a fianco o in auto</button>
+                                <button type="button" onclick="toggleChip(this, 'relFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Essere arrivati puntuali / non avere fretta di scappare altrove</button>
+                                <button type="button" onclick="toggleChip(this, 'relFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Averla buttata sul ridere con autoironia quando mi sono distratto/a</button>
+                                <button type="button" onclick="toggleChip(this, 'relFacilitators', 'active-facilitator')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Essere andati dritti al punto chiave senza preamboli infiniti</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-emerald-200/60">
+                            <label class="block text-xs font-bold text-emerald-950 mb-1">Altri tuoi Facilitatori relazionali notati:</label>
+                            <textarea id="relFacilitatorsOtherText" oninput="saveData()" rows="2" placeholder="Annota qui cosa ha favorito il dialogo..." class="w-full rounded-lg border border-emerald-200 bg-white p-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Colonna Destra: QUESTE SONO LE TUE INTERFERENZE -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Queste sono le tue INTERFERENZE
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">Elementi che hanno ostacolato la relazione:</h3>
+                            <p class="text-xs text-slate-500 mb-2.5">(Essere di fretta, guardare il cellulare, avere la mente su altro, stanchezza serale, ecc.)</p>
+                            <div class="flex flex-wrap gap-1.5" id="rel-interferences-chips">
+                                <button type="button" onclick="toggleChip(this, 'relInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Ero di fretta o stavamo parlando in piedi sulla porta uscendo</button>
+                                <button type="button" onclick="toggleChip(this, 'relInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Guardavo il cellulare o avevo lo schermo del PC acceso davanti</button>
+                                <button type="button" onclick="toggleChip(this, 'relInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Ero ancora immerso/a con la mente nel mio interesse o nel lavoro</button>
+                                <button type="button" onclick="toggleChip(this, 'relInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Affrontare un discorso delicato a tarda sera con batteria a zero</button>
+                                <button type="button" onclick="toggleChip(this, 'relInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Locale rumoroso, TV accesa o più persone che parlavano insieme</button>
+                                <button type="button" onclick="toggleChip(this, 'relInterferences', 'active-interference')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Dar per scontato che l'altro avesse capito senza spiegarlo</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-rose-200/60">
+                            <label class="block text-xs font-bold text-rose-950 mb-1">Altre tue Interferenze relazionali notate:</label>
+                            <textarea id="relInterferencesOtherText" oninput="saveData()" rows="2" placeholder="Annota qui cosa ti ha distratto o ostacolato..." class="w-full rounded-lg border border-rose-200 bg-white p-2 text-xs text-slate-800 focus:border-rose-600 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- IPOTESI DI MIGLIORAMENTO -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                    <label class="block text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> IPOTESI: Come potresti ridurre le tue Interferenze nei prossimi dialoghi?
+                    </label>
+                    <p class="text-xs text-slate-600">
+                        Ipotizza un'azione concreta (es. concordare di non parlare di temi importanti dopo le 21:30, o dire subito «Dammi 2 minuti che chiudo il computer così ti ascolto davvero»):
+                    </p>
+                    <textarea id="relHypothesisText" oninput="saveData()" rows="2" placeholder="Scrivi qui la tua ipotesi pratica da condividere anche nel prossimo incontro..." class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStation(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStation(3)" class="bg-amber-700 hover:bg-amber-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Vai alla Stazione 3: Il Tuo Manuale d'Uso <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 3: IL COSTRUTTORE DEL "MIO MANUALE D'USO RELAZIONALE"
+             ========================================================================= -->
+        <section id="station-3" class="station-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-indigo-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Stazione 3 • Prevenire la Doppia Empatia con Chi Ci Vuole Bene</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Componi le Tue "3 Istruzioni per l'Uso" in Relazione</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Molti fraintendimenti svaniscono per sempre quando diamo alle persone care la "legenda" per leggere i nostri comportamenti. Clicca sulle opzioni qui sotto (o modificale) per creare la tua Card:
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Istruzione 1: Come ascolto meglio -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-amber-800">
+                            <i class="fa-solid fa-ear-listen mr-1"></i> 1. Come Ascolto Meglio (Quando vuoi dirmi qualcosa di importante):
+                        </label>
+                        <div class="flex flex-wrap gap-1.5 no-print">
+                            <button type="button" onclick="setManualField('manualListenInput', 'Richiama prima la mia attenzione, dimmi subito il punto centrale e non preoccuparti se mentre ti ascolto muovo le mani o non ti fisso negli occhi: mi aiuta a concentrarmi!')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:border-amber-500 text-[11px] text-slate-700">
+                                Modello A: Punto centrale + Sguardo libero
+                            </button>
+                            <button type="button" onclick="setManualField('manualListenInput', 'Se si tratta di una data, un orario o una commissione da non dimenticare, oltre a dirmelo a voce mandamelo in un messaggio di due righe su WhatsApp!')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:border-amber-500 text-[11px] text-slate-700">
+                                Modello B: Promemoria scritto su WhatsApp
+                            </button>
+                        </div>
+                        <input type="text" id="manualListenInput" oninput="saveData()" placeholder="Scrivi o scegli sopra come ascolti meglio..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none">
+                    </div>
+
+                    <!-- Istruzione 2: Come farmi una richiesta senza sottintesi -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-teal-800">
+                            <i class="fa-solid fa-comment-dots mr-1"></i> 2. Chiarezza vs Sottintesi (Come chiedermi aiuto o darmi un feedback):
+                        </label>
+                        <div class="flex flex-wrap gap-1.5 no-print">
+                            <button type="button" onclick="setManualField('manualRequestInput', 'Non usare sottintesi o battute indirette sperando che io indovini: chiedimi pure le cose in modo esplicito e diretto, per me è un enorme sollievo!')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:border-teal-500 text-[11px] text-slate-700">
+                                Modello A: Richieste dirette senza sottintesi
+                            </button>
+                            <button type="button" onclick="setManualField('manualRequestInput', 'Quando ti faccio domande precise sul perché facciamo una cosa non sto facendo polemica: ho solo bisogno di capire la logica per organizzarmi mentalmente.')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:border-teal-500 text-[11px] text-slate-700">
+                                Modello B: Le mie domande non sono polemica
+                            </button>
+                        </div>
+                        <input type="text" id="manualRequestInput" oninput="saveData()" placeholder="Scrivi o scegli sopra come preferisci ricevere le richieste..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs md:text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                    </div>
+
+                    <!-- Istruzione 3: Cosa significa il mio silenzio o bisogno di tempo -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-indigo-800">
+                            <i class="fa-solid fa-battery-quarter mr-1"></i> 3. Il Mio Silenzio e i Cambi di Programma (Cosa significa davvero):
+                        </label>
+                        <div class="flex flex-wrap gap-1.5 no-print">
+                            <button type="button" onclick="setManualField('manualSilenceInput', 'Se a fine giornata parlo poco o ho bisogno di stare 20 minuti per conto mio non ce l\'ho con te: ho solo finito la batteria sensoriale e dopo il silenzio torno presente!')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:border-indigo-500 text-[11px] text-slate-700">
+                                Modello A: Il mio silenzio non è muso lungo
+                            </button>
+                            <button type="button" onclick="setManualField('manualSilenceInput', 'Se cambi un programma all\'ultimo minuto e reagisco con un \"No\" istintivo, dammi 10 minuti per ricalcolare il piano nella mente prima di prendere la mia risposta come definitiva.')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:border-indigo-500 text-[11px] text-slate-700">
+                                Modello B: 10 minuti per ricalcolare gli imprevisti
+                            </button>
+                        </div>
+                        <input type="text" id="manualSilenceInput" oninput="saveData()" placeholder="Scrivi o scegli sopra cosa significa quando sei silenzioso/a..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs md:text-sm text-slate-800 focus:border-indigo-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- 2 Cursori Rapidi di Autovalutazione -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-comments text-amber-600"></i> 1. Chiarezza nel Tradurre i Miei Bisogni
+                            </label>
+                            <span id="clarityScoreLabel" class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">7 / 10</span>
+                        </div>
+                        <input type="range" id="clarityScoreSlider" min="1" max="10" value="7" oninput="updateSliders()" class="w-full accent-amber-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>1 (Tengo tutto dentro o faccio masking)</span>
+                            <span>10 (Uso le Frasi-Ponte con naturalezza)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-sliders text-teal-600"></i> 2. Riduzione delle Interferenze (Telefono/Fretta)
+                            </label>
+                            <span id="focusScoreLabel" class="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="focusScoreSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-teal-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>1 (Molte distrazioni durante i dialoghi)</span>
+                            <span>10 (Proteggo lo spazio delle conversazioni)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToStation(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToStation(4)" class="bg-amber-700 hover:bg-amber-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera la Tua Card Comunicativa e PDF <i class="fa-solid fa-address-card"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 4: CARD "COME COMUNICO SENZA MASCHERA" ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="station-4" class="station-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • Condivisione e Confronto</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Il Tuo Biglietto da Visita Comunicativo e Report in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutte le sezioni aperte oppure la sintesi con il tuo Manuale d'Uso Relazionale.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-amber-700 hover:bg-amber-800 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il Manuale d'Uso e la sintesi">
+                            <i class="fa-solid fa-address-card"></i> PDF Manuale + Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-amber-700"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-amber-600 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-amber-800 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-amber-800">Percorso Modulare di Psicoeducazione • Modulo 10</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 10: Relazioni, Doppia Empatia e Facilitatori</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- SCHEDA VISIVA: IL MIO MANUALE D'USO RELAZIONALE ("COME COMUNICO SENZA MASCHERA") -->
+                    <div id="relationalManualCard" class="rounded-2xl bg-gradient-to-r from-amber-900 via-orange-800 to-teal-900 text-white p-5 shadow-md space-y-3">
+                        <!-- Popolata dinamicamente via JS -->
+                    </div>
+
+                    <!-- Contenuto analitico delle Stazioni 1 e 2 -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Milton (2012) • Crompton et al. (2020) • Migliarese et al. (2023) • Kooij et al. (2019)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToStation(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_10_general_v1';
+
+        let appState = {
+            patientName: '',
+            relProblems: [],
+            relProblemCustomText: '',
+            relActions: [],
+            relActionCustomText: '',
+            relOutcomes: [],
+            relOutcomeNotes: '',
+            relFacilitators: [],
+            relFacilitatorsOtherText: '',
+            relInterferences: [],
+            relInterferencesOtherText: '',
+            relHypothesisText: '',
+            manualListenInput: '',
+            manualRequestInput: '',
+            manualSilenceInput: '',
+            clarityScoreLevel: 7,
+            focusScoreLevel: 6
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToStation(stationNum) {
+            document.querySelectorAll('.station-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`station-${stationNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-station-${i}`);
+                if (i === stationNum) {
+                    btn.className = 'station-nav-btn bg-amber-700 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'station-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stationNum === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-problem', 'active-bridge', 'active-outcome', 'active-facilitator', 'active-interference');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function setManualField(inputId, textValue) {
+            document.getElementById(inputId).value = textValue;
+            saveData();
+            showToast('Istruzione inserita nel tuo Manuale d\'Uso Relazionale!');
+        }
+
+        function updateSliders() {
+            const clVal = document.getElementById('clarityScoreSlider').value;
+            const foVal = document.getElementById('focusScoreSlider').value;
+
+            document.getElementById('clarityScoreLabel').textContent = `${clVal} / 10`;
+            document.getElementById('focusScoreLabel').textContent = `${foVal} / 10`;
+
+            appState.clarityScoreLevel = clVal;
+            appState.focusScoreLevel = foVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.relProblemCustomText = document.getElementById('relProblemCustomText').value;
+            appState.relActionCustomText = document.getElementById('relActionCustomText').value;
+            appState.relOutcomeNotes = document.getElementById('relOutcomeNotes').value;
+            appState.relFacilitatorsOtherText = document.getElementById('relFacilitatorsOtherText').value;
+            appState.relInterferencesOtherText = document.getElementById('relInterferencesOtherText').value;
+            appState.relHypothesisText = document.getElementById('relHypothesisText').value;
+            appState.manualListenInput = document.getElementById('manualListenInput').value;
+            appState.manualRequestInput = document.getElementById('manualRequestInput').value;
+            appState.manualSilenceInput = document.getElementById('manualSilenceInput').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('relProblemCustomText').value = appState.relProblemCustomText || '';
+            document.getElementById('relActionCustomText').value = appState.relActionCustomText || '';
+            document.getElementById('relOutcomeNotes').value = appState.relOutcomeNotes || '';
+            document.getElementById('relFacilitatorsOtherText').value = appState.relFacilitatorsOtherText || '';
+            document.getElementById('relInterferencesOtherText').value = appState.relInterferencesOtherText || '';
+            document.getElementById('relHypothesisText').value = appState.relHypothesisText || '';
+            document.getElementById('manualListenInput').value = appState.manualListenInput || '';
+            document.getElementById('manualRequestInput').value = appState.manualRequestInput || '';
+            document.getElementById('manualSilenceInput').value = appState.manualSilenceInput || '';
+
+            document.getElementById('clarityScoreSlider').value = appState.clarityScoreLevel ?? 7;
+            document.getElementById('focusScoreSlider').value = appState.focusScoreLevel ?? 6;
+            document.getElementById('clarityScoreLabel').textContent = `${appState.clarityScoreLevel ?? 7} / 10`;
+            document.getElementById('focusScoreLabel').textContent = `${appState.focusScoreLevel ?? 6} / 10`;
+
+            restoreChipGroup('rel-problem-chips', appState.relProblems, 'active-problem');
+            restoreChipGroup('rel-action-chips', appState.relActions, 'active-bridge');
+            restoreChipGroup('rel-outcome-chips', appState.relOutcomes, 'active-outcome');
+            restoreChipGroup('rel-facilitators-chips', appState.relFacilitators, 'active-facilitator');
+            restoreChipGroup('rel-interferences-chips', appState.relInterferences, 'active-interference');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const manualCard = document.getElementById('relationalManualCard');
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const listenTxt = appState.manualListenInput
+                ? escapeHtml(appState.manualListenInput)
+                : 'Richiama prima la mia attenzione, dimmi subito il punto centrale e per le cose pratiche mandami anche un promemoria scritto di due righe.';
+            const requestTxt = appState.manualRequestInput
+                ? escapeHtml(appState.manualRequestInput)
+                : 'Chiedimi le cose in modo esplicito e diretto senza sottintesi; se ti faccio domande è per capire bene, non per fare polemica.';
+            const silenceTxt = appState.manualSilenceInput
+                ? escapeHtml(appState.manualSilenceInput)
+                : 'Quando a fine giornata parlo poco o chiedo 20 minuti di silenzio non ce l\'ho con te: sto solo ricaricando la batteria sensoriale.';
+
+            // 1. Popola la Card del Manuale d'Uso Relazionale
+            manualCard.innerHTML = `
+                <div class="flex items-center justify-between border-b border-white/15 pb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-widest text-amber-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-address-card"></i> Il Mio Manuale d'Uso Relazionale (Contro i Malintesi da Doppia Empatia)
+                    </span>
+                    <span class="text-[11px] text-amber-100">Comunicazione Autentica</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-amber-200 uppercase text-[10px] tracking-wider block mb-1">1. Come Ascolto Meglio:</strong>
+                        <p class="text-white leading-relaxed">${listenTxt}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-teal-200 uppercase text-[10px] tracking-wider block mb-1">2. Chiarezza vs Sottintesi:</strong>
+                        <p class="text-white leading-relaxed">${requestTxt}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-indigo-200 uppercase text-[10px] tracking-wider block mb-1">3. Cosa Significa il Mio Silenzio:</strong>
+                        <p class="text-white leading-relaxed">${silenceTxt}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Popola il Report delle Stazioni 1 e 2
+            const probs = appState.relProblems.length ? appState.relProblems.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const acts = appState.relActions.length ? appState.relActions.join(' • ') : '<em>Nessuna azione selezionata</em>';
+            const outc = appState.relOutcomes.length ? appState.relOutcomes.join(' • ') : '<em>Non specificato</em>';
+            const facs = appState.relFacilitators.length ? appState.relFacilitators.join(' • ') : '<em>Nessun facilitatore selezionato</em>';
+            const ints = appState.relInterferences.length ? appState.relInterferences.join(' • ') : '<em>Nessuna interferenza selezionata</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">1. Problema, Frase-Ponte ed Esito nella Relazione Significativa</div>
+                    <p><strong class="text-amber-800">Dinamica osservata:</strong> ${probs}</p>
+                    ${appState.relProblemCustomText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.relProblemCustomText)}"</p>` : ''}
+                    <p><strong class="text-indigo-700">Azione / Frase-Ponte attuata:</strong> ${acts}</p>
+                    ${appState.relActionCustomText ? `<p class="text-indigo-950 bg-indigo-50 p-2 rounded-lg border border-indigo-200 text-xs"><strong>Dettaglio azione:</strong> ${escapeHtml(appState.relActionCustomText)}</p>` : ''}
+                    <p><strong class="text-teal-800">Esito dell'azione:</strong> ${outc} ${appState.relOutcomeNotes ? `(${escapeHtml(appState.relOutcomeNotes)})` : ''}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">2. Valutazioni (Facilitatori vs Interferenze) e Ipotesi</div>
+                    <p><strong class="text-emerald-700">I miei FACILITATORI relazionali:</strong> ${facs} ${appState.relFacilitatorsOtherText ? `• ${escapeHtml(appState.relFacilitatorsOtherText)}` : ''}</p>
+                    <p><strong class="text-rose-700">Le mie INTERFERENZE relazionali:</strong> ${ints} ${appState.relInterferencesOtherText ? `• ${escapeHtml(appState.relInterferencesOtherText)}` : ''}</p>
+                    ${appState.relHypothesisText ? `<p class="text-slate-800 bg-white p-2.5 rounded-lg border border-slate-200 text-xs"><strong>Ipotesi per ridurre le interferenze:</strong> "${escapeHtml(appState.relHypothesisText)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Chiarezza nel Tradurre i Miei Bisogni</span>
+                                <span class="text-amber-700 font-bold">${appState.clarityScoreLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-amber-600 h-2 rounded-full" style="width: ${appState.clarityScoreLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Protezione dello Spazio di Dialogo</span>
+                                <span class="text-teal-700 font-bold">${appState.focusScoreLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-teal-600 h-2 rounded-full" style="width: ${appState.focusScoreLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_10_Manuale_Relazionale_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF Manuale Relazionale scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura stazioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_10_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le stazioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 10: RELAZIONI, DOPPIA EMPATIA E FACILITATORI ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. PROBLEMA, FRASE-PONTE ED ESITO",
+                "• Problema individuato: " + (appState.relProblems.join(', ') || '-'),
+                appState.relProblemCustomText ? "• Contesto: " + appState.relProblemCustomText : null,
+                "• Azione / Frase-Ponte: " + (appState.relActions.join(', ') || '-'),
+                appState.relActionCustomText ? "• Dettaglio azione: " + appState.relActionCustomText : null,
+                "• Esito: " + (appState.relOutcomes.join(', ') || '-'),
+                "",
+                "2. FACILITATORI VS INTERFERENZE E IPOTESI",
+                "• I miei FACILITATORI: " + (appState.relFacilitators.join(', ') || '-'),
+                "• Le mie INTERFERENZE: " + (appState.relInterferences.join(', ') || '-'),
+                appState.relHypothesisText ? "• Ipotesi per ridurre le interferenze: " + appState.relHypothesisText : null,
+                "",
+                "3. IL MIO MANUALE D'USO RELAZIONALE",
+                appState.manualListenInput ? "• Come ascolto meglio: " + appState.manualListenInput : null,
+                appState.manualRequestInput ? "• Chiarezza vs Sottintesi: " + appState.manualRequestInput : null,
+                appState.manualSilenceInput ? "• Cosa significa il mio silenzio: " + appState.manualSilenceInput : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                relProblems: [],
+                relProblemCustomText: '',
+                relActions: [],
+                relActionCustomText: '',
+                relOutcomes: [],
+                relOutcomeNotes: '',
+                relFacilitators: [],
+                relFacilitatorsOtherText: '',
+                relInterferences: [],
+                relInterferencesOtherText: '',
+                relHypothesisText: '',
+                manualListenInput: '',
+                manualRequestInput: '',
+                manualSilenceInput: '',
+                clarityScoreLevel: 7,
+                focusScoreLevel: 6
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-problem', 'active-bridge', 'active-outcome', 'active-facilitator', 'active-interference');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToStation(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

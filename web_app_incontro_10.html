@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 10 - Relazioni Interpersonali, Comunicazione e Doppia Empatia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .station-panel {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .station-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .bridge-chip.selected {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+        }
+        .dialogue-tab-btn.active-dlg {
+            background-color: #b45309;
+            color: #ffffff;
+            border-color: #b45309;
+            box-shadow: 0 4px 12px -2px rgba(180, 83, 9, 0.25);
+        }
+        .mixer-toggle.active-ally {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .mixer-toggle.active-interference {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le stazioni e tutti i dialoghi aperti)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode .station-panel {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.25rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .dialogue-scenario-card {
+            display: block !important;
+            margin-bottom: 1.25rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .station-panel {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .dialogue-scenario-card {
+                display: block !important;
+                margin-bottom: 14px !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-amber-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Panoramico Area IV -->
+    <header class="bg-gradient-to-r from-amber-900 via-orange-800 to-teal-900 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-comments text-xl text-amber-200"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-amber-100">Modulo 10 • Area IV</span>
+                        <span class="text-[11px] text-amber-200 hidden sm:inline">• Relazioni, Comunicazione e Limiti</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight mt-0.5">Relazioni Interpersonali I: Comunicazione e Doppia Empatia</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide + Contatore Frasi-Ponte -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end md:self-auto">
+                <button onclick="switchStation(4)" class="bg-amber-950/70 hover:bg-amber-950 border border-amber-400/40 px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-language text-amber-300"></i>
+                    <span>Le Mie Frasi-Ponte: <strong id="bridgeCountBadge" class="text-white font-bold">0</strong></span>
+                </button>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale delle 4 Stazioni -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button onclick="switchStation(1)" id="station-btn-1" class="station-btn bg-amber-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-magnifying-glass"></i> 1. Fraintendimenti
+                </button>
+                <button onclick="switchStation(2)" id="station-btn-2" class="station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-language"></i> 2. Traduttore Simultaneo
+                </button>
+                <button onclick="switchStation(3)" id="station-btn-3" class="station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-sliders"></i> 3. Mixer del Dialogo
+                </button>
+                <button onclick="switchStation(4)" id="station-btn-4" class="station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-handshake-angle"></i> 4. Ripara-Dialoghi & Kit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainScrollArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-8">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+        <div class="print-only-header hidden border-b-2 border-amber-800 pb-4 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-amber-800">Programma Clinico Modulare di Psicoeducazione • Area IV</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 10: Relazioni Interpersonali I – Comunicazione e Doppia Empatia</h1>
+                    <p class="text-xs text-slate-500 mt-1">Rif. Scientifici: Milton (2012) • Crompton et al. (2020) • Migliarese et al. (2023) • Kooij et al. (2019).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             STAZIONE 1: COME I SINTOMI VENGONO FRAINTESI NELLE RELAZIONI E LA DOPPIA EMPATIA
+             ========================================================================= -->
+        <section id="station-1" class="station-panel active space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-600">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wide">
+                        Stazione 1 • Quando la Neurobiologia Viene Scambiata per "Disinteresse"
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Milton (2012) • Crompton et al. (2020) • Migliarese et al. (2023)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Perché Chi Ci Vuole Bene a Volte Fraintende i Nostri Comportamenti?</h2>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                    Le nostre caratteristiche neurobiologiche non si manifestano nel vuoto, ma all'interno dei legami con il partner, la famiglia, gli amici e i colleghi. Moltissime tensioni relazionali nascono da un equivoco di fondo: le persone intorno a noi tendono a interpretare una dimenticanza, un'interruzione durante un dialogo o il bisogno di silenzio usando una <strong>lente morale o affettiva</strong> (<em>"Se ti importasse davvero di me te ne saresti ricordato/a"</em>, <em>"Mi interrompi perché non mi rispetti"</em>), senza sapere che si tratta invece di <strong>meccanismi esecutivi, attentivi e sensoriali</strong>.
+                </p>
+
+                <!-- Le 3 Fonti di Attrito Involontario nella Comunicazione -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    
+                    <!-- 1. Disattenzione Relazionale -->
+                    <div class="p-5 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-amber-950 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-ear-deaf text-amber-600"></i> 1. Disattenzione nei Dialoghi
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Perdere il filo durante un discorso lungo o pieno di premesse, non sentire una richiesta fatta mentre si è concentrati su altro (tunnel monotropico) o dimenticare una ricorrenza/commissione. All'esterno sembra trascuratezza; dentro è <strong>saturazione della memoria di lavoro</strong>.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Prevenire la Disattenzione nei Dialoghi: Chiedere all\'altro di richiamare prima la mia attenzione visiva/tattile prima di darmi un\'informazione importante')" class="bridge-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nelle mie Frasi-Ponte
+                        </button>
+                    </div>
+
+                    <!-- 2. Impulsività Comunicativa -->
+                    <div class="p-5 rounded-2xl bg-orange-50/60 border border-orange-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-orange-950 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-orange-600"></i> 2. Impulsività e Interruzioni
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Interrompere l'interlocutore, finire le sue frasi (perché il cervello ha già intuito dove vuole arrivare) o cambiare argomento per associazione di idee. Quasi mai nasce da scarso rispetto, ma dal <strong>timore che il pensiero svanisca dalla memoria a breve termine</strong> se non lo si dice subito.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Gestire l\'Impulso di Interrompere: Annotare una parola-chiave su un foglio o incrociare due dita per trattenere l\'idea finché l\'altro non ha finito')" class="bridge-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nelle mie Frasi-Ponte
+                        </button>
+                    </div>
+
+                    <!-- 3. Iperattività Verbale vs Silenzio Sensoriale -->
+                    <div class="p-5 rounded-2xl bg-teal-50/60 border border-teal-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-teal-950 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-wave-square text-teal-600"></i> 3. Info-Dumping o Ritiro
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Alternare momenti di forte entusiasmo verbale in cui si parla a lungo di un proprio argomento di interesse (<em>info-dumping</em>, che è un modo autentico di condividere gioia) a momenti in cui la batteria crolla e si diventa monosillabici.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Calibrare l\'Info-Dumping: Condividere i propri interessi a piccoli blocchi chiedendo «Ti va se ti racconto questa cosa o preferisci la versione breve?»')" class="bridge-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nelle mie Frasi-Ponte
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- IL PARADIGMA DELLA "DOPPIA EMPATIA" (MILTON, 2012; CROMPTON ET AL., 2020) -->
+                <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 text-white shadow-md">
+                    <div class="flex items-start gap-4">
+                        <span class="w-11 h-11 rounded-2xl bg-teal-500/20 border border-teal-400/30 text-teal-300 flex items-center justify-center shrink-0 text-xl mt-0.5">
+                            <i class="fa-solid fa-arrows-left-right-to-line"></i>
+                        </span>
+                        <div class="space-y-2">
+                            <div class="text-xs font-bold uppercase tracking-wider text-teal-300">Rivoluzione Scientifica • Il Problema della "Doppia Empatia"</div>
+                            <h3 class="text-lg md:text-xl font-bold text-white">Non è una "Mancanza di Empatia": Sono Due Lingue Diverse che S'Incontrano</h3>
+                            <p class="text-xs md:text-sm text-slate-200 leading-relaxed">
+                                Per decenni si è creduto erroneamente che le incomprensioni relazionali dipendessero da un "deficit comunicativo unilaterale" della persona neurodivergente. Gli studi contemporanei sulla <strong>Doppia Empatia</strong> hanno invece dimostrato che quando due persone neurodivergenti parlano tra loro si capiscono con altissima sintonia ed empatia! Il cortocircuito nasce solo quando si incontrano <strong>due "sistemi operativi" diversi</strong> (uno basato sulla comunicazione <em>diretta, esplicita e orientata ai contenuti</em> e l'altro basato su <em>sottintesi sociali, diplomazia implicita e segnali non verbali standard</em>) senza un traduttore condiviso.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 no-print">
+                <button onclick="switchStation(2)" class="bg-amber-700 hover:bg-amber-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Stazione 2: Il Traduttore Simultaneo <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 2: IL "TRADUTTORE SIMULTANEO DEI CODICI COMUNICATIVI" (INTERATTIVO)
+             ========================================================================= -->
+        <section id="station-2" class="station-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-teal-700 space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                            Stazione 2 • Strumento Interattivo di Decodifica Relazionale
+                        </span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Il Traduttore Simultaneo della Doppia Empatia</h2>
+                        <p class="text-xs md:text-sm text-slate-600 mt-1">
+                            Seleziona i <strong>4 malintesi più frequenti</strong> nella vita di coppia, in famiglia o sul lavoro per vedere come lo stesso identico comportamento viene letto dai due codici e quale <strong>Frase-Ponte</strong> evita lo scontro:
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Bottoni Selettori dei 4 Scenari di Traduzione (Nascosti in stampa perché si aprono tutti) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 no-print">
+                    <button type="button" onclick="selectDialogueScenario(1, this)" class="dialogue-tab-btn active-dlg p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2.5">
+                        <i class="fa-solid fa-eye-slash text-base"></i>
+                        <span>1. Sguardo e Ascolto</span>
+                    </button>
+                    <button type="button" onclick="selectDialogueScenario(2, this)" class="dialogue-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2.5">
+                        <i class="fa-solid fa-comment-dots text-base text-amber-600"></i>
+                        <span>2. Domande vs Sottintesi</span>
+                    </button>
+                    <button type="button" onclick="selectDialogueScenario(3, this)" class="dialogue-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2.5">
+                        <i class="fa-solid fa-screwdriver-wrench text-base text-indigo-600"></i>
+                        <span>3. Empatia Pratica</span>
+                    </button>
+                    <button type="button" onclick="selectDialogueScenario(4, this)" class="dialogue-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2.5">
+                        <i class="fa-solid fa-bolt text-base text-rose-600"></i>
+                        <span>4. Cambio di Programma</span>
+                    </button>
+                </div>
+
+                <!-- SCENARIO DI TRADUZIONE 1: SGUARDO E MOVIMENTO DURANTE L'ASCOLTO -->
+                <div id="dlg-card-1" class="dialogue-scenario-card bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h3 class="font-extrabold text-slate-900 text-base md:text-lg">
+                            Caso 1 • Non guardare fisso negli occhi o muovere le mani mentre l'altro parla
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">Linguaggio Non Verbale</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-teal-800">
+                                <i class="fa-solid fa-brain mr-1"></i> Cosa accade nel Codice Neurodivergente:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Fissare gli occhi mi provoca un forte sovraccarico sensoriale che mi distrae dalle tue parole. Se guardo altrove, cammino o muovo un oggetto tra le mani, <strong>riesco a concentrarmi al 100% su quello che mi stai dicendo</strong>.»
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-rose-800">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Come lo traduce per errore il Codice Implicito:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Se non mi guardi negli occhi e giocherelli con le mani mentre ti parlo di una cosa importante, significa che <strong>ti stai annoiando, sei distratto/a o non ti importa nulla di me</strong>.»
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- La Frase-Ponte risolutiva -->
+                    <div class="p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 block">
+                                <i class="fa-solid fa-bridge mr-1"></i> La Frase-Ponte (Esplicitare il proprio modo di ascoltare):
+                            </span>
+                            <p class="text-xs md:text-sm text-slate-100 italic">
+                                «Ti sto ascoltando con tutta la mia attenzione: se non ti guardo fisso negli occhi o muovo le mani è proprio perché così mi concentro molto meglio sulle tue parole!»
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Frase-Ponte sull\'Ascolto: «Se non ti guardo fisso negli occhi o muovo le mani mentre parli è perché così riesco ad ascoltarti e concentrarmi molto meglio!»')" class="bridge-chip shrink-0 py-2 px-3.5 rounded-xl border border-white/20 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center gap-1.5 no-print">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva Frase-Ponte
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCENARIO DI TRADUZIONE 2: COMUNICAZIONE DIRETTA VS SOTTINTESI DIPLOMATICI -->
+                <div id="dlg-card-2" class="dialogue-scenario-card hidden bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h3 class="font-extrabold text-slate-900 text-base md:text-lg">
+                            Caso 2 • Fare domande per capire la logica vs Sottintesi ("Dovresti arrivarci da solo/a")
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">Pragmatica del Linguaggio</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-teal-800">
+                                <i class="fa-solid fa-brain mr-1"></i> Cosa accade nel Codice Neurodivergente:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Uso le parole per il loro significato preciso. Se ti chiedo <em>"Perché facciamo così?"</em> non ti sto sfidando né polemizzando: <strong>ho solo bisogno di capire la logica e avere istruzioni chiare</strong>, perché non colgo le allusioni indirette.»
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-rose-800">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Come lo traduce per errore il Codice Implicito:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Mi stai facendo il terzo grado per mettermi in discussione o fare polemica! E poi ti avevo lasciato intendere chiaramente che ero stanco/a (dicendo <em>"C'è un sacco di piatti nel lavello..."</em>), perché non mi hai aiutato?»
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 block">
+                                <i class="fa-solid fa-bridge mr-1"></i> La Frase-Ponte (Patti chiari contro i sottintesi):
+                            </span>
+                            <p class="text-xs md:text-sm text-slate-100 italic">
+                                «Quando ti faccio una domanda non è per fare polemica, ma per capire bene come muovermi. E se hai bisogno di una mano, dimmelo pure in modo diretto senza sottintesi: mi fai un regalo enorme!»
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Frase-Ponte sulla Chiarezza: «Se ti faccio domande non è per polemica ma per capire bene; chiedimi pure le cose in modo diretto senza sottintesi!»')" class="bridge-chip shrink-0 py-2 px-3.5 rounded-xl border border-white/20 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center gap-1.5 no-print">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva Frase-Ponte
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCENARIO DI TRADUZIONE 3: EMPATIA TRAMITE RACCONTO SIMILE O SOLUZIONE PRATICA -->
+                <div id="dlg-card-3" class="dialogue-scenario-card hidden bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h3 class="font-extrabold text-slate-900 text-base md:text-lg">
+                            Caso 3 • Rispondere a uno sfogo raccontando un episodio simile o offrendo una soluzione
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">Stile di Empatia</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-teal-800">
+                                <i class="fa-solid fa-brain mr-1"></i> Cosa accade nel Codice Neurodivergente:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Se mentre ti sfoghi ti racconto una volta in cui è successa una cosa simile anche a me (o cerco subito una soluzione pratica per aiutarti), <strong>è il mio modo più sincero per dirti "Ti capisco profondamente, non sei solo/a!"</strong>.»
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-rose-800">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Come lo traduce per errore il Codice Implicito:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Ecco, sposti subito il discorso su di te per protagonismo! Oppure mi tratti come un problema tecnico da riparare invece di ascoltare come mi sento!»
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 block">
+                                <i class="fa-solid fa-bridge mr-1"></i> La Frase-Ponte (Chiedere la modalità di supporto desiderata):
+                            </span>
+                            <p class="text-xs md:text-sm text-slate-100 italic">
+                                «Mi dispiace tantissimo che tu stia passando questo momento. In questo istante preferisci che ti ascolti soltanto per sfogarti o vuoi che ragioniamo insieme su una soluzione pratica?»
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Frase-Ponte sull\'Empatia: «Mi dispiace molto per quello che stai vivendo: in questo momento preferisci solo sfogarti o vuoi che cerchiamo insieme una soluzione pratica?»')" class="bridge-chip shrink-0 py-2 px-3.5 rounded-xl border border-white/20 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center gap-1.5 no-print">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva Frase-Ponte
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCENARIO DI TRADUZIONE 4: RIGIDITÀ REATTIVA DI FRONTE AI CAMBI DI PROGRAMMA -->
+                <div id="dlg-card-4" class="dialogue-scenario-card hidden bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h3 class="font-extrabold text-slate-900 text-base md:text-lg">
+                            Caso 4 • Reazione brusca o "No" istintivo quando viene cambiato un programma all'ultimo minuto
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">Costo di Transizione</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-teal-800">
+                                <i class="fa-solid fa-brain mr-1"></i> Cosa accade nel Codice Neurodivergente:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Avevo già costruito nella mente la simulazione della serata e tarato i miei cucchiai di energia su quel piano. Cambiarlo all'improvviso manda in tilt la mia memoria di lavoro: <strong>il mio "No" iniziale è solo lo shock del ricalcolo</strong>.»
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 space-y-1.5">
+                            <div class="text-[11px] font-extrabold uppercase tracking-wider text-rose-800">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Come lo traduce per errore il Codice Implicito:
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                                «Sei sempre rigido/a e pesante! Non ti va mai bene nessuna proposta spontanea e rovini l'entusiasmo!»
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 block">
+                                <i class="fa-solid fa-bridge mr-1"></i> La Frase-Ponte (Chiedere 10 minuti di "Ricalcolo del Navigatore"):
+                            </span>
+                            <p class="text-xs md:text-sm text-slate-100 italic">
+                                «La proposta è bella, ma i cambi di programma improvvisi mi mandano in cortocircuito per qualche minuto: dammi 10 minuti per "ricalcolare il navigatore mentale" e ti dico!»
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Frase-Ponte sui Cambi di Programma: «I cambi all\'ultimo minuto mi mandano in tilt per qualche istante: dammi 10 minuti per ricalcolare il piano nella testa e ti rispondo!»')" class="bridge-chip shrink-0 py-2 px-3.5 rounded-xl border border-white/20 bg-white/10 text-xs text-white hover:bg-white/20 transition-all flex items-center gap-1.5 no-print">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva Frase-Ponte
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStation(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna ai Fraintendimenti
+                </button>
+                <button onclick="switchStation(3)" class="bg-amber-700 hover:bg-amber-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Stazione 3: Il Mixer del Dialogo <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 3: LA CABINA DI REGIA DEL DIALOGO (MIXER DELLE INTERFERENZE VS FACILITATORI)
+             ========================================================================= -->
+        <section id="station-3" class="station-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-indigo-600 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold uppercase tracking-wide">
+                        Stazione 3 • Ingegneria delle Conversazioni Importanti
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Perché Alcuni Dialoghi Falliscono Ancora Prima di Iniziare?</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        Spesso cerchiamo di affrontare discorsi delicati o organizzativi nelle condizioni peggiori possibili per il nostro sistema nervoso: in piedi sulla porta mentre stiamo uscendo, con la TV accesa in sottofondo, il telefono in mano o alle 22:30 quando la memoria di lavoro è a zero. Sperimenta nella <strong>Cabina di Regia</strong> qui sotto come cambia la qualità della comunicazione rimuovendo le interferenze e attivando i facilitatori:
+                    </p>
+                </div>
+
+                <!-- MIXER INTERATTIVO DELLA CONVERSAZIONE -->
+                <div class="bg-slate-900 text-white p-5 md:p-7 rounded-3xl border border-slate-700 space-y-5">
+                    
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-amber-300">Simulatore di Sintonizzazione Relazionale</div>
+                            <h3 class="text-lg font-extrabold text-white mt-0.5">Configura le Condizioni del Tuo Dialogo</h3>
+                        </div>
+                        <span id="dialogueQualityBadge" class="px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                            Chiarezza e Connessione: 50%
+                        </span>
+                    </div>
+
+                    <!-- Barra di Qualità del Dialogo -->
+                    <div class="w-full bg-slate-800 rounded-full h-4 overflow-hidden p-0.5 border border-slate-700">
+                        <div id="dialogueQualityBar" class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 50%"></div>
+                    </div>
+
+                    <p id="dialogueMixerFeedback" class="text-xs md:text-sm text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10">
+                        Tocca i fattori di seguito per osservare l'impatto delle <strong>Interferenze</strong> e dei <strong>Facilitatori</strong> sulla tenuta del dialogo:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Colonna 1: Interferenze da Disattivare -->
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-rose-500/30 space-y-2">
+                            <div class="text-xs font-bold uppercase tracking-wider text-rose-300 mb-2">
+                                <i class="fa-solid fa-ban mr-1"></i> Interferenze Relazionali (-20% Chiarezza)
+                            </div>
+                            <button type="button" onclick="toggleMixerFactor(this, -20, 'interference', 'Parlare con il cellulare in mano o la TV accesa cattura continuamente l\'attenzione selettiva e fa sentire l\'altro ignorato.')" class="mixer-toggle w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                <span>Tenere il telefono in mano o la TV accesa</span>
+                                <span class="text-rose-400 font-bold ml-2">-20%</span>
+                            </button>
+                            <button type="button" onclick="toggleMixerFactor(this, -20, 'interference', 'Parlare di temi complessi quando uno dei due è di fretta o sta uscendo di casa innesca risposte brusche e dimenticanze.')" class="mixer-toggle w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                <span>Parlare sulla porta mentre si è di fretta</span>
+                                <span class="text-rose-400 font-bold ml-2">-20%</span>
+                            </button>
+                            <button type="button" onclick="toggleMixerFactor(this, -20, 'interference', 'I preamboli lunghissimi senza arrivare al dunque saturano la memoria di lavoro nei primi 2 minuti.')" class="mixer-toggle w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                <span>Discorso lungo senza dire subito il punto chiave</span>
+                                <span class="text-rose-400 font-bold ml-2">-20%</span>
+                            </button>
+                        </div>
+
+                        <!-- Colonna 2: Facilitatori da Attivare -->
+                        <div class="bg-slate-950/60 p-4 rounded-2xl border border-emerald-500/30 space-y-2">
+                            <div class="text-xs font-bold uppercase tracking-wider text-emerald-300 mb-2">
+                                <i class="fa-solid fa-circle-check mr-1"></i> Facilitatori Relazionali (+20% Chiarezza)
+                            </div>
+                            <button type="button" onclick="toggleMixerFactor(this, 20, 'ally', 'Allontanare il telefono e ridurre i rumori di fondo libera subito risorse attentive per l\'ascolto.')" class="mixer-toggle w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                <span>Posare il cellulare lontano e spegnere rumori</span>
+                                <span class="text-emerald-400 font-bold ml-2">+20%</span>
+                            </button>
+                            <button type="button" onclick="toggleMixerFactor(this, 20, 'ally', 'Chiedere all\'inizio «Qual è il titolo/punto centrale?» permette alla memoria di lavoro di agganciare subito le parole chiave.')" class="mixer-toggle w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                <span>Partire dal "Titolo" e dalle parole-chiave</span>
+                                <span class="text-emerald-400 font-bold ml-2">+20%</span>
+                            </button>
+                            <button type="button" onclick="toggleMixerFactor(this, 20, 'ally', 'Parlare camminando fianco a fianco (o mandare i punti importanti per iscritto) azzera la fatica del contatto visivo fisso!')" class="mixer-toggle w-full text-left px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/90 text-xs text-slate-200 flex justify-between items-center">
+                                <span>Dialogo camminando o riepilogo scritto</span>
+                                <span class="text-emerald-400 font-bold ml-2">+20%</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- I 4 Accorgimenti Pratici per Migliorare le Conversazioni -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-highlighter text-amber-600"></i> 1. La Tecnica del "Titolo in Testa"
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Quando qualcuno inizia un racconto molto lungo e senti che ti stai perdendo, chiedi con gentilezza: <em>«Dimmi subito la conclusione o il punto centrale, così ti seguo molto meglio nei dettagli!»</em>.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Tecnica del Titolo in Testa: Chiedere «Dimmi prima il punto centrale/conclusione, così la mia mente segue molto meglio tutti i passaggi!»')" class="bridge-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nelle mie Frasi-Ponte
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-emerald-600"></i> 2. Il Riepilogo Scritto per le Cose Pratiche
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Le informazioni dette a voce mentre fai altro evaporano in pochi secondi. Prendi l'abitudine di dire: <em>«Ci tengo a non dimenticarlo: me lo mandi in un messaggio scritto di due righe?»</em>.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleBridgeItem(this, 'Ancora Scritta: «Ci tengo molto a non dimenticare questa cosa: me la scrivi in un messaggio su WhatsApp così resta fissata?»')" class="bridge-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nelle mie Frasi-Ponte
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStation(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna al Traduttore Simultaneo
+                </button>
+                <button onclick="switchStation(4)" class="bg-amber-700 hover:bg-amber-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Stazione 4: Ripara-Dialoghi e Manuale <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 4: IL TUO DIZIONARIO DELLE FRASI-PONTE E "RIPARA-DIALOGHI" INTERATTIVO
+             ========================================================================= -->
+        <section id="station-4" class="station-panel space-y-6 pb-8">
+            
+            <!-- 1. IL TUO MANUALE TASCABILE DI TRADUZIONE RELAZIONALE -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-600">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-language text-amber-600"></i> Le Tue "Frasi-Ponte" Selezionate (Modulo 10)
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                            Ecco le traduzioni esplicite e gli accorgimenti comunicativi che hai scelto per prevenire i fraintendimenti senza dover indossare una maschera:
+                        </p>
+                    </div>
+                    <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                        <i class="fa-solid fa-file-pdf"></i> Esporta Tutto in PDF
+                    </button>
+                </div>
+
+                <div id="bridgeSummaryContainer" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 mb-4">
+                    <!-- Popolato via JS -->
+                </div>
+
+                <div>
+                    <label for="customManualInstruction" class="block text-xs font-bold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-pen-to-square text-amber-600 mr-1"></i> Scrivi una tua "Istruzione per l'Uso" personale che vorresti far sapere alle persone a cui vuoi bene:
+                    </label>
+                    <input type="text" id="customManualInstruction" oninput="renderBridgeSummary()" placeholder="Es. «Quando torno a casa la sera e parlo poco non ce l'ho con te: ho solo finito le parole e dopo 20 minuti di silenzio torno presente!»" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- 2. LABORATORIO INTERATTIVO DI VERIFICA: "RIPARA IL FRAINTENDIMENTO" -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wide">
+                        Verifica Pratica • Clinica dei Fraintendimenti
+                    </span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-2">Quale "Frase-Ponte" Ripara il Cortocircuito?</h2>
+                    <p class="text-xs md:text-sm text-slate-600 mt-1">
+                        Leggi questi 3 dialoghi reali in cui si sta creando un malinteso da Doppia Empatia e scegli la risposta che traduce con autenticità il tuo funzionamento senza colpevolizzarti:
+                    </p>
+                </div>
+
+                <!-- Dialogo 1 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Dialogo 1 • L'Interruzione per Entusiasmo / Memoria di Lavoro</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Un amico o il partner ti dice risentito: <em>«Ecco, mi hai interrotto di nuovo mentre parlavo! Non mi lasci mai finire una frase!»</em>. Quale risposta costruisce un ponte autentico?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkRepairChoice(1, true, this)" class="repair-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> «Hai ragione, scusami! Non ti ho interrotto perché non mi importa, anzi: quello che dicevi mi ha acceso un pensiero importante e avevo paura che mi sparisse dalla mente. Finisci pure, mi segno una parola sul foglio!»
+                        </button>
+                        <button type="button" onclick="checkRepairChoice(1, false, this)" class="repair-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> «Allora non parlo più per tutta la sera così sei contento/a!»
+                        </button>
+                    </div>
+                    <div id="repair-fb-1" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Dialogo 2 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">Dialogo 2 • Perdere il Filo in un Momento di Stanchezza</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Dopo 10 minuti di racconto dettagliato a fine giornata, ti accorgi di aver perso gli ultimi passaggi perché c'era la TV accesa e avevi la mente satura. Come intervieni?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkRepairChoice(2, false, this)" class="repair-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Fare finta di aver capito tutto annuendo a caso (Masking), rischiando poi di dimenticare una cosa importante.
+                        </button>
+                        <button type="button" onclick="checkRepairChoice(2, true, this)" class="repair-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> «Aspetta un secondo: tengo molto a quello che mi stai raccontando, ma con la TV accesa la mia attenzione si è inceppata. Spegniamo la TV e mi ripeti solo l'ultimo passaggio?»
+                        </button>
+                    </div>
+                    <div id="repair-fb-2" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Dialogo 3 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-800">Dialogo 3 • La Doppia Empatia e i Sottintesi</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Qualcuno ti rimprovera: <em>«Ma non avevi capito che quando ho detto "Fa un po' freddo qui" volevo che chiudessi la finestra?!»</em>. Come spieghi il tuo codice comunicativo?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkRepairChoice(3, true, this)" class="repair-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> «La mia mente traduce le frasi alla lettera: avevo capito solo che stavi facendo un'osservazione sulla temperatura! La prossima volta chiedimi pure direttamente "Puoi chiudere la finestra?", lo faccio subito volentieri.»
+                        </button>
+                        <button type="button" onclick="checkRepairChoice(3, false, this)" class="repair-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Sentirsi in colpa pensando di non avere alcuna sensibilità verso gli altri.
+                        </button>
+                    </div>
+                    <div id="repair-fb-3" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStation(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna al Mixer del Dialogo
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const selectedBridges = new Set();
+        let currentDialogueScore = 50;
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+            renderBridgeSummary();
+        };
+
+        // Navigazione Orizzontale a 4 Stazioni
+        function switchStation(stationNum) {
+            document.querySelectorAll('.station-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`station-${stationNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`station-btn-${i}`);
+                if (i === stationNum) {
+                    btn.className = 'station-btn bg-amber-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stationNum === 4) {
+                renderBridgeSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Selettore Scenari del Traduttore Simultaneo (Stazione 2)
+        function selectDialogueScenario(num, btnEl) {
+            document.querySelectorAll('.dialogue-scenario-card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`dlg-card-${num}`).classList.remove('hidden');
+
+            document.querySelectorAll('.dialogue-tab-btn').forEach(b => {
+                b.classList.remove('active-dlg');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnEl.classList.remove('bg-white', 'text-slate-700');
+            btnEl.classList.add('active-dlg');
+        }
+
+        // Mixer della Conversazione Sostenibile (Stazione 3)
+        function toggleMixerFactor(btnEl, delta, type, explanationText) {
+            const activeCls = type === 'ally' ? 'active-ally' : 'active-interference';
+            if (btnEl.classList.contains(activeCls)) {
+                btnEl.classList.remove(activeCls);
+                currentDialogueScore -= delta;
+            } else {
+                btnEl.classList.add(activeCls);
+                currentDialogueScore += delta;
+            }
+
+            const clamped = Math.max(10, Math.min(100, currentDialogueScore));
+            const bar = document.getElementById('dialogueQualityBar');
+            const badge = document.getElementById('dialogueQualityBadge');
+            const fb = document.getElementById('dialogueMixerFeedback');
+
+            bar.style.width = `${clamped}%`;
+            fb.innerHTML = `<i class="fa-solid fa-circle-info text-amber-300 mr-1"></i> ${explanationText}`;
+
+            bar.classList.remove('bg-emerald-500', 'bg-amber-500', 'bg-rose-500');
+            if (clamped >= 70) {
+                bar.classList.add('bg-emerald-500');
+                badge.className = 'px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+                badge.textContent = `Chiarezza e Connessione: ${clamped}% (Condizioni Ottimali)`;
+            } else if (clamped >= 40) {
+                bar.classList.add('bg-amber-500');
+                badge.className = 'px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+                badge.textContent = `Chiarezza e Connessione: ${clamped}% (Rischio Distrazione)`;
+            } else {
+                bar.classList.add('bg-rose-500');
+                badge.className = 'px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-rose-500/30 text-rose-200 border border-rose-500/50';
+                badge.textContent = `Chiarezza e Connessione: ${clamped}% (Alto Rischio Fraintendimento!)`;
+            }
+        }
+
+        // Gestione Frasi-Ponte Selezionate
+        function toggleBridgeItem(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedBridges.has(textLabel)) {
+                selectedBridges.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) icon.className = 'fa-solid fa-plus text-[10px]';
+            } else {
+                selectedBridges.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) icon.className = 'fa-solid fa-check text-[10px]';
+                showToast('Frase-Ponte salvata nel tuo Manuale di Traduzione!');
+            }
+            document.getElementById('bridgeCountBadge').textContent = selectedBridges.size;
+            renderBridgeSummary();
+        }
+
+        function renderBridgeSummary() {
+            const container = document.getElementById('bridgeSummaryContainer');
+            const customNote = (document.getElementById('customManualInstruction')?.value || '').trim();
+
+            if (selectedBridges.size === 0 && !customNote) {
+                container.innerHTML = `<em>Non hai ancora salvato Frasi-Ponte. Clicca sui pulsanti "+ Salva Frase-Ponte" nelle stazioni 1, 2 e 3 per costruire il tuo dizionario relazionale.</em>`;
+                return;
+            }
+
+            let html = '<div class="space-y-3">';
+            if (selectedBridges.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedBridges.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-amber-200 shadow-sm">
+                            <i class="fa-solid fa-comments text-amber-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (customNote) {
+                html += `
+                    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                        <strong class="uppercase tracking-wider block text-[10px] text-amber-800 mb-0.5">La Mia Istruzione per l'Uso Personale:</strong>
+                        "${escapeHtml(customNote)}"
+                    </div>
+                `;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Gestione Verifica "Ripara il Fraintendimento" (Stazione 4)
+        function checkRepairChoice(num, isEffective, btnEl) {
+            document.querySelectorAll(`.repair-btn-${num}`).forEach(b => {
+                b.classList.remove('ring-2', 'ring-emerald-600', 'ring-rose-500', 'bg-emerald-50', 'bg-rose-50');
+            });
+
+            const fb = document.getElementById(`repair-fb-${num}`);
+            fb.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'bg-amber-50', 'border-amber-300', 'text-amber-950');
+
+            if (isEffective) {
+                btnEl.classList.add('ring-2', 'ring-emerald-600', 'bg-emerald-50');
+                fb.classList.add('bg-emerald-50', 'border', 'border-emerald-300', 'text-emerald-950');
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> <strong>Ponte Costruito con Successo!</strong> Questa risposta valida il sentimento dell'altra persona ma traduce chiaramente il meccanismo neurobiologico (senza né colpevolizzarti né fare <em>masking</em>).`;
+            } else {
+                btnEl.classList.add('ring-2', 'ring-rose-500', 'bg-rose-50');
+                fb.classList.add('bg-amber-50', 'border', 'border-amber-300', 'text-amber-950');
+                fb.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-600 mr-1"></i> <strong>Attenzione alla Trappola:</strong> Chiudersi nel senso di colpa o fare finta di aver capito (<em>masking</em>) lascia intatto il malinteso e aumenta la tua fatica. Prova l'altra opzione per vedere la Frase-Ponte!`;
+            }
+        }
+
+        // Esportazione PDF con tutte le stazioni e tutti i dialoghi aperti
+        function exportFullStaticPDF() {
+            renderBridgeSummary();
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_10_Relazioni_Comunicazione_e_Doppia_Empatia.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 10 scaricato con tutti i dialoghi aperti!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

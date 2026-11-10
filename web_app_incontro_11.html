@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 11 - Autenticità, Confini Personali e Richiesta di Supporto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .station-panel {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .station-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .boundary-chip.selected {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(13, 148, 136, 0.15);
+        }
+        .pendulum-btn.active-pole {
+            background-color: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            box-shadow: 0 6px 14px -3px rgba(15, 23, 42, 0.25);
+        }
+        .circle-btn.active-circle {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px -3px rgba(15, 23, 42, 0.15);
+        }
+        .script-tab-btn.active-script {
+            background-color: #0f766e;
+            color: #ffffff;
+            border-color: #0f766e;
+            box-shadow: 0 4px 12px -2px rgba(15, 118, 110, 0.25);
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutte le stazioni e sotto-pannelli aperti)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode .station-panel {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.25rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .pendulum-detail-card,
+        body.pdf-export-mode .circle-detail-card,
+        body.pdf-export-mode .script-detail-card {
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .station-panel {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .pendulum-detail-card,
+            .circle-detail-card,
+            .script-detail-card {
+                display: block !important;
+                margin-bottom: 14px !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-teal-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Panoramico Area IV -->
+    <header class="bg-gradient-to-r from-teal-900 via-emerald-800 to-amber-800 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-shield-heart text-xl text-amber-200"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-amber-100">Modulo 11 • Area IV</span>
+                        <span class="text-[11px] text-teal-100 hidden sm:inline">• Relazioni, Comunicazione e Limiti</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight mt-0.5">Autenticità, Confini Personali e Richiesta di Supporto</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide + Contatore Kit Confini -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end md:self-auto">
+                <button onclick="switchStation(4)" class="bg-teal-950/70 hover:bg-teal-950 border border-teal-400/40 px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-key text-amber-300"></i>
+                    <span>I Miei Confini Salvati: <strong id="boundaryCountBadge" class="text-white font-bold">0</strong></span>
+                </button>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale delle 4 Stazioni -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button onclick="switchStation(1)" id="station-btn-1" class="station-btn bg-teal-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-scale-unbalanced"></i> 1. Il Pendolo dei Confini
+                </button>
+                <button onclick="switchStation(2)" id="station-btn-2" class="station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-masks-theater"></i> 2. Unmasking Sicuro
+                </button>
+                <button onclick="switchStation(3)" id="station-btn-3" class="station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-comment-medical"></i> 3. Frasi di Confine
+                </button>
+                <button onclick="switchStation(4)" id="station-btn-4" class="station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-compass"></i> 4. Simulatore & Kit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainScrollArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-8">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+        <div class="print-only-header hidden border-b-2 border-teal-800 pb-4 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-teal-800">Programma Clinico Modulare di Psicoeducazione • Area IV</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 11: Autenticità, Unmasking Sicuro, Confini e Richiesta di Supporto</h1>
+                    <p class="text-xs text-slate-500 mt-1">Rif. Scientifici: Hull et al. (2019) • Cook et al. (2021) • Raymaker et al. (2020) • Migliarese et al. (2023).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             STAZIONE 1: IL PENDOLO DEI CONFINI (COMPIACERE TUTTI VS SPARIRE)
+             ========================================================================= -->
+        <section id="station-1" class="station-panel active space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-teal-700">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                        Stazione 1 • Uscire dal Ciclo "Compiacenza / Sparizione"
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Hull et al. (2019) • Migliarese et al. (2023)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Perché è Così Difficile Dire un "No" Semplice e Sereno?</h2>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                    Quando per anni ci siamo sentiti fuori sincrono o abbiamo temuto di deludere gli altri (Sensibilità al Rifiuto), mettere un confine chiaro diventa faticosissimo. Spesso ci ritroviamo a oscillare come un pendolo tra due estremi opposti: da un lato <strong>dire sempre di sì a chiunque</strong> ignorando la nostra stanchezza (<em>People Pleasing</em>), dall'altro arrivare a saturazione totale e <strong>sparire improvvisamente</strong> non rispondendo più ai messaggi o annullando gli impegni all'ultimo minuto per sopravvivenza.
+                </p>
+
+                <!-- STRUMENTO INTERATTIVO 1: IL PENDOLO DEI CONFINI A 3 POSIZIONI -->
+                <div class="bg-slate-100 p-4 md:p-6 rounded-2xl border border-slate-200 space-y-5">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h3 class="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-left-right text-teal-700"></i> Il Pendolo Relazionale: Tocca le 3 Posizioni per Confrontarle
+                        </h3>
+                        <span class="text-xs text-slate-500">Nel PDF verranno stampate tutte e 3 aperte</span>
+                    </div>
+
+                    <!-- Selettori delle 3 Posizioni del Pendolo -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 no-print">
+                        <button type="button" onclick="selectPendulumPole('pleasing', this)" class="pendulum-btn active-pole p-3.5 rounded-2xl border border-slate-300 text-left transition-all flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 text-lg">
+                                <i class="fa-solid fa-face-smile-beam"></i>
+                            </span>
+                            <div>
+                                <div class="font-bold text-sm">1. Estremo A: Dire Sempre Sì</div>
+                                <div class="text-[11px] opacity-80">Compiacenza & Iper-Adattamento</div>
+                            </div>
+                        </button>
+
+                        <button type="button" onclick="selectPendulumPole('ghosting', this)" class="pendulum-btn bg-white text-slate-700 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-left transition-all flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 text-lg">
+                                <i class="fa-solid fa-ghost"></i>
+                            </span>
+                            <div>
+                                <div class="font-bold text-sm">2. Estremo B: Sparire di Colpo</div>
+                                <div class="text-[11px] opacity-80">Fuga da Sovraccarico & Colpa</div>
+                            </div>
+                        </button>
+
+                        <button type="button" onclick="selectPendulumPole('center', this)" class="pendulum-btn bg-white text-slate-700 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-left transition-all flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-lg">
+                                <i class="fa-solid fa-shield-heart"></i>
+                            </span>
+                            <div>
+                                <div class="font-bold text-sm">3. Il Centro: Confine Gentile</div>
+                                <div class="text-[11px] opacity-80">Patti Chiari & Rispetto dei Tempi</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- POSIZIONE 1: DIRE SEMPRE SÌ (PEOPLE PLEASING) -->
+                    <div id="pendulum-card-pleasing" class="pendulum-detail-card bg-white rounded-2xl p-5 md:p-6 border-l-4 border-l-rose-500 shadow-sm space-y-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-rose-600">Estremo 1 • Sacrificare la Propria Batteria per Evitare l'Attrito</div>
+                        <h4 class="text-lg font-extrabold text-slate-900">La Trappola del "People Pleasing" (Dire Sì con l'Impulsività o con la Maschera)</h4>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Accettare un invito o un incarico extra in una frazione di secondo — o per l'entusiasmo impulsivo del momento (dimenticando quanto saremo stanchi quel giorno) o per la paura immediata di deludere l'altro. Il risultato? Arriviamo all'appuntamento senza più cucchiai di energia, provando risentimento silenzioso e faticando a essere presenti.
+                        </p>
+                        <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-950">
+                            <strong>L'antidoto pratico:</strong> Non dare mai una risposta definitiva sul momento. Prendi l'abitudine di dire: <em>«Controllo la mia agenda e la mia settimana e ti do conferma stasera!»</em>.
+                        </div>
+                    </div>
+
+                    <!-- POSIZIONE 2: SPARIRE DI COLPO (ISOLAMENTO DA SOVRACCARICO) -->
+                    <div id="pendulum-card-ghosting" class="pendulum-detail-card hidden bg-white rounded-2xl p-5 md:p-6 border-l-4 border-l-indigo-600 shadow-sm space-y-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-indigo-600">Estremo 2 • Quando il "Troppo Sì" Porta al Blocco</div>
+                        <h4 class="text-lg font-extrabold text-slate-900">L'Evitamento da Sovraccarico (Annullare all'Ultimo o Non Rispondere Più)</h4>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Dopo aver detto troppi "sì" oltre le proprie forze, il sistema nervoso entra in riserva rossa. A quel punto anche solo aprire una chat di WhatsApp o pensare di uscire di casa diventa insostenibile: si finisce per disdire all'ultimo minuto o non rispondere per settimane, entrando in una spirale di vergogna che rende ancora più difficile ricontattare l'altra persona.
+                        </p>
+                        <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-950">
+                            <strong>L'antidoto pratico:</strong> Un piccolo confine messo in anticipo (es. <em>"Possiamo vederci solo per un'ora in un posto tranquillo"</em>) salva l'amicizia molto meglio di un "sì" totale seguito da una sparizione!
+                        </div>
+                    </div>
+
+                    <!-- POSIZIONE 3: IL CENTRO (CONFINE PREVENTIVO GENTILE) -->
+                    <div id="pendulum-card-center" class="pendulum-detail-card hidden bg-white rounded-2xl p-5 md:p-6 border-l-4 border-l-emerald-600 shadow-sm space-y-3">
+                        <div class="text-xs font-bold uppercase tracking-wider text-emerald-700">Il Punto di Equilibrio • Proteggere Sé Stessi E la Relazione</div>
+                        <h4 class="text-lg font-extrabold text-slate-900">Il Confine Preventivo Gentile: "Prendersi il Giusto Tempo per le Persone"</h4>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Mettere un confine non significa alzare un muro ostile contro gli altri, ma <strong>dichiarare con trasparenza le condizioni in cui riesci a stare bene insieme a loro</strong>. Significa anche proteggere il tempo dedicato a una relazione: evitare di incastrare un incontro importante tra mille altre commissioni, lasciando un cuscinetto libero prima e dopo per ascoltare ed essere davvero presenti.
+                        </p>
+                        <div class="flex justify-end pt-1">
+                            <button type="button" onclick="toggleBoundaryItem(this, 'La Pausa Prima del Sì: Non accettare mai impegni sul momento; rispondere «Controllo come sono messo/a con le energie e ti confermo più tardi»')" class="boundary-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-teal-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva nel mio Kit dei Confini
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 no-print">
+                <button onclick="switchStation(2)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Stazione 2: I 3 Cerchi dell'Unmasking Sicuro <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 2: I 3 CERCHI DELL'UNMASKING SICURO E GRADUALE
+             ========================================================================= -->
+        <section id="station-2" class="station-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-emerald-600 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wide">
+                        Stazione 2 • Togliere la Maschera con Saggezza ed Ecologia
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Che cos'è l'Unmasking Sicuro (e Perché Non Tutto il Mondo è Uguale)?</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        Ridurre il mascheramento sociale (<em>Unmasking</em>) non significa dover raccontare la propria storia clinica a chiunque incontriamo per strada o in ufficio. Significa <strong>smettere di spendere energie preziose per fingere di non avere bisogni sensoriali ed esecutivi</strong>, scegliendo il livello di apertura in base ai <strong>3 Cerchi di Sicurezza Relazionale</strong>:
+                    </p>
+                </div>
+
+                <!-- Selettore Interattivo dei 3 Cerchi Concentrici -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 no-print">
+                    <button type="button" onclick="selectSafetyCircle('green', this)" class="circle-btn active-circle p-4 rounded-2xl border-2 border-emerald-600 bg-emerald-50 text-left transition-all">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">🟢 Cerchio 1 • Intimo</span>
+                            <i class="fa-solid fa-house-heart text-emerald-600"></i>
+                        </div>
+                        <div class="font-bold text-slate-900 text-sm">Persone e Spazi Sicuri</div>
+                        <p class="text-[11px] text-slate-600 mt-0.5">Autenticità piena e zero maschera</p>
+                    </button>
+
+                    <button type="button" onclick="selectSafetyCircle('yellow', this)" class="circle-btn p-4 rounded-2xl border border-amber-300 bg-white hover:bg-amber-50/40 text-left transition-all">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-800">🟡 Cerchio 2 • Intermedio</span>
+                            <i class="fa-solid fa-user-group text-amber-600"></i>
+                        </div>
+                        <div class="font-bold text-slate-900 text-sm">Amicizie e Colleghi di Fiducia</div>
+                        <p class="text-[11px] text-slate-600 mt-0.5">Comunicare i bisogni senza etichette</p>
+                    </button>
+
+                    <button type="button" onclick="selectSafetyCircle('orange', this)" class="circle-btn p-4 rounded-2xl border border-slate-300 bg-white hover:bg-slate-50 text-left transition-all">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">🟠 Cerchio 3 • Esterno</span>
+                            <i class="fa-solid fa-building-shield text-slate-600"></i>
+                        </div>
+                        <div class="font-bold text-slate-900 text-sm">Contesti Formali o Non Sicuri</div>
+                        <p class="text-[11px] text-slate-600 mt-0.5">Cortesia a "basso consumo energetico"</p>
+                    </button>
+                </div>
+
+                <!-- DETTAGLIO CERCHIO 1: VERDE (SPAZIO SICURO) -->
+                <div id="circle-card-green" class="circle-detail-card p-5 md:p-6 rounded-2xl bg-emerald-50/60 border border-emerald-300 space-y-4">
+                    <div class="flex flex-wrap justify-between items-center gap-2 border-b border-emerald-200 pb-3">
+                        <h3 class="font-extrabold text-emerald-950 text-base md:text-lg">
+                            🟢 Cerchio 1 (Persone di Fiducia e Casa): Dove Puoi Posare Tutta l'Armatura
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-xs font-bold">Obiettivo: Ricarica Autentica</span>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        Con il partner, gli amici più cari o i familiari comprensivi (e quando sei da solo/a), l'obiettivo è <strong>smettere di recitare un copione</strong>. Ecco i permessi concreti di <em>Unmasking</em> da sperimentare in questo cerchio:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="bg-white p-3.5 rounded-xl border border-emerald-200">
+                            <strong class="text-emerald-900 block mb-1">1. Riposo del Volto e dello Sguardo:</strong>
+                            Non forzare sorrisi di circostanza o contatto visivo fisso quando sei stanco/a; permettiti un'espressione neutra e rilassata.
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-emerald-200">
+                            <strong class="text-emerald-900 block mb-1">2. "Parallel Play" (Stare Insieme in Silenzio):</strong>
+                            Condividere la stessa stanza con una persona cara facendo ciascuno la propria attività (leggere, ascoltare musica, coltivare un hobby) senza l'obbligo di conversare continuamente.
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="toggleBoundaryItem(this, 'Unmasking nel Cerchio Sicuro: Concedermi il Parallel Play (stare insieme nella stessa stanza in silenzio senza obbligo di conversare) e non forzare lo sguardo')" class="boundary-chip py-2 px-4 rounded-xl border border-emerald-300 bg-white text-xs text-slate-700 hover:border-teal-600 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nel mio Kit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DETTAGLIO CERCHIO 2: GIALLO (INTERMEDIO) -->
+                <div id="circle-card-yellow" class="circle-detail-card hidden p-5 md:p-6 rounded-2xl bg-amber-50/60 border border-amber-300 space-y-4">
+                    <div class="flex flex-wrap justify-between items-center gap-2 border-b border-amber-200 pb-3">
+                        <h3 class="font-extrabold text-amber-950 text-base md:text-lg">
+                            🟡 Cerchio 2 (Conoscenti, Colleghi Cordiali, Gruppi): Unmasking Funzionale Senza Etichette
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-xs font-bold">Obiettivo: Tutela dei Sensi</span>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        In questo cerchio <strong>non sei affatto obbligato/a a parlare della tua diagnosi</strong> se non lo desideri, ma puoi benissimo dichiarare le tue preferenze pratiche come normali caratteristiche personali:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="bg-white p-3.5 rounded-xl border border-amber-200">
+                            <strong class="text-amber-900 block mb-1">1. Scegliere il Posto e l'Ambiente:</strong>
+                            Proporre attivamente un bar tranquillo o una passeggiata all'aperto invece di una pizzeria affollata con musica alta (<em>"Preferisco un posto più silenzioso così riusciamo a chiacchierare bene!"</em>).
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-amber-200">
+                            <strong class="text-amber-900 block mb-1">2. Usare Ausili Senza Giustificarsi:</strong>
+                            Tenere i tappi acustici trasparenti, usare un oggetto anti-stress discreto tra le mani o prendere appunti scritti durante le riunioni.
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="toggleBoundaryItem(this, 'Self-Advocacy senza Etichette: Proporre luoghi tranquilli per vedersi («Andiamo in un posto più silenzioso così chiacchieriamo meglio!») senza dover dare spiegazioni mediche')" class="boundary-chip py-2 px-4 rounded-xl border border-amber-300 bg-white text-xs text-slate-700 hover:border-teal-600 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nel mio Kit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DETTAGLIO CERCHIO 3: ARANCIONE (CONTESTO FORMALE O NON SICURO) -->
+                <div id="circle-card-orange" class="circle-detail-card hidden p-5 md:p-6 rounded-2xl bg-slate-100 border border-slate-300 space-y-4">
+                    <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-200 pb-3">
+                        <h3 class="font-extrabold text-slate-900 text-base md:text-lg">
+                            🟠 Cerchio 3 (Burocrazia, Persone Giudicanti, Incontri Formali): Modalità "Risparmio Energetico"
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-800 text-xs font-bold">Obiettivo: Minimo Sforzo</span>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        Con persone poco empatiche o in contesti puramente formali, indossare un "filtro professionale leggero" è una forma legittima di privacy, purché <strong>riduciamo al minimo la durata dell'esposizione e lo sforzo emotivo</strong>:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                            <strong class="text-slate-800 block mb-1">1. Non Giustificarsi Eccessivamente (No Over-Explaining):</strong>
+                            Quando dici "no" a una richiesta in un contesto formale, non dare dieci spiegazioni personali che possono essere messe in discussione: basta una frase cortese e chiusa (<em>"In questo periodo non riesco a prendere questo impegno, grazie comunque"</em>).
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                            <strong class="text-slate-800 block mb-1">2. Spostare sulla Comunicazione Scritta:</strong>
+                            Gestire le pratiche complesse via mail anziché al telefono per avere tutto il tempo di elaborare e rispondere senza pressione.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStation(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna al Pendolo dei Confini
+                </button>
+                <button onclick="switchStation(3)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Stazione 3: Generatore di Frasi di Confine <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 3: IL GENERATORE DI CONFINI GENTILI E SELF-ADVOCACY (4 CONTESTI)
+             ========================================================================= -->
+        <section id="station-3" class="station-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-600 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wide">
+                        Stazione 3 • Avere le Parole Già Pronte Quando Serve
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Costruttore di Confini Gentili e Richiesta di Supporto (Self-Advocacy)</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        Quando siamo stanchi, trovare le parole giuste per dire "no" o chiedere un adattamento senza sentirsi in colpa richiede troppa memoria di lavoro. Esplora i <strong>4 contesti chiave</strong> qui sotto e salva le formule che senti più tue:
+                    </p>
+                </div>
+
+                <!-- Bottoni Selettori dei 4 Contesti di Script (Nascosti in stampa perché si aprono tutti) -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 no-print">
+                    <button type="button" onclick="selectScriptContext(1, this)" class="script-tab-btn active-script p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-minus text-sm"></i>
+                        <span>1. Declinare un Invito</span>
+                    </button>
+                    <button type="button" onclick="selectScriptContext(2, this)" class="script-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-hourglass-half text-sm text-amber-600"></i>
+                        <span>2. Fissare una Durata</span>
+                    </button>
+                    <button type="button" onclick="selectScriptContext(3, this)" class="script-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-briefcase text-sm text-indigo-600"></i>
+                        <span>3. Lavoro & Studio</span>
+                    </button>
+                    <button type="button" onclick="selectScriptContext(4, this)" class="script-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold text-left transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-couch text-sm text-emerald-600"></i>
+                        <span>4. Spazio in Casa</span>
+                    </button>
+                </div>
+
+                <!-- CONTESTO 1: DECLINARE UN INVITO SENZA FERIRE LA RELAZIONE -->
+                <div id="script-card-1" class="script-detail-card bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-teal-800">Contesto 1 • La Formula "Sì alla Persona, No all'Evento di Stasera"</span>
+                        <h3 class="text-lg font-extrabold text-slate-900 mt-0.5">Come Dire di No Quando la Batteria è Scarica (Senza Sparire)</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                        Il segreto per non attivare la Sensibilità al Rifiuto (né in te né nell'altro) è <strong>confermare l'affetto per la persona mentre declini l'attività</strong>, proponendo un'alternativa sostenibile:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="p-4 rounded-xl bg-white border border-teal-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «Grazie mille di aver pensato a me! Stasera sono davvero con la batteria a zero dopo la settimana e non riuscirei a godermi la serata, ma ci tengo molto a vederci: ti va se prendiamo un caffè tranquillo noi due nel weekend?»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Declinare con Affetto: «Stasera ho la batteria a zero e non riuscirei a essere presente, ma ci tengo molto a te: ti va se ci vediamo con calma nei prossimi giorni?»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white border border-teal-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «In questi giorni sono un po' sovraccarico/a e sto rispondendo con calma ai messaggi per recuperare energie: non sono sparito/a, ti scrivo appena riemergo!»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Anti-Ghosting Preventivo: «In questi giorni ho bisogno di un po\' di silenzio per ricaricare le energie: non sono sparito/a, ti scrivo appena mi ricarico!»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTESTO 2: FISSARE UN CONFINE TEMPORALE PRIMA DI USCIRE ("ORARIO DI CHIUSURA") -->
+                <div id="script-card-2" class="script-detail-card hidden bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Contesto 2 • Proteggere i Propri Tempi e Cuscinetti Relazionali</span>
+                        <h3 class="text-lg font-extrabold text-slate-900 mt-0.5">Dichiarare in Anticipo la Durata dell'Incontro ("Uscita a Tempo Chiuso")</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                        Spesso rinunciamo del tutto a vedere gli amici perché temiamo che la serata duri 5 ore fino a notte fonda. Dichiarare <strong>prima ancora di vedersi</strong> il proprio orario di rientro elimina l'ansia di non sapere come congedarsi:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="p-4 rounded-xl bg-white border border-amber-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «Passo super volentieri a salutarvi per l'aperitivo! Vi avviso già che verso le 21:00 poi rientro a casa perché domani ho bisogno di partire riposato/a.»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Confine di Durata Preventivo: «Passo molto volentieri per un\'oretta! Vi avviso già che alle [ora] rientro a casa per riposare.»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white border border-amber-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «Per dedicarti tutta l'attenzione che meriti senza essere di corsa, preferisco che ci vediamo un giorno in cui non ho altri impegni incastrati prima o dopo!»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Proteggere la Qualità del Tempo: «Per stare insieme con calma senza guardare l\'orologio, scegliamo un momento in cui non ho altri impegni subito prima o dopo!»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTESTO 3: SELF-ADVOCACY LAVORATIVA E ACCADEMICA -->
+                <div id="script-card-3" class="script-detail-card hidden bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-800">Contesto 3 • Self-Advocacy Professionale e Universitaria</span>
+                        <h3 class="text-lg font-extrabold text-slate-900 mt-0.5">Chiedere Accomodamenti Puntando sulla Qualità del Lavoro</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                        Sul lavoro o nello studio puoi chiedere adattamenti ambientali e organizzativi usando la formula: <strong>«Lavoro in modo molto più rapido e preciso quando [condizione]»</strong>:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="p-4 rounded-xl bg-white border border-indigo-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «Per lavorare con la massima precisione ed evitare qualsiasi svista, mi è molto utile ricevere le priorità e le scadenze riassunte in una breve mail scritta dopo la riunione.»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Self-Advocacy Lavorativa (Istruzioni Scritte): «Per garantirti la massima precisione su tutti i punti, puoi mandarmi le priorità riassunte in due righe via mail?»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white border border-indigo-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «Quando devo svolgere compiti che richiedono alta concentrazione, indossare le cuffie antirumore (o lavorare da una postazione più silenziosa) mi permette di dimezzare i tempi di consegna.»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Self-Advocacy Sensoriale al Lavoro: «Quando uso le cuffie antirumore riesco a concentrarmi al massimo e a finire il lavoro nella metà del tempo!»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTESTO 4: CONFINI DI DECOMPRESSIONE IN CASA / COPPIA / FAMIGLIA -->
+                <div id="script-card-4" class="script-detail-card hidden bg-slate-50 rounded-2xl p-5 md:p-6 border border-slate-200 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Contesto 4 • Convivenza, Partner e Famiglia</span>
+                        <h3 class="text-lg font-extrabold text-slate-900 mt-0.5">Chiedere Solitudine Sensoriale Rassicurando sul Legame</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                        In casa è fondamentale spiegare che <strong>il bisogno di stare da soli per decomprimere non è una presa di distanza affettiva</strong>, ma il modo per tornare davvero disponibili:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="p-4 rounded-xl bg-white border border-emerald-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «Appena rientro a casa ho i sensi saturi per i rumori della giornata: se mi prendo 20 minuti di silenzio in camera non è perché sono arrabbiato/a con te, ma proprio per scaricare la stanchezza e godermi la serata insieme!»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Confine di Decompressione al Rientro: «Appena rientro ho bisogno di 20 minuti a zero parole per scaricare i rumori della giornata e poi sono tutto/a per te!»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-white border border-emerald-200 flex flex-col justify-between space-y-3">
+                            <p class="text-slate-800 italic leading-relaxed">
+                                «Dopo le 21:30 la mia mente non riesce più ad affrontare decisioni importanti o discussioni complesse: segniamocelo e parliamone domani con calma quando siamo riposati.»
+                            </p>
+                            <button type="button" onclick="toggleBoundaryItem(this, 'Coprifuoco Esecutivo Serale: «Dopo le 21:30 non ho più energie mentali per affrontare temi complessi: ne parliamo domani a mente fresca!»')" class="boundary-chip w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-600 transition-all flex items-center justify-center gap-1.5 no-print">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva questa frase nel mio Kit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStation(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna all'Unmasking Sicuro
+                </button>
+                <button onclick="switchStation(4)" class="bg-teal-800 hover:bg-teal-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai alla Stazione 4: Simulatore & Kit dei Confini <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             STAZIONE 4: IL TUO KIT DEI CONFINI E SIMULATORE PRATICO DI CONFINE
+             ========================================================================= -->
+        <section id="station-4" class="station-panel space-y-6 pb-8">
+            
+            <!-- 1. IL TUO KIT PERSONALIZZATO DI CONFINI E SELF-ADVOCACY -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-500">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-key text-teal-700"></i> Il Tuo Kit di Confini Gentili e Self-Advocacy (Modulo 11)
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                            Le formule e i permessi di autenticità che hai selezionato lungo le stazioni:
+                        </p>
+                    </div>
+                    <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                        <i class="fa-solid fa-file-pdf"></i> Esporta Tutto in PDF
+                    </button>
+                </div>
+
+                <div id="boundarySummaryContainer" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 mb-4">
+                    <!-- Popolato via JS -->
+                </div>
+
+                <div>
+                    <label for="customBoundaryNote" class="block text-xs font-bold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-pen-to-square text-teal-700 mr-1"></i> Scrivi un confine personale o un accomodamento che desideri proteggere nei prossimi giorni:
+                    </label>
+                    <input type="text" id="customBoundaryNote" oninput="renderBoundarySummary()" placeholder="Es. «Non rispondere subito di sì agli inviti del weekend prima di aver controllato quanti cucchiai di energia mi restano.»" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- 2. VERIFICA PRATICA: "LA BUSSOLA DEI CONFINI SOSTENIBILI" (3 SCENARI) -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                        Verifica Pratica • Allenare i Confini dal Vivo
+                    </span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-2">Quale Scelta Protegge Sia la Tua Batteria Sia la Relazione?</h2>
+                    <p class="text-xs md:text-sm text-slate-600 mt-1">
+                        Metti alla prova il "Centro del Pendolo" in queste 3 situazioni quotidiane:
+                    </p>
+                </div>
+
+                <!-- Scenario 1 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">Situazione 1 • L'Invito Improvviso a Fine Giornata</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Un gruppo di amici ti invita all'ultimo minuto a cena in un locale molto rumoroso. Sei già esausto/a, ma temi che dicendo di no smetteranno di invitarti. Cosa scegli?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkBoundaryQuiz(1, false, this)" class="bquiz-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Forzarti ad andare comunque con la batteria a zero (finendo in sovraccarico sensoriale) oppure non visualizzare il messaggio fino al giorno dopo.
+                        </button>
+                        <button type="button" onclick="checkBoundaryQuiz(1, true, this)" class="bquiz-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Usare la formula "Sì alla persona, No all'evento": <em>«Grazie mille dell'invito! Stasera sono davvero cotto/a e non reggerei il rumore del locale, ma mi fa super piacere se ci organizziamo con calma per la prossima settimana!»</em>
+                        </button>
+                    </div>
+                    <div id="bquiz-fb-1" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Scenario 2 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Situazione 2 • L'Entusiasmo Impulsivo vs I Limiti di Tempo</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Un collega o un amico ti chiede a voce se puoi occuparti di un nuovo progetto o dargli una mano nel weekend. Sul momento ti viene l'impulso di dire subito "Certo!". Qual è la mossa più saggia?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkBoundaryQuiz(2, true, this)" class="bquiz-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Inserire un cuscinetto di verifica prima di promettere: <em>«Il progetto è interessante! Prima di darti conferma definitiva controllo la mia agenda con calma stasera e ti faccio sapere domani mattina.»</em>
+                        </button>
+                        <button type="button" onclick="checkBoundaryQuiz(2, false, this)" class="bquiz-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Dire subito di sì sull'onda dell'entusiasmo, per poi accorgerti il venerdì sera che avevi già altri tre impegni e zero energie.
+                        </button>
+                    </div>
+                    <div id="bquiz-fb-2" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Scenario 3 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-800">Situazione 3 • Richiesta di Supporto (Self-Advocacy) senza Eccesso di Giustificazioni</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Al lavoro o nello studio ti danno tre commissioni complesse a voce mentre stai facendo altro. Come tuteli la tua memoria di lavoro in modo professionale?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkBoundaryQuiz(3, false, this)" class="bquiz-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Non chiedere nulla per vergogna, sperando di ricordarti tutto a memoria e andando poi nel panico.
+                        </button>
+                        <button type="button" onclick="checkBoundaryQuiz(3, true, this)" class="bquiz-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Chiedere un'ancora scritta puntando sull'efficacia: <em>«Sto chiudendo un'operazione delicata e voglio essere sicuro/a di non perdere nessun dettaglio: mi mandi questi tre punti in una mail veloce o me li fai segnare sull'agenda?»</em>
+                        </button>
+                    </div>
+                    <div id="bquiz-fb-3" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchStation(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna alle Frasi di Confine
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const selectedBoundaries = new Set();
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+            renderBoundarySummary();
+        };
+
+        // Navigazione Orizzontale a 4 Stazioni
+        function switchStation(stationNum) {
+            document.querySelectorAll('.station-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`station-${stationNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`station-btn-${i}`);
+                if (i === stationNum) {
+                    btn.className = 'station-btn bg-teal-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'station-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (stationNum === 4) {
+                renderBoundarySummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Selettore Pendolo dei Confini (Stazione 1)
+        function selectPendulumPole(poleKey, btnEl) {
+            document.querySelectorAll('.pendulum-detail-card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`pendulum-card-${poleKey}`).classList.remove('hidden');
+
+            document.querySelectorAll('.pendulum-btn').forEach(b => {
+                b.classList.remove('active-pole');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnEl.classList.remove('bg-white', 'text-slate-700');
+            btnEl.classList.add('active-pole');
+        }
+
+        // Selettore dei 3 Cerchi dell'Unmasking Sicuro (Stazione 2)
+        function selectSafetyCircle(circleKey, btnEl) {
+            document.querySelectorAll('.circle-detail-card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`circle-card-${circleKey}`).classList.remove('hidden');
+
+            document.querySelectorAll('.circle-btn').forEach(b => {
+                b.classList.remove('active-circle', 'border-2', 'border-emerald-600', 'bg-emerald-50');
+                b.classList.add('border', 'border-slate-300', 'bg-white');
+            });
+            btnEl.classList.remove('border', 'border-slate-300', 'bg-white');
+            btnEl.classList.add('active-circle', 'border-2', 'border-emerald-600', 'bg-emerald-50');
+        }
+
+        // Selettore dei 4 Contesti di Script (Stazione 3)
+        function selectScriptContext(ctxNum, btnEl) {
+            document.querySelectorAll('.script-detail-card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`script-card-${ctxNum}`).classList.remove('hidden');
+
+            document.querySelectorAll('.script-tab-btn').forEach(b => {
+                b.classList.remove('active-script');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnEl.classList.remove('bg-white', 'text-slate-700');
+            btnEl.classList.add('active-script');
+        }
+
+        // Gestione Kit Confini e Self-Advocacy
+        function toggleBoundaryItem(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedBoundaries.has(textLabel)) {
+                selectedBoundaries.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) icon.className = 'fa-solid fa-plus text-[10px]';
+            } else {
+                selectedBoundaries.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) icon.className = 'fa-solid fa-check text-[10px]';
+                showToast('Salvato nel tuo Kit dei Confini Gentili!');
+            }
+            document.getElementById('boundaryCountBadge').textContent = selectedBoundaries.size;
+            renderBoundarySummary();
+        }
+
+        function renderBoundarySummary() {
+            const container = document.getElementById('boundarySummaryContainer');
+            const customNote = (document.getElementById('customBoundaryNote')?.value || '').trim();
+
+            if (selectedBoundaries.size === 0 && !customNote) {
+                container.innerHTML = `<em>Non hai ancora salvato formule nel tuo Kit dei Confini. Tocca i pulsanti "+ Salva nel mio Kit" nelle stazioni 1, 2 e 3 per costruire il tuo prontuario personale.</em>`;
+                return;
+            }
+
+            let html = '<div class="space-y-3">';
+            if (selectedBoundaries.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedBoundaries.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-teal-200 shadow-sm">
+                            <i class="fa-solid fa-shield-heart text-teal-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (customNote) {
+                html += `
+                    <div class="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-950">
+                        <strong class="uppercase tracking-wider block text-[10px] text-teal-800 mb-0.5">Il Mio Confine Personale Prioritario:</strong>
+                        "${escapeHtml(customNote)}"
+                    </div>
+                `;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Gestione Simulazioni "Bussola dei Confini" (Stazione 4)
+        function checkBoundaryQuiz(num, isBalanced, btnEl) {
+            document.querySelectorAll(`.bquiz-btn-${num}`).forEach(b => {
+                b.classList.remove('ring-2', 'ring-emerald-600', 'ring-rose-500', 'bg-emerald-50', 'bg-rose-50');
+            });
+
+            const fb = document.getElementById(`bquiz-fb-${num}`);
+            fb.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'bg-amber-50', 'border-amber-300', 'text-amber-950');
+
+            if (isBalanced) {
+                btnEl.classList.add('ring-2', 'ring-emerald-600', 'bg-emerald-50');
+                fb.classList.add('bg-emerald-50', 'border', 'border-emerald-300', 'text-emerald-950');
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> <strong>Centro del Pendolo Raggiunto!</strong> Questa risposta protegge i tuoi cucchiai di energia e al tempo stesso mantiene vivo, chiaro e caloroso il legame con l'altra persona.`;
+            } else {
+                btnEl.classList.add('ring-2', 'ring-rose-500', 'bg-rose-50');
+                fb.classList.add('bg-amber-50', 'border', 'border-amber-300', 'text-amber-950');
+                fb.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-600 mr-1"></i> <strong>Attenzione all'Oscillazione del Pendolo:</strong> Dire di sì ignorando i propri limiti (o sparire per l'ansia) logora la tua batteria e crea fraintendimenti. Prova l'altra opzione per vedere il Confine Gentile!`;
+            }
+        }
+
+        // Esportazione PDF con tutte le stazioni e tutti i pannelli aperti
+        function exportFullStaticPDF() {
+            renderBoundarySummary();
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_11_Autenticita_Unmasking_Confini_e_Self_Advocacy.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 11 scaricato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

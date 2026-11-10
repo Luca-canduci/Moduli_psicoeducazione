@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 12 - Autostima, Vantaggi e Riconoscimenti</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .space-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .space-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-strategy {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-obstacle {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+        }
+        .selectable-chip.active-advantage {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-praise {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli spazi aperti e statici)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .space-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .space-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Panoramico Area V -->
+    <header class="bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-800 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-seedling text-amber-300 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200 font-bold">Homework • Modulo 12</span>
+                        <span class="text-[11px] text-emerald-200 hidden sm:inline">• Area V: Identità, Cura di Sé e Potenzialità</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold mt-0.5">Diario Gentile dell'Autostima: Strategie, Vantaggi e Riconoscimenti</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-emerald-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Spazi -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="goToSpace(1)" id="nav-space-1" class="space-nav-btn bg-emerald-800 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-calendar-check"></i> 1. I 7 Giorni Gentili
+                </button>
+                <button onclick="goToSpace(2)" id="nav-space-2" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-compass-drafting"></i> 2. Se Ti Sei Bloccato/a
+                </button>
+                <button onclick="goToSpace(3)" id="nav-space-3" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-award"></i> 3. Vantaggi & Complimenti
+                </button>
+                <button onclick="goToSpace(4)" id="nav-space-4" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-gem"></i> 4. Scrigno & PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-emerald-900 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-emerald-800">Programma Clinico Modulare di Psicoeducazione • Modulo 12</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 12: Autostima, Vantaggi e Riconoscimenti</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Migliarese et al. (2023) • Cook et al. (2021) • Neff (2003) • Kooij et al. (2019).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Guida Anti-Perfezionismo -->
+        <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-gem"></i>
+            </span>
+            <div class="text-xs md:text-sm text-amber-950 leading-relaxed flex-1">
+                <strong class="font-bold">Allenare lo sguardo sui propri meriti (senza la trappola del "Tutto o Niente"):</strong> 
+                L'obiettivo di questa settimana è accorgerti di ogni piccola strategia adottata, dei <strong>vantaggi del tuo funzionamento</strong> e dei <strong>riconoscimenti ricevuti dagli altri</strong>. E se in alcuni giorni non sei riuscito/a ad applicare nessuna strategia? Nello <strong>Spazio 2</strong> trasformeremo l'intoppo in un'occasione per ricalibrare l'obiettivo senza sensi di colpa!
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Bussola 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 12 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-emerald-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-emerald-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-emerald-700"></i> I 3 Pilastri per Nutrire l'Autostima
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Valore &ne; Produttività</div>
+                    <p class="text-slate-600 text-xs">Il tuo valore come persona resta al <strong>100%</strong> anche nelle giornate in cui la batteria esecutiva o sensoriale è in riserva.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Ricalibrare Senza Colpa</div>
+                    <p class="text-slate-600 text-xs">Se un esercizio non riesce, non sei tu ad essere "sbagliato/a": basta scegliere un obiettivo più piccolo o concedersi un tempo più ampio.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Stop allo "Sconto dei Meriti"</div>
+                    <p class="text-slate-600 text-xs">Allenarsi a notare e registrare i vantaggi creativi/intuitivi della propria mente e i complimenti ricevuti durante la giornata.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             SPAZIO 1: LA BACHECA FLESSIBILE DEI 7 GIORNI (STRATEGIE ADOTTATE CON SUCCESSO)
+             ========================================================================= -->
+        <section id="space-1" class="space-section active space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Spazio 1 • Riconoscere i Propri Progressi Quotidiani</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Quali Strategie Sei Riuscito/a ad Adottare Questa Settimana?</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Ripercorri la settimana e segna le situazioni in cui hai applicato con successo anche una sola piccola strategia vista nel percorso (puoi usare i tag rapidi qui sotto e annotare i giorni che vuoi nella griglia G1–G7, senza l'obbligo di riempirli tutti!).
+                    </p>
+                </div>
+
+                <!-- 1A. Selettore Rapido delle Strategie Utilizzate con Successo -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-2">
+                        1. Tocca le strategie che ti è capitato di utilizzare con successo in questi giorni:
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="success-strategy-chips">
+                        <button type="button" onclick="toggleChip(this, 'usedStrategies', 'active-strategy')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Scrivere un impegno o un'idea sull'Agenda Unica invece di tenerla a mente</button>
+                        <button type="button" onclick="toggleChip(this, 'usedStrategies', 'active-strategy')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Scomporre un compito bloccante in un primo micro-passo da 5 minuti</button>
+                        <button type="button" onclick="toggleChip(this, 'usedStrategies', 'active-strategy')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Proteggere i miei sensi (usare cuffie, tappi, luci soffuse o abiti comodi)</button>
+                        <button type="button" onclick="toggleChip(this, 'usedStrategies', 'active-strategy')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Aspettare 10 minuti prima di rispondere a caldo sull'onda emotiva o RSD</button>
+                        <button type="button" onclick="toggleChip(this, 'usedStrategies', 'active-strategy')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Rispettare i miei "Cucchiai di energia" fermandomi in Zona Gialla</button>
+                        <button type="button" onclick="toggleChip(this, 'usedStrategies', 'active-strategy')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Usare una Frase-Ponte o mettere un Confine Gentile senza sparire</button>
+                    </div>
+                </div>
+
+                <!-- 1B. Griglia Flessibile G1–G7 (Situazione e Strategia Utilizzata) -->
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-week text-emerald-700"></i> 2. Bacheca dei 7 Giorni (Segna la situazione e la strategia utilizzata)
+                        </label>
+                        <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                            Anche compilare solo 2 o 3 giorni è già un ottimo risultato!
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">G 1</span>
+                            <input type="text" id="dayLog1" oninput="saveData()" placeholder="Situazione e strategia usata nel Giorno 1..." class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">G 2</span>
+                            <input type="text" id="dayLog2" oninput="saveData()" placeholder="Situazione e strategia usata nel Giorno 2..." class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">G 3</span>
+                            <input type="text" id="dayLog3" oninput="saveData()" placeholder="Situazione e strategia usata nel Giorno 3..." class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">G 4</span>
+                            <input type="text" id="dayLog4" oninput="saveData()" placeholder="Situazione e strategia usata nel Giorno 4..." class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">G 5</span>
+                            <input type="text" id="dayLog5" oninput="saveData()" placeholder="Situazione e strategia usata nel Giorno 5..." class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">G 6</span>
+                            <input type="text" id="dayLog6" oninput="saveData()" placeholder="Situazione e strategia usata nel Giorno 6..." class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5 md:col-span-2">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">G 7</span>
+                            <input type="text" id="dayLog7" oninput="saveData()" placeholder="Situazione e strategia usata nel Giorno 7 (o bilancio complessivo della settimana)..." class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa allo Spazio 2: Il Diagnosticatore Senza Colpa <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 2: VALUTAZIONI SUGLI INTOPPI (IL DIAGNOSTICATORE SENZA COLPA)
+             ========================================================================= -->
+        <section id="space-2" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-indigo-600">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Spazio 2 • Valutazioni Quando Qualcosa Si Inceppa</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Se Non Sei Riuscito/a ad Adottare Qualche Strategia: Capire il Motivo Senza Giudicarsi</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Quando non riusciamo a mettere in pratica un esercizio, il Critico Interiore vorrebbe subito farci sentire in colpa. Prova invece a identificare con curiosità quali elementi ti hanno ostacolato:
+                    </p>
+                </div>
+
+                <!-- 1. I Fattori che Hanno Impedito di Adottare la Strategia -->
+                <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3">
+                    <label class="block text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass-chart text-indigo-600"></i> 1. Quale motivo ha ostacolato la messa in pratica in alcuni giorni?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="obstacle-reason-chips">
+                        <button type="button" onclick="toggleChip(this, 'obstacleReasons', 'active-obstacle')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Troppi imprevisti o sovraccarico energetico/sensoriale nella settimana</button>
+                        <button type="button" onclick="toggleChip(this, 'obstacleReasons', 'active-obstacle')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Mi ero dato/a compiti troppo difficili o volevo cambiare troppe cose insieme</button>
+                        <button type="button" onclick="toggleChip(this, 'obstacleReasons', 'active-obstacle')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Scarsa fiducia nelle mie capacità ("Tanto con me non funziona mai nulla")</button>
+                        <button type="button" onclick="toggleChip(this, 'obstacleReasons', 'active-obstacle')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Poca motivazione o stanchezza mentale accumulata</button>
+                        <button type="button" onclick="toggleChip(this, 'obstacleReasons', 'active-obstacle')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Timore che tanto questo esercizio non sarebbe servito a nulla</button>
+                        <button type="button" onclick="toggleChip(this, 'obstacleReasons', 'active-obstacle')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Avevo scelto un'area su cui non avevo davvero voglia o priorità di lavorare ora</button>
+                    </div>
+                    <input type="text" id="obstacleOtherText" oninput="saveData()" placeholder="Altro motivo emerso (specifica)..." class="w-full rounded-xl border border-indigo-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none">
+                </div>
+
+                <!-- 2. Ricalibrazione Gentile dell'Obiettivo -->
+                <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-3">
+                    <div class="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-sliders"></i> 2. Ricalibrazione Gentile: Rendi il Compito Più Semplice e Circoscritto
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Se hai riconosciuto uno dei blocchi qui sopra, fermati e rifletti sulla tua fiducia e sulla tua motivazione: <strong>poniti un obiettivo più semplice o più circoscritto e considera un arco di tempo più ampio</strong> da dedicare al tuo compito. Come puoi dimezzare la difficoltà per la prossima settimana?
+                    </p>
+                    <textarea id="recalibratedGoalText" oninput="saveData()" rows="2" placeholder="Es. Invece di pretendere di usare la strategia ogni singolo giorno alla perfezione, scelgo un solo obiettivo piccolissimo da provare due volte a settimana..." class="w-full rounded-xl bg-slate-800 border border-slate-600 p-3 text-xs md:text-sm text-white focus:border-amber-400 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(3)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa allo Spazio 3: Vantaggi e Riconoscimenti <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 3: IL CATTURA-VANTAGGI E IL REGISTRO DEI RICONOSCIMENTI RICEVUTI
+             ========================================================================= -->
+        <section id="space-3" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-amber-500">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Spazio 3 • Riallenare la Percezione del Proprio Valore</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Vantaggi del Tuo Funzionamento e Riconoscimenti Positivi</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        A volte tendiamo a non cogliere o a sminuire subito i complimenti e le cose che facciamo bene. Ripercorri con calma le giornate della settimana per registrare due tesori preziosi:
+                    </p>
+                </div>
+
+                <!-- 1. VANTAGGI RISCONTRATI -->
+                <div class="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
+                    <label class="block text-sm font-bold text-amber-950 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600"></i> 1. VANTAGGI: Hai riscontrato dei vantaggi attribuibili ad aspetti del tuo funzionamento neurodivergente?
+                    </label>
+                    <p class="text-xs text-slate-600">
+                        (Ad esempio: hai trovato una soluzione a un imprevisto in breve tempo, hai proposto qualcosa che è piaciuto, hai approfondito un tema imparando cose nuove, hai notato un dettaglio che nessun altro aveva colto, ecc.)
+                    </p>
+                    <div class="flex flex-wrap gap-1.5" id="advantage-chips">
+                        <button type="button" onclick="toggleChip(this, 'observedAdvantages', 'active-advantage')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Ho trovato una soluzione creativa a un imprevisto in pochissimo tempo</button>
+                        <button type="button" onclick="toggleChip(this, 'observedAdvantages', 'active-advantage')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Ho proposto un'idea originale o un collegamento che è piaciuto agli altri</button>
+                        <button type="button" onclick="toggleChip(this, 'observedAdvantages', 'active-advantage')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Ho approfondito un tema con passione imparando cose nuove velocemente</button>
+                        <button type="button" onclick="toggleChip(this, 'observedAdvantages', 'active-advantage')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Ho colto un dettaglio importante o un errore che era sfuggito a tutti</button>
+                        <button type="button" onclick="toggleChip(this, 'observedAdvantages', 'active-advantage')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Ho dimostrato profonda empatia, autenticità o senso di giustizia</button>
+                    </div>
+                    <textarea id="advantageSituationText" oninput="saveData()" rows="2" placeholder="Indica qui la situazione specifica e il vantaggio che hai riscontrato..." class="w-full rounded-xl border border-amber-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 2. RICONOSCIMENTI RICEVUTI -->
+                <div class="p-5 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3">
+                    <label class="block text-sm font-bold text-teal-950 flex items-center gap-2">
+                        <i class="fa-solid fa-hands-clapping text-teal-700"></i> 2. RICONOSCIMENTI: Hai ricevuto riconoscimenti positivi o apprezzamenti da parte di qualcuno?
+                    </label>
+                    <p class="text-xs text-slate-600">
+                        Pensaci bene e ripercorri la settimana, perché spesso la nostra mente scarta automaticamente i complimenti! Tocca il tipo di riconoscimento ricevuto e annota l'episodio:
+                    </p>
+                    <div class="flex flex-wrap gap-1.5" id="praise-chips">
+                        <button type="button" onclick="toggleChip(this, 'receivedPraises', 'active-praise')" class="selectable-chip px-3 py-1.5 rounded-xl border border-teal-200 bg-white text-xs text-slate-700">Un ringraziamento sincero per un aiuto o un supporto dato</button>
+                        <button type="button" onclick="toggleChip(this, 'receivedPraises', 'active-praise')" class="selectable-chip px-3 py-1.5 rounded-xl border border-teal-200 bg-white text-xs text-slate-700">Un complimento per la qualità di un lavoro, di un'idea o di una competenza</button>
+                        <button type="button" onclick="toggleChip(this, 'receivedPraises', 'active-praise')" class="selectable-chip px-3 py-1.5 rounded-xl border border-teal-200 bg-white text-xs text-slate-700">Un apprezzamento per la mia sensibilità, simpatia o capacità di ascolto</button>
+                        <button type="button" onclick="toggleChip(this, 'receivedPraises', 'active-praise')" class="selectable-chip px-3 py-1.5 rounded-xl border border-teal-200 bg-white text-xs text-slate-700">Qualcuno che ha cercato la mia compagnia o il mio parere su un argomento</button>
+                    </div>
+                    <textarea id="praiseSituationText" oninput="saveData()" rows="2" placeholder="Indica qui la situazione e il riconoscimento positivo che hai ricevuto..." class="w-full rounded-xl border border-teal-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-teal-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 3. Cursori Rapidi di Autostima -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-link-slash text-emerald-700"></i> 1. Disaccoppiamento Valore vs Produttività
+                            </label>
+                            <span id="worthDecoupleLabel" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">7 / 10</span>
+                        </div>
+                        <input type="range" id="worthDecoupleSlider" min="1" max="10" value="7" oninput="updateSliders()" class="w-full accent-emerald-700 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>1 (Mi stimo solo se produco molto)</span>
+                            <span>10 (Il mio valore resta al 100% anche a riposo)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-award text-amber-600"></i> 2. Capacità di Accogliere i Complimenti e i Vantaggi
+                            </label>
+                            <span id="acceptPraiseLabel" class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="acceptPraiseSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-amber-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>1 (Tendo a sminuire ogni mio merito)</span>
+                            <span>10 (Riconosco e accolgo ciò che faccio bene)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(4)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera lo Scrigno dell'Autostima e PDF <i class="fa-solid fa-gem"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 4: LO SCRIGNO DELL'AUTOSTIMA ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="space-4" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • Confronto Terapeutico</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Il Tuo "Scrigno dell'Autostima" e Report in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutti gli spazi aperti oppure la sintesi con il tuo Scrigno dei Vantaggi e Riconoscimenti.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-amber-600 hover:bg-amber-700 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica lo Scrigno e la sintesi">
+                            <i class="fa-solid fa-gem"></i> PDF Scrigno + Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-emerald-800"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-emerald-700 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-emerald-900 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-800">Percorso Modulare di Psicoeducazione • Modulo 12</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 12: Autostima, Vantaggi e Riconoscimenti</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- SCHEDA VISIVA: LO SCRIGNO DEI VANTAGGI E DEI RICONOSCIMENTI -->
+                    <div id="selfEsteemChestCard" class="rounded-2xl bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-800 text-white p-5 shadow-md space-y-3">
+                        <!-- Popolata dinamicamente via JS -->
+                    </div>
+
+                    <!-- Contenuto analitico degli Spazi 1, 2 e 3 -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Migliarese et al. (2023) • Cook et al. (2021) • Neff (2003) • Kooij et al. (2019)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToSpace(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_12_general_v1';
+
+        let appState = {
+            patientName: '',
+            usedStrategies: [],
+            dayLog1: '',
+            dayLog2: '',
+            dayLog3: '',
+            dayLog4: '',
+            dayLog5: '',
+            dayLog6: '',
+            dayLog7: '',
+            obstacleReasons: [],
+            obstacleOtherText: '',
+            recalibratedGoalText: '',
+            observedAdvantages: [],
+            advantageSituationText: '',
+            receivedPraises: [],
+            praiseSituationText: '',
+            worthDecoupleLevel: 7,
+            acceptPraiseLevel: 6
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToSpace(spaceNum) {
+            document.querySelectorAll('.space-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`space-${spaceNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-space-${i}`);
+                if (i === spaceNum) {
+                    btn.className = 'space-nav-btn bg-emerald-800 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (spaceNum === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-strategy', 'active-obstacle', 'active-advantage', 'active-praise');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function updateSliders() {
+            const wVal = document.getElementById('worthDecoupleSlider').value;
+            const pVal = document.getElementById('acceptPraiseSlider').value;
+
+            document.getElementById('worthDecoupleLabel').textContent = `${wVal} / 10`;
+            document.getElementById('acceptPraiseLabel').textContent = `${pVal} / 10`;
+
+            appState.worthDecoupleLevel = wVal;
+            appState.acceptPraiseLevel = pVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            for (let d = 1; d <= 7; d++) {
+                appState[`dayLog${d}`] = document.getElementById(`dayLog${d}`).value;
+            }
+            appState.obstacleOtherText = document.getElementById('obstacleOtherText').value;
+            appState.recalibratedGoalText = document.getElementById('recalibratedGoalText').value;
+            appState.advantageSituationText = document.getElementById('advantageSituationText').value;
+            appState.praiseSituationText = document.getElementById('praiseSituationText').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            for (let d = 1; d <= 7; d++) {
+                document.getElementById(`dayLog${d}`).value = appState[`dayLog${d}`] || '';
+            }
+            document.getElementById('obstacleOtherText').value = appState.obstacleOtherText || '';
+            document.getElementById('recalibratedGoalText').value = appState.recalibratedGoalText || '';
+            document.getElementById('advantageSituationText').value = appState.advantageSituationText || '';
+            document.getElementById('praiseSituationText').value = appState.praiseSituationText || '';
+
+            document.getElementById('worthDecoupleSlider').value = appState.worthDecoupleLevel ?? 7;
+            document.getElementById('acceptPraiseSlider').value = appState.acceptPraiseLevel ?? 6;
+            document.getElementById('worthDecoupleLabel').textContent = `${appState.worthDecoupleLevel ?? 7} / 10`;
+            document.getElementById('acceptPraiseLabel').textContent = `${appState.acceptPraiseLevel ?? 6} / 10`;
+
+            restoreChipGroup('success-strategy-chips', appState.usedStrategies, 'active-strategy');
+            restoreChipGroup('obstacle-reason-chips', appState.obstacleReasons, 'active-obstacle');
+            restoreChipGroup('advantage-chips', appState.observedAdvantages, 'active-advantage');
+            restoreChipGroup('praise-chips', appState.receivedPraises, 'active-praise');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const chestCard = document.getElementById('selfEsteemChestCard');
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const advSummary = appState.advantageSituationText
+                ? escapeHtml(appState.advantageSituationText)
+                : (appState.observedAdvantages.length ? appState.observedAdvantages.join(' • ') : 'Capacità di trovare soluzioni rapide agli imprevisti, creatività associativa e profondità di analisi.');
+
+            const praiseSummary = appState.praiseSituationText
+                ? escapeHtml(appState.praiseSituationText)
+                : (appState.receivedPraises.length ? appState.receivedPraises.join(' • ') : 'Accogliere e registrare nella memoria i ringraziamenti e i feedback positivi ricevuti senza sminuirli.');
+
+            // 1. Popola lo Scrigno Visivo in cima al PDF
+            chestCard.innerHTML = `
+                <div class="flex items-center justify-between border-b border-white/15 pb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-widest text-amber-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-gem"></i> Lo Scrigno della Mia Autostima (Valore Umano 100% Indipendente dalla Performance)
+                    </span>
+                    <span class="text-[11px] text-emerald-200">Modulo 12</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-amber-300 uppercase text-[10px] tracking-wider block mb-1"><i class="fa-solid fa-lightbulb mr-1"></i> Vantaggi del Mio Funzionamento Riscontrati:</strong>
+                        <p class="text-white leading-relaxed">${advSummary}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-teal-200 uppercase text-[10px] tracking-wider block mb-1"><i class="fa-solid fa-hands-clapping mr-1"></i> Riconoscimenti Positivi Ricevuti e Accolti:</strong>
+                        <p class="text-white leading-relaxed">${praiseSummary}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Costruisce il riepilogo dei 7 giorni compilati
+            let daysHtml = '';
+            for (let d = 1; d <= 7; d++) {
+                const val = (appState[`dayLog${d}`] || '').trim();
+                if (val) {
+                    daysHtml += `<li class="text-xs text-slate-700 bg-white p-2 rounded-lg border border-slate-200"><strong>Giorno ${d}:</strong> ${escapeHtml(val)}</li>`;
+                }
+            }
+
+            const strats = appState.usedStrategies.length ? appState.usedStrategies.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const obsts = appState.obstacleReasons.length ? appState.obstacleReasons.join(' • ') : '<em>Nessun blocco segnalato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-800">1. Strategie Psicoeducative Adottate con Successo</div>
+                    <p><strong>Strategie messe in campo:</strong> ${strats}</p>
+                    ${daysHtml ? `<ul class="space-y-1.5 pt-1">${daysHtml}</ul>` : `<p class="text-xs text-slate-500 italic">Nessun giorno specifico annotato nella griglia G1–G7.</p>`}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-800">2. Valutazione Senza Colpa degli Intoppi e Ricalibrazione</div>
+                    <p><strong class="text-indigo-700">Elementi che hanno reso difficile applicare una strategia:</strong> ${obsts} ${appState.obstacleOtherText ? `(${escapeHtml(appState.obstacleOtherText)})` : ''}</p>
+                    ${appState.recalibratedGoalText ? `<p class="text-indigo-950 bg-indigo-50 p-2.5 rounded-lg border border-indigo-200 text-xs"><strong>Obiettivo più semplice / circoscritto per i prossimi giorni:</strong> "${escapeHtml(appState.recalibratedGoalText)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Disaccoppiamento Valore vs Produttività</span>
+                                <span class="text-emerald-700 font-bold">${appState.worthDecoupleLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-emerald-600 h-2 rounded-full" style="width: ${appState.worthDecoupleLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Capacità di Accogliere Vantaggi e Complimenti</span>
+                                <span class="text-amber-700 font-bold">${appState.acceptPraiseLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-amber-500 h-2 rounded-full" style="width: ${appState.acceptPraiseLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_12_Scrigno_Autostima_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF Scrigno dell\'Autostima scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_12_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const dayLines = [];
+            for (let d = 1; d <= 7; d++) {
+                if (appState[`dayLog${d}`]) dayLines.push(`  - Giorno ${d}: ${appState[`dayLog${d}`]}`);
+            }
+
+            const lines = [
+                "=== HOMEWORK MODULO 12: AUTOSTIMA, VANTAGGI E RICONOSCIMENTI ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. STRATEGIE ADOTTATE CON SUCCESSO",
+                "• Strategie usate: " + (appState.usedStrategies.join(', ') || '-'),
+                dayLines.length ? dayLines.join('\n') : null,
+                "",
+                "2. VALUTAZIONI SUGLI INTOPPI E RICALIBRAZIONE",
+                "• Motivi di blocco: " + (appState.obstacleReasons.join(', ') || '-'),
+                appState.recalibratedGoalText ? "• Obiettivo ricalibrato più semplice: " + appState.recalibratedGoalText : null,
+                "",
+                "3. VANTAGGI E RICONOSCIMENTI RICEVUTI",
+                "• Vantaggi riscontrati: " + (appState.observedAdvantages.join(', ') || '-'),
+                appState.advantageSituationText ? "• Situazione e vantaggio: " + appState.advantageSituationText : null,
+                "• Riconoscimenti positivi ricevuti: " + (appState.receivedPraises.join(', ') || '-'),
+                appState.praiseSituationText ? "• Situazione e riconoscimento: " + appState.praiseSituationText : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                usedStrategies: [],
+                dayLog1: '',
+                dayLog2: '',
+                dayLog3: '',
+                dayLog4: '',
+                dayLog5: '',
+                dayLog6: '',
+                dayLog7: '',
+                obstacleReasons: [],
+                obstacleOtherText: '',
+                recalibratedGoalText: '',
+                observedAdvantages: [],
+                advantageSituationText: '',
+                receivedPraises: [],
+                praiseSituationText: '',
+                worthDecoupleLevel: 7,
+                acceptPraiseLevel: 6
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-strategy', 'active-obstacle', 'active-advantage', 'active-praise');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToSpace(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

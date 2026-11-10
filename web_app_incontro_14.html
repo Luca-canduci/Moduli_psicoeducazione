@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 14 - Cura di Sé II: Alimentazione Sostenibile e Movimento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .space-panel {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .space-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .care-chip.selected {
+            background-color: #ecfdf5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+        }
+        .Curve-btn.active-curve {
+            background-color: #0f766e;
+            color: #ffffff;
+            border-color: #0f766e;
+            box-shadow: 0 4px 12px -2px rgba(15, 118, 110, 0.3);
+        }
+        .tier-tab-btn.active-tier {
+            background-color: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.25);
+        }
+        .food-tag.active-ally {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .food-tag.active-obstacle {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli spazi e i livelli aperti)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode .space-panel {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.25rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .tier-detail-card {
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .space-panel {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .tier-detail-card {
+                display: block !important;
+                margin-bottom: 14px !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Panoramico Area V -->
+    <header class="bg-gradient-to-r from-emerald-900 via-teal-800 to-orange-800 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-apple-whole text-xl text-amber-200"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-amber-100">Modulo 14 • Area V</span>
+                        <span class="text-[11px] text-emerald-100 hidden sm:inline">• Identità, Cura di Sé e Potenzialità</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight mt-0.5">Cura di Sé II: Alimentazione Sostenibile e Movimento Regolatorio</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide + Contatore Kit Energia -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end md:self-auto">
+                <button onclick="switchSpace(4)" class="bg-emerald-950/70 hover:bg-emerald-950 border border-emerald-400/40 px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-basket-shopping text-amber-300"></i>
+                    <span>Il Mio Kit Cibo & Sport: <strong id="careKitCountBadge" class="text-white font-bold">0</strong></span>
+                </button>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Spazi -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button onclick="switchSpace(1)" id="space-btn-1" class="space-btn bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-utensils"></i> 1. Perché è Difficile?
+                </button>
+                <button onclick="switchSpace(2)" id="space-btn-2" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-box-open"></i> 2. Menu a 3 Batteria
+                </button>
+                <button onclick="switchSpace(3)" id="space-btn-3" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-person-running"></i> 3. Movimento Gentile
+                </button>
+                <button onclick="switchSpace(4)" id="space-btn-4" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-compass"></i> 4. Scenari & Kit PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainScrollArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-8">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+        <div class="print-only-header hidden border-b-2 border-emerald-900 pb-4 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-emerald-800">Programma Clinico Modulare di Psicoeducazione • Area V</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 14: Cura di Sé II – Alimentazione Sostenibile e Movimento Regolatorio</h1>
+                    <p class="text-xs text-slate-500 mt-1">Rif. Scientifici: Migliarese et al. (2023) • Kaisari et al. (2017) • Kinnaird et al. (2019) • Ratey (2008) • Kooij et al. (2019).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             SPAZIO 1: PERCHÉ NUTRIRSI REGOLARMENTE PUÒ ESSERE COSÌ FATICOSO?
+             ========================================================================= -->
+        <section id="space-1" class="space-panel active space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-emerald-700">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 1 • Il Legame tra Cibo, Funzioni Esecutive e Sensi
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Migliarese et al. (2023) • Kaisari et al. (2017) • Kinnaird et al. (2019)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Mangiare Non È Solo "Mettere Carburante": È un Compito ad Alta Complessità Esecutiva</h2>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                    Per chi guarda dall'esterno, nutrirsi tre volte al giorno sembra un automatismo banale. Per un sistema nervoso neurodivergente, invece, l'alimentazione quotidiana mette contemporaneamente alla prova l'<strong>interocezione</strong> (accorgersi in tempo di avere fame), le <strong>funzioni esecutive</strong> (pianificare la spesa, scegliere cosa cucinare, seguire i passaggi, riordinare), la <strong>regolazione dopaminergica</strong> e la <strong>sensibilità sensoriale</strong> verso odori e consistenze.
+                </p>
+
+                <!-- Le 3 Radici del Cortocircuito Alimentare -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    
+                    <!-- 1. Salta-Pasto & Abbuffata Serale -->
+                    <div class="p-5 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-amber-950 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-hourglass-empty text-amber-600"></i> 1. Dimenticare di Mangiare e "Fame Lupina" Serale
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Durante il giorno l'iperfocalizzazione (o l'effetto temporaneo di una terapia) spegne lo stimolo della fame. Si salta il pranzo senza accorgersene, ma verso sera la glicemia crolla di colpo innescando una fame urgente e impulsiva verso cibi rapidi e calorici.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleCareKit(this, 'Prevenire il Crollo Serale: Non aspettare di sentire i crampi della fame per mangiare, ma usare promemoria visivi o spuntini a metà giornata')" class="care-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <!-- 2. Paralisi Culinaria -->
+                    <div class="p-5 rounded-2xl bg-rose-50/60 border border-rose-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-rose-950 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-kitchen-set text-rose-600"></i> 2. La "Paralisi Davanti al Frigo Aperto"
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Quando arrivi alle 20:00 già senza cucchiai di energia, "cucinare" richiede 15 passaggi esecutivi (decidere, tagliare, sporcare pentole, attendere la cottura, lavare i piatti). Il cervello va in <em>Task Paralysis</em> e preferisce saltare la cena o ordinare a domicilio d'impulso.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleCareKit(this, 'Sconfiggere la Paralisi del Frigo: Decidere cosa mangiare prima di essere affamati e tenere sempre scorte che richiedano zero cottura')" class="care-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <!-- 3. Dopamine Snacking vs "Samefoods" -->
+                    <div class="p-5 rounded-2xl bg-teal-50/60 border border-teal-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-teal-950 text-sm mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-cookie-bite text-teal-600"></i> 3. Cibo come Dopamina vs "Cibi Sicuri"
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Mangiare zuccheri o snack croccanti quando si è annoiati o stanchi è spesso un tentativo automatico di <strong>auto-stimolare la corteccia prefrontale</strong>; al tempo stesso, il lato sensoriale cerca "cibi sicuri" (<em>safe foods</em>) sempre uguali per consistenza e sapore.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleCareKit(this, 'Legittimare i Cibi Sicuri: Rispettare le mie preferenze di consistenza (safe foods) senza forzarmi a mangiare cibi sensorialmente sgraditi')" class="care-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- SIMULATORE GRAFICO SVG: MONTAGNE RUSSE GLICEMICHE VS ENERGIA STABILE -->
+                <div class="bg-slate-900 text-white p-5 md:p-7 rounded-3xl border border-slate-700 space-y-5 shadow-xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Simulatore Bio-Esecutivo Giornaliero (08:00 – 22:00)</span>
+                            <h3 class="text-lg md:text-xl font-extrabold text-white mt-0.5">Come i Pasti Saltati Sabotano Emozioni e Concentrazione</h3>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 no-print">
+                        <button type="button" onclick="setNutritionCurve('rollercoaster', this)" class="Curve-btn active-curve p-3.5 rounded-2xl border border-slate-700 text-left text-xs font-bold transition-all flex items-center gap-3">
+                            <i class="fa-solid fa-bolt-lightning text-rose-400 text-lg"></i>
+                            <div>
+                                <div>1. Montagne Russe (Saltare i Pasti + Crollo alle 19:00)</div>
+                                <div class="text-[11px] font-normal opacity-80">Iper-focus a digiuno → Ipoglicemia, irritabilità e abbuffata serale</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="setNutritionCurve('steady', this)" class="Curve-btn bg-slate-800 hover:bg-slate-700 text-slate-200 p-3.5 rounded-2xl border border-slate-700 text-left text-xs font-bold transition-all flex items-center gap-3">
+                            <i class="fa-solid fa-seedling text-emerald-400 text-lg"></i>
+                            <div>
+                                <div>2. Carburante Costante (Pasti/Spuntini a Basso Attrito)</div>
+                                <div class="text-[11px] font-normal opacity-80">Piccole ancore proteiche/nutritive → Batteria mentale stabile</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-950/90 rounded-2xl p-4 border border-slate-800">
+                        <svg viewBox="0 0 700 210" class="w-full h-auto overflow-visible">
+                            <!-- Zona ottimale -->
+                            <rect x="55" y="55" width="610" height="65" fill="#10b981" opacity="0.08" />
+                            <line x1="55" y1="120" x2="665" y2="120" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,4" />
+                            <text x="62" y="134" fill="#fcd34d" font-size="9.5" font-weight="700">SOGLIA DI IPOGLICEMIA PREFRONTALE (Sotto questa linea salgono irritabilità, nebbia cognitiva e fame impulsiva)</text>
+
+                            <!-- Assi -->
+                            <line x1="55" y1="20" x2="55" y2="185" stroke="#475569" stroke-width="1.5" />
+                            <line x1="55" y1="185" x2="665" y2="185" stroke="#475569" stroke-width="1.5" />
+
+                            <text x="60" y="202" fill="#94a3b8" font-size="10">08:30 (Colazione)</text>
+                            <text x="235" y="202" fill="#94a3b8" font-size="10">13:30 (Pranzo)</text>
+                            <text x="415" y="202" fill="#94a3b8" font-size="10">17:30 (Rientro)</text>
+                            <text x="565" y="202" fill="#94a3b8" font-size="10">20:30 (Cena)</text>
+
+                            <!-- Curva 1: Montagne Russe (Rossa) -->
+                            <path id="nutriCurveRoller" d="M 55 95 Q 150 90, 240 135 T 440 175 C 480 175, 510 35, 560 40 C 600 45, 630 140, 660 155" fill="none" stroke="#f43f5e" stroke-width="3.5" />
+
+                            <!-- Curva 2: Stabile (Verde) -->
+                            <path id="nutriCurveSteady" d="M 55 85 Q 160 75, 250 90 T 440 85 T 655 95" fill="none" stroke="#10b981" stroke-width="3.5" opacity="0.2" />
+                        </svg>
+                    </div>
+
+                    <div id="nutritionCurveCaption" class="p-4 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-xs md:text-sm text-rose-100 leading-relaxed">
+                        <strong class="text-rose-300 uppercase tracking-wider block mb-1">Curva 1 (Rossa) • Il Crollo delle 18:00 e l'Effetto Rimbalzo:</strong>
+                        Saltare il pranzo perché "non sentivi fame" porta il cervello in carenza di glucosio nel tardo pomeriggio: aumentano ansia, indecisione e irritabilità sensoriale. Quando finalmente mangi a sera, il corpo affamato chiede zuccheri rapidi tutti insieme, causando pesantezza e peggiorando la qualità del sonno.
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 no-print">
+                <button onclick="switchSpace(2)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 2: Il Menu a 3 Livelli di Batteria <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 2: LA DISPENSA SALVA-BATTERIA (IL MENU A 3 LIVELLI DI ENERGIA) E ALLEATI/OSTACOLI
+             ========================================================================= -->
+        <section id="space-2" class="space-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-600 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 2 • Togliere il Perfezionismo dalla Tavola ("Nutrirsi È Meglio che Saltare il Pasto")
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Non Devi "Cucinare una Ricetta" per Fare un Pasto Valido</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        Una delle trappole più bloccanti è credere che un pasto "vero" debba per forza prevedere pentole sul fuoco, ricette elaborate e tavola apparecchiata. Quando la batteria è bassa, questa pretesa ci fa digiunare o mangiare solo patatine. La soluzione consiste nel progettare la tua <strong>Dispensa su 3 Livelli di Energia (Verde, Giallo, Rosso)</strong>:
+                    </p>
+                </div>
+
+                <!-- Bottoni Selettori dei 3 Livelli Culinari (Nascosti in stampa perché si aprono tutti) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 no-print">
+                    <button type="button" onclick="selectFoodTier('green', this)" class="tier-tab-btn active-tier p-3.5 rounded-2xl border border-slate-300 text-left text-xs font-bold transition-all flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-base">
+                            <i class="fa-solid fa-fire-burner"></i>
+                        </span>
+                        <div>
+                            <div>🟢 Livello Verde (Batteria Alta)</div>
+                            <div class="text-[11px] font-normal opacity-80">Cucinare in 15–20 min + Doppio</div>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="selectFoodTier('yellow', this)" class="tier-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-left text-xs font-bold transition-all flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 text-base">
+                            <i class="fa-solid fa-bowl-food"></i>
+                        </span>
+                        <div>
+                            <div>🟡 Livello Giallo (Batteria Media)</div>
+                            <div class="text-[11px] font-normal opacity-80">Assemblaggio in 5 min senza fornelli</div>
+                        </div>
+                    </button>
+
+                    <button type="button" onclick="selectFoodTier('red', this)" class="tier-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-300 text-left text-xs font-bold transition-all flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 text-base">
+                            <i class="fa-solid fa-life-ring"></i>
+                        </span>
+                        <div>
+                            <div>🔴 Livello Rosso (Batteria a Zero)</div>
+                            <div class="text-[11px] font-normal opacity-80">Kit di Emergenza a Zero Passaggi</div>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- LIVELLO VERDE: CUCINARE + BATCH COOKING FURBO -->
+                <div id="tier-card-green" class="tier-detail-card p-5 rounded-2xl bg-emerald-50/60 border border-emerald-300 space-y-3">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">🟢 Giorni a Batteria Alta • Sfruttare l'Onda per Aiutare il "Te di Domani"</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[11px] font-bold">15–25 Minuti</span>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        Quando hai energia e piacere di cucinare, usa la regola del <strong>"Cucina una volta, mangia due"</strong>: prepara una porzione doppia (di pasta, riso, legumi, verdure al forno o pollo) e mettine subito metà in un contenitore trasparente in frigo o freezer per i giorni in cui sarai stanco/a.
+                    </p>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="toggleCareKit(this, 'Regola del Doppio nei Giorni Verdi: Quando ho energia per cucinare, preparo una porzione extra da tenere pronta per i giorni di stanchezza')" class="care-chip py-2 px-4 rounded-xl border border-emerald-300 bg-white text-xs text-slate-700 hover:border-emerald-600 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nel mio Kit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LIVELLO GIALLO: ASSEMBLAGGIO SENZA FORNELLI -->
+                <div id="tier-card-yellow" class="tier-detail-card hidden p-5 rounded-2xl bg-amber-50/60 border border-amber-300 space-y-3">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-amber-900">🟡 Giorni a Batteria Media • "Assemblare" Invece di Cucinare</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold">3–5 Minuti • Zero Pentole</span>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        Un pasto completo non richiede per forza la cottura! Basta <strong>unire in un piatto 3 elementi già pronti</strong>: una fonte proteica rapida (uova sode, tonno/sgombro in vetro, ceci già cotti, hummus, formaggio/affettato o tofu) + un carboidrato pronto (pane tostato, piadina, crackers, couscous istantaneo) + una verdura già lavata o pomodorini.
+                    </p>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="toggleCareKit(this, 'Pasti da Assemblaggio (Livello Giallo): Unire nel piatto 3 ingredienti già pronti (proteina + pane/piadina + verdura lavata) in 5 minuti senza sporcare pentole')" class="care-chip py-2 px-4 rounded-xl border border-amber-300 bg-white text-xs text-slate-700 hover:border-emerald-600 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nel mio Kit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LIVELLO ROSSO: EMERGENZA A ZERO PASSAGGI -->
+                <div id="tier-card-red" class="tier-detail-card hidden p-5 rounded-2xl bg-rose-50/60 border border-rose-300 space-y-3">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-rose-900">🔴 Giorni a Batteria Zero • Il "Cassetto di Emergenza" a Zero Passaggi</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-900 text-[11px] font-bold">30 Secondi</span>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        Nelle sere di <em>Shutdown</em> o paralisi esecutiva totale, anche scaldare una padella è troppo. Tieni sempre in dispensa/freezer opzioni che richiedono <strong>zero preparazione</strong>: una zuppa o piatto pronto di buona qualità da mettere 2 minuti in microonde, yogurt greco con frutta secca, barrette proteiche, banana o un frullato nutriente.
+                    </p>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="toggleCareKit(this, 'Scorta di Emergenza (Livello Rosso): Tenere sempre in casa 2 o 3 pasti/spuntini a zero passaggi per nutrirmi anche nelle sere di blocco totale')" class="care-chip py-2 px-4 rounded-xl border border-rose-300 bg-white text-xs text-slate-700 hover:border-emerald-600 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Salva nel mio Kit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MAPPATURA INTERATTIVA: ALLEATI VS OSTACOLI DELL'ALIMENTAZIONE -->
+                <div class="pt-4 border-t border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-emerald-700"></i> Mappa Personale: I Tuoi Alleati vs I Tuoi Ostacoli a Tavola
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Ostacoli -->
+                        <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-2.5">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800">
+                                <i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> I Miei OSTACOLI Alimentari
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="toggleFoodTag(this, 'obstacle')" class="food-tag obstacle-food px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Essere troppo preso/a da altri compiti e saltare il pranzo</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'obstacle')" class="food-tag obstacle-food px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Arrivare a fare la spesa o decidere cosa mangiare quando ho già troppa fame</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'obstacle')" class="food-tag obstacle-food px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Lavello pieno di piatti sporchi che blocca la voglia di cucinare</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'obstacle')" class="food-tag obstacle-food px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Mangiare per noia, nervosismo o ricerca di dopamina serale</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'obstacle')" class="food-tag obstacle-food px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Verdure fresche che vanno a male nei cassetti opachi del frigo</button>
+                            </div>
+                        </div>
+
+                        <!-- Alleati -->
+                        <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-2.5">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> I Miei ALLEATI Alimentari
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="toggleFoodTag(this, 'ally')" class="food-tag ally-food px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Lista della spesa fissa sul telefono o spesa online a domicilio</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'ally')" class="food-tag ally-food px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Tenere i cibi pronti/sani ad altezza occhi nel frigo</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'ally')" class="food-tag ally-food px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Usare verdure surgelate o già lavate (non marciscono e sono già tagliate)</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'ally')" class="food-tag ally-food px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Borraccia d'acqua e snack proteico sempre visibili sulla scrivania</button>
+                                <button type="button" onclick="toggleFoodTag(this, 'ally')" class="food-tag ally-food px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Avere 3–4 "pasti salvavita" fissi da ruotare senza dover inventare ricette</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna al Cortocircuito Alimentare
+                </button>
+                <button onclick="switchSpace(3)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 3: Il Movimento Regolatorio <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 3: IL MOVIMENTO COME REGOLATORE NEUROCHIMICO (OLTRE IL "TUTTO O NIENTE")
+             ========================================================================= -->
+        <section id="space-3" class="space-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-teal-600 space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 3 • Attività Fisica Senza la Gabbia del Perfezionismo
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Ratey (2008) • Migliarese et al. (2023)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Il Movimento come "Medicina Naturale" per Dopamina e Propriocezione</h2>
+                <p class="text-slate-600 text-xs md:text-sm leading-relaxed">
+                    A livello neurobiologico, anche solo <strong>15–20 minuti di movimento fisico</strong> aumentano immediatamente la disponibilità di dopamina, noradrenalina e serotonina nella corteccia prefrontale, abbassano il cortisolo, scaricano l'inquietudine motoria/mentale e favoriscono il sonno serale. Allora perché è così difficile mantenere la costanza nell'attività fisica?
+                </p>
+
+                <!-- Il Paradosso dell'Abbonamento in Palestra vs Movimento Sostenibile -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-2">
+                        <div class="text-xs font-bold uppercase tracking-wider text-rose-800">
+                            <i class="fa-solid fa-burst mr-1"></i> La Trappola del "Tutto o Niente" Sportivo
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm">L'Entusiasmo Estremo Seguìto dall'Abbandono</h4>
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            Iscriversi a un abbonamento annuale, comprare tutta l'attrezzatura tecnica, andare 4 volte la prima settimana e poi... bloccarsi di colpo. Perché succede? Perché andare in palestra ha un <strong>altissimo attrito esecutivo e sensoriale</strong>: preparare il borsone, spostarsi nel traffico, spogliatoi affollati, luci al neon, musica alta e noia per gli esercizi ripetitivi.
+                        </p>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-teal-50/60 border border-teal-200 space-y-2">
+                        <div class="text-xs font-bold uppercase tracking-wider text-teal-800">
+                            <i class="fa-solid fa-person-walking mr-1"></i> Il Paradigma degli "Snack Motori" a Zero Attrito
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm">Qualsiasi Movimento Conta (Anche 10 Minuti!)</h4>
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            Non serve fare 90 minuti di allenamento estenuante per attivare i benefici neurochimici: <strong>10 minuti di camminata veloce, fare le scale, stretching sul tappetino in salotto o ballare due canzoni</strong> funzionano già come uno "snack dopaminergico" che riavvia la mente senza consumare tutti i cucchiai.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 4 Strategie Pratiche per Mantenere il Movimento nel Tempo -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-bag-shopping text-teal-700"></i> 1. Azzerare l'Attrito di Preparazione
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                La fatica più grande non è muoversi, ma <em>prepararsi per uscire</em>. Tieni la borsa già pronta vicino alla porta (o il tappetino già srotolato in camera) e le scarpe da ginnastica a portata di mano.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleCareKit(this, 'Zero Attrito nel Movimento: Tenere scarpe/borsa già pronte in vista o il tappetino già aperto per eliminare gli ostacoli d\'avvio')" class="care-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-headphones text-indigo-600"></i> 2. Abbinamento Dopaminergico ("Temptation Bundling")
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Se il movimento fisico ti annoia, abbinalo al tuo <strong>interesse speciale</strong>: ascolta il tuo podcast preferito, un audiolibro avvincente o una playlist specifica <em>solo</em> mentre cammini o ti muovi.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleCareKit(this, 'Abbinamento Dopaminergico: Ascoltare il mio podcast/audiolibro preferito o fare telefonate piacevoli mentre cammino')" class="care-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-rotate text-amber-600"></i> 3. Permesso di Ruotare le Attività (e Ripartire dopo uno Stop)
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Se hai saltato due settimane di sport per un imprevisto, <strong>non significa che hai fallito tutto</strong>. Prevedi fin dall'inizio la possibilità di cambiare attività quando subentra la noia o di ripartire con soli 10 minuti.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleCareKit(this, 'Ripartenza Senza Colpa: Se interrompo il movimento per qualche giorno, riparto con soli 10 minuti di camminata senza giudicarmi')" class="care-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-tree text-emerald-600"></i> 4. Scegliere Ambienti Sensorialmente Amici
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Se le palestre affollate ti sovraccaricano, scegli forme di movimento solitarie o nella natura (camminata al parco, nuoto, bici, pesi/corpo libero in casa con la tua musica) che rigenerino anche i sensi.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleCareKit(this, 'Movimento Sensorialmente Amico: Scegliere attività all\'aperto o in casa a basso impatto acustico/visivo invece di ambienti affollati')" class="care-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-emerald-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna al Menu a 3 Batteria
+                </button>
+                <button onclick="switchSpace(4)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 4: Scenari e Kit in PDF <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 4: IL TUO KIT CIBO & MOVIMENTO E LA BUSSOLA DEGLI SCENARI QUOTIDIANI
+             ========================================================================= -->
+        <section id="space-4" class="space-panel space-y-6 pb-8">
+            
+            <!-- 1. IL TUO KIT DI CURA DI SÉ (ALIMENTAZIONE E MOVIMENTO) -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-500">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-basket-shopping text-emerald-700"></i> Il Tuo Kit di Alimentazione Sostenibile e Movimento (Modulo 14)
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                            Le strategie a basso attrito, gli Alleati e gli Ostacoli selezionati durante il modulo:
+                        </p>
+                    </div>
+                    <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                        <i class="fa-solid fa-file-pdf"></i> Esporta Tutto in PDF
+                    </button>
+                </div>
+
+                <div id="careKitSummaryContainer" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 mb-4">
+                    <!-- Popolato via JS -->
+                </div>
+
+                <div>
+                    <label for="customEmergencyMealNote" class="block text-xs font-bold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-utensils text-emerald-700 mr-1"></i> Quali sono i tuoi 2 "Pasti Salvavita a Zero Passaggi" che vuoi tenere sempre pronti in dispensa/freezer?
+                    </label>
+                    <input type="text" id="customEmergencyMealNote" oninput="renderCareKitSummary()" placeholder="Es. «Piadina con hummus/formaggio e pomodorini + Zuppa pronta o tortellini in freezer e frutta secca.»" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:border-emerald-600 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- 2. CLINICA DEGLI SCENARI QUOTIDIANI (3 SIMULAZIONI PRATICHE) -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wide">
+                        Verifica Pratica • Bussola di Energia Quotidiana
+                    </span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-2">Quale Scelta Nutre il Tuo Sistema Nervoso Senza Stress?</h2>
+                    <p class="text-xs md:text-sm text-slate-600 mt-1">
+                        Metti alla prova i concetti di questo modulo in 3 situazioni reali:
+                    </p>
+                </div>
+
+                <!-- Scenario 1 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-800">Scenario 1 • La Paralisi delle 20:30 Davanti al Frigo</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Torni a casa la sera senza più cucchiai di energia. Apri il frigo, vedi gli ingredienti da tagliare e cucinare, ma senti un blocco totale. Qual è la mossa più saggia?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkCareQuiz(1, true, this)" class="cquiz-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Attivare senza alcun senso di colpa il "Livello Rosso/Giallo": assemblare in 3 minuti pane tostato, uova/formaggio/hummus e una verdura già lavata (o scaldare un piatto pronto), ricordando che nutrirsi è l'unica cosa che conta.
+                        </button>
+                        <button type="button" onclick="checkCareQuiz(1, false, this)" class="cquiz-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Rimproverarti perché "dovresti cucinare un pasto vero" e finire per andare a letto a digiuno o mangiando solo biscotti a mezzanotte.
+                        </button>
+                    </div>
+                    <div id="cquiz-fb-1" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Scenario 2 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Scenario 2 • Dimenticare di Pranzare Durante l'Iperfocalizzazione</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Quando lavori o studi al computer entri nel "tunnel attentivo" e ti accorgi di non aver mangiato né bevuto nulla solo alle 18:00, quando hai mal di testa e irritabilità. Come previeni questo crollo?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkCareQuiz(2, false, this)" class="cquiz-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Sperare di ricordartene spontaneamente il giorno dopo senza cambiare nulla nell'ambiente.
+                        </button>
+                        <button type="button" onclick="checkCareQuiz(2, true, this)" class="cquiz-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Posizionare al mattino una borraccia d'acqua e uno spuntino nutriente (frutta secca, yogurt, crackers/parmigiano) *dentro il tuo campo visivo diretto* accanto allo schermo, abbinati a un promemoria per la pausa pranzo.
+                        </button>
+                    </div>
+                    <div id="cquiz-fb-2" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Scenario 3 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">Scenario 3 • Superare il Blocco del "Tutto o Niente" nel Movimento</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Avevi programmato di fare 1 ora di sport ma oggi sei stanco/a e hai solo 15 minuti liberi. Cosa dice la regola degli "Snack Motori"?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkCareQuiz(3, true, this)" class="cquiz-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Fare 10–15 minuti di camminata veloce all'aperto (o stretching in camera) ascoltando il proprio podcast preferito: 10 minuti danno già una scarica di dopamina e mantengono viva l'abitudine!
+                        </button>
+                        <button type="button" onclick="checkCareQuiz(3, false, this)" class="cquiz-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Pensare «Se non posso fare un'ora intera intensa allora è inutile, mollo tutto definitivamente».
+                        </button>
+                    </div>
+                    <div id="cquiz-fb-3" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna al Movimento Gentile
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const selectedCareKit = new Set();
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+            renderCareKitSummary();
+        };
+
+        // Navigazione Orizzontale dei 4 Spazi
+        function switchSpace(spaceNum) {
+            document.querySelectorAll('.space-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`space-${spaceNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`space-btn-${i}`);
+                if (i === spaceNum) {
+                    btn.className = 'space-btn bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (spaceNum === 4) {
+                renderCareKitSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Simulatore Curva Glicemica (Spazio 1)
+        function setNutritionCurve(mode, btnEl) {
+            document.querySelectorAll('.Curve-btn').forEach(b => {
+                b.classList.remove('active-curve');
+                b.classList.add('bg-slate-800', 'text-slate-200');
+            });
+            btnEl.classList.remove('bg-slate-800', 'text-slate-200');
+            btnEl.classList.add('active-curve');
+
+            const rollerPath = document.getElementById('nutriCurveRoller');
+            const steadyPath = document.getElementById('nutriCurveSteady');
+            const caption = document.getElementById('nutritionCurveCaption');
+
+            if (mode === 'rollercoaster') {
+                rollerPath.setAttribute('opacity', '1');
+                steadyPath.setAttribute('opacity', '0.2');
+                caption.className = 'p-4 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-xs md:text-sm text-rose-100 leading-relaxed';
+                caption.innerHTML = `<strong class="text-rose-300 uppercase tracking-wider block mb-1">Curva 1 (Rossa) • Il Crollo delle 18:00 e l'Effetto Rimbalzo:</strong> Saltare il pranzo perché "non sentivi fame" porta il cervello in carenza di glucosio nel tardo pomeriggio: aumentano ansia, indecisione e irritabilità sensoriale. Quando finalmente mangi a sera, il corpo affamato chiede zuccheri rapidi tutti insieme, causando pesantezza e peggiorando la qualità del sonno.`;
+            } else {
+                rollerPath.setAttribute('opacity', '0.2');
+                steadyPath.setAttribute('opacity', '1');
+                caption.className = 'p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-xs md:text-sm text-emerald-100 leading-relaxed';
+                caption.innerHTML = `<strong class="text-emerald-300 uppercase tracking-wider block mb-1">Curva 2 (Verde) • Ancore Nutritive a Basso Attrito:</strong> Fare anche un pasto semplice assemblato in 5 minuti a pranzo e tenere uno spuntino visibile sulla scrivania mantiene il livello di energia sempre sopra la linea gialla: arrivi a sera lucido/a e senza fame compulsiva.`;
+            }
+        }
+
+        // Selettore 3 Livelli Culinari (Spazio 2)
+        function selectFoodTier(tierKey, btnEl) {
+            document.querySelectorAll('.tier-detail-card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`tier-card-${tierKey}`).classList.remove('hidden');
+
+            document.querySelectorAll('.tier-tab-btn').forEach(b => {
+                b.classList.remove('active-tier');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnEl.classList.remove('bg-white', 'text-slate-700');
+            btnEl.classList.add('active-tier');
+        }
+
+        // Toggle Tag Alleati / Ostacoli Alimentari (Spazio 2)
+        function toggleFoodTag(btn, type) {
+            const cls = type === 'ally' ? 'active-ally' : 'active-obstacle';
+            btn.classList.toggle(cls);
+            renderCareKitSummary();
+        }
+
+        // Gestione Kit Cibo & Movimento
+        function toggleCareKit(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedCareKit.has(textLabel)) {
+                selectedCareKit.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) icon.className = 'fa-solid fa-plus text-[10px]';
+            } else {
+                selectedCareKit.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) icon.className = 'fa-solid fa-check text-[10px]';
+                showToast('Aggiunto al tuo Kit Cibo & Movimento!');
+            }
+            document.getElementById('careKitCountBadge').textContent = selectedCareKit.size;
+            renderCareKitSummary();
+        }
+
+        function renderCareKitSummary() {
+            const container = document.getElementById('careKitSummaryContainer');
+            const customMeals = (document.getElementById('customEmergencyMealNote')?.value || '').trim();
+
+            const selectedObstacles = Array.from(document.querySelectorAll('.obstacle-food.active-obstacle')).map(el => el.textContent.trim());
+            const selectedAllies = Array.from(document.querySelectorAll('.ally-food.active-ally')).map(el => el.textContent.trim());
+
+            const hasTags = selectedObstacles.length > 0 || selectedAllies.length > 0;
+
+            if (selectedCareKit.size === 0 && !customMeals && !hasTags) {
+                container.innerHTML = `<em>Non hai ancora selezionato elementi per il tuo Kit. Tocca i pulsanti "+ Aggiungi al mio Kit" o i tag Alleati/Ostacoli negli spazi precedenti.</em>`;
+                return;
+            }
+
+            let html = '<div class="space-y-4">';
+
+            if (selectedCareKit.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedCareKit.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-emerald-200 shadow-sm">
+                            <i class="fa-solid fa-leaf text-emerald-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (hasTags) {
+                html += `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bg-rose-50/70 p-3 rounded-xl border border-rose-200 text-xs">
+                            <strong class="text-rose-900 uppercase tracking-wider block text-[10px] mb-1">Ostacoli Alimentari Individuati:</strong>
+                            <span class="text-slate-700">${selectedObstacles.length ? selectedObstacles.join(' • ') : '<em>-</em>'}</span>
+                        </div>
+                        <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-xs">
+                            <strong class="text-emerald-900 uppercase tracking-wider block text-[10px] mb-1">Alleati Alimentari Scelti:</strong>
+                            <span class="text-slate-700">${selectedAllies.length ? selectedAllies.join(' • ') : '<em>-</em>'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (customMeals) {
+                html += `
+                    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                        <strong class="uppercase tracking-wider block text-[10px] text-amber-800 mb-0.5">I Miei Pasti Salvavita a Zero Passaggi:</strong>
+                        "${escapeHtml(customMeals)}"
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Gestione Scenari (Spazio 4)
+        function checkCareQuiz(num, isFunctional, btnEl) {
+            document.querySelectorAll(`.cquiz-btn-${num}`).forEach(b => {
+                b.classList.remove('ring-2', 'ring-emerald-600', 'ring-rose-500', 'bg-emerald-50', 'bg-rose-50');
+            });
+
+            const fb = document.getElementById(`cquiz-fb-${num}`);
+            fb.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'bg-amber-50', 'border-amber-300', 'text-amber-950');
+
+            if (isFunctional) {
+                btnEl.classList.add('ring-2', 'ring-emerald-600', 'bg-emerald-50');
+                fb.classList.add('bg-emerald-50', 'border', 'border-emerald-300', 'text-emerald-950');
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> <strong>Scelta Ecologica e Sostenibile!</strong> Abbassare l'attrito esecutivo e abbandonare il perfezionismo del "Tutto o Niente" ti permette di prenderti cura del corpo anche nelle giornate più piene.`;
+            } else {
+                btnEl.classList.add('ring-2', 'ring-rose-500', 'bg-rose-50');
+                fb.classList.add('bg-amber-50', 'border', 'border-amber-300', 'text-amber-950');
+                fb.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-600 mr-1"></i> <strong>Attenzione alla Trappola del Perfezionismo:</strong> Pretendere standard rigidi quando si è stanchi porta a rinunciare del tutto. Prova l'altra opzione!`;
+            }
+        }
+
+        // Esportazione PDF con tutti gli spazi e i livelli aperti
+        function exportFullStaticPDF() {
+            renderCareKitSummary();
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_14_Cura_di_Se_Alimentazione_Sostenibile_e_Movimento.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 14 scaricato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

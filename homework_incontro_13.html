@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 13 - Cura di Sé (Sonno e Rampa di Atterraggio)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .space-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .space-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-problem {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+        }
+        .selectable-chip.active-action {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-outcome {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+        .selectable-chip.active-ally {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-obstacle {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli spazi aperti e statici)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .space-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .space-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-indigo-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Panoramico Area V (Palette Notturna) -->
+    <header class="bg-gradient-to-r from-slate-950 via-indigo-950 to-teal-900 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-moon text-amber-300 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200 font-bold">Homework • Modulo 13</span>
+                        <span class="text-[11px] text-indigo-200 hidden sm:inline">• Area V: Cura di Sé (Parte 1 - Sonno)</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold mt-0.5">Il Mio Ritmo Sonno-Veglia, gli Alleati e la Rampa di Atterraggio</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-indigo-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Spazi -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="goToSpace(1)" id="nav-space-1" class="space-nav-btn bg-indigo-900 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-bed"></i> 1. Problema & Azione
+                </button>
+                <button onclick="goToSpace(2)" id="nav-space-2" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-scale-balanced"></i> 2. Alleati vs Ostacoli
+                </button>
+                <button onclick="goToSpace(3)" id="nav-space-3" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-plane-arrival"></i> 3. Rampa in 3 Scalini
+                </button>
+                <button onclick="goToSpace(4)" id="nav-space-4" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> 4. Card Notte & PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-indigo-950 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-indigo-900">Programma Clinico Modulare di Psicoeducazione • Modulo 13</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 13: Cura di Sé (Parte 1 - Sonno e Rampa Serale)</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Migliarese et al. (2023) • Kooij et al. (2019) • Bijlenga et al. (2019) • Baker & Richdale (2015).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Guida Anti-Perfezionismo -->
+        <div class="bg-indigo-50/90 border border-indigo-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-800 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-moon"></i>
+            </span>
+            <div class="text-xs md:text-sm text-indigo-950 leading-relaxed flex-1">
+                <strong class="font-bold">Accompagnare il sonno con dolcezza, senza forzature:</strong> 
+                Non serve rivoluzionare i tuoi orari di due ore da un giorno all'altro. Scegli <strong>un solo aspetto specifico del tuo ritmo sonno-veglia</strong> su cui fare un piccolo esperimento gentile in questa settimana, osservando cosa ti aiuta (<em>Alleati</em>) e cosa ti tiene sveglio/a (<em>Ostacoli</em>).
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Bussola 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 13 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-indigo-900 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-indigo-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-indigo-800"></i> I 3 Pilastri del Riposo Serale
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. La Rampa di Atterraggio</div>
+                    <p class="text-slate-600 text-xs">Il cervello non ha un interruttore On/Off: abbassare le luci e passare a stimoli passivi e familiari 45–60 min prima aiuta la melatonina a salire.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Contro la "Rivincita Notturna"</div>
+                    <p class="text-slate-600 text-xs">Ritagliarsi 30 minuti di tempo libero e piacevole già nel tardo pomeriggio evita di dover restare svegli fino alle 2 di notte per avere "tempo per sé".</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Ancora Auditiva & Risveglio</div>
+                    <p class="text-slate-600 text-xs">Usare un audiolibro familiare con timer di spegnimento per spegnere i pensieri a letto, e preparare acqua, luce e vestiti per facilitare il risveglio.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             SPAZIO 1: CURA DI SÉ (PARTE 1 - SONNO): PROBLEMA -> COMPITO -> ESITO
+             ========================================================================= -->
+        <section id="space-1" class="space-section active space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-indigo-900">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-800">Spazio 1 • Dal Problema all'Azione Pratica</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Scegliere un Aspetto del Ritmo Sonno-Veglia su Cui Migliorare</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Identifica una problematica specifica relativa al tuo sonno e abbina almeno un'azione concreta da sperimentare in questi giorni.
+                    </p>
+                </div>
+
+                <!-- 1. PROBLEMA -->
+                <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3">
+                    <label class="block text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <i class="fa-solid fa-moon text-indigo-700"></i> 1. PROBLEMA: Identifica e scegli una problematica del ritmo sonno-veglia
+                    </label>
+                    <p class="text-xs text-slate-600">Tocca l'aspetto che ti crea più fatica in questo periodo:</p>
+                    <div class="flex flex-wrap gap-2" id="sleep-problem-chips">
+                        <button type="button" onclick="toggleChip(this, 'sleepProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Ritardare continuamente il momento in cui vado a letto ("Rivincita notturna" o iper-focus serale)</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Difficoltà ad addormentarmi perché la mente continua a correre nel buio</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Irrequietezza fisica a letto, fastidio per lenzuola/caldo o frequenti risvegli notturni</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Fatica estrema ad alzarmi al mattino (spegnere tante sveglie e partire già in ritardo)</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Rimanere bloccato/a sul divano con lo smartphone fino a notte fonda</button>
+                    </div>
+                    <textarea id="sleepProblemCustomText" oninput="saveData()" rows="2" placeholder="Descrivi brevemente come si manifesta questo problema nella tua settimana (opzionale)..." class="w-full rounded-xl border border-indigo-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-indigo-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 2. COMPITO / AZIONE -->
+                <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
+                    <label class="block text-sm font-bold text-amber-950 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i> 2. COMPITO: Individua almeno un'azione che potresti attuare per migliorare questo aspetto
+                    </label>
+                    <p class="text-xs text-slate-600">Scegli una o due strategie pratiche tra quelle esplorate nel Modulo 13:</p>
+                    <div class="flex flex-wrap gap-2" id="sleep-action-chips">
+                        <button type="button" onclick="toggleChip(this, 'sleepActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Abbassare le luci di casa (passando a luci calde soffuse) 60 minuti prima di andare a letto</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Sostituire lo scrolling sui social/videogiochi con uno stimolo passivo e familiare (audiolibro, serie già nota)</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Mettere una sveglia serale gentile che mi segnali di iniziare la "Rampa di Atterraggio"</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Evitare caffè, tè o bevande stimolanti dal pomeriggio in poi</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Fare una doccia calda serale e mantenere la camera da letto fresca e completamente buia</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Preparare la sera prima i vestiti e un bicchiere d'acqua sul comodino per facilitare il risveglio</button>
+                    </div>
+                    <textarea id="sleepActionCustomText" oninput="saveData()" rows="2" placeholder="Specifica qui l'azione concreta che hai deciso di mettere in atto..." class="w-full rounded-xl border border-amber-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 3. ESITO DELL'AZIONE -->
+                <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3">
+                    <label class="block text-sm font-bold text-teal-950 flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check text-teal-600"></i> 3. ESITO DELL'AZIONE: Ora mettila in atto! Sei riuscita/o?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="sleep-outcome-chips">
+                        <button type="button" onclick="toggleChip(this, 'sleepOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">Sì, nelle sere in cui l'ho applicata ho preso sonno più facilmente e con meno pensieri</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">In parte: sono riuscito/a a provarla per 2–3 sere, mentre in altre ho fatto più fatica a staccare</button>
+                        <button type="button" onclick="toggleChip(this, 'sleepOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">Non ancora con continuità, ma ho individuato chiaramente quali ostacoli mi tengono sveglio/a</button>
+                    </div>
+                    <input type="text" id="sleepOutcomeNotes" oninput="saveData()" placeholder="Come ti sei sentito/a al mattino dopo aver provato questa azione?..." class="w-full rounded-xl border border-teal-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="bg-indigo-900 hover:bg-indigo-950 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa alle Valutazioni (Alleati vs Ostacoli) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 2: VALUTAZIONI (QUESTI SONO I TUOI ALLEATI VS QUESTI SONO I TUOI OSTACOLI) & IPOTESI
+             ========================================================================= -->
+        <section id="space-2" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-teal-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-800">Spazio 2 • Valutazioni e Ipotesi</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Riconosci i Tuoi "Alleati" e i Tuoi "Ostacoli" del Sonno</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Cerca di riconoscere gli elementi che in questa settimana hanno favorito il tuo ritmo sonno-veglia e quelli che invece lo hanno ostacolato.
+                    </p>
+                </div>
+
+                <!-- Tabella a 2 Colonne: ALLEATI vs OSTACOLI -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Colonna Sinistra: QUESTI SONO I TUOI ALLEATI -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Questi sono i tuoi ALLEATI
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">Elementi che hanno favorito il ritmo sonno-veglia:</h3>
+                            <p class="text-xs text-slate-500 mb-2.5">(Situazione tranquilla, spegnimento del cellulare, buio sufficiente, ecc.)</p>
+                            <div class="flex flex-wrap gap-1.5" id="sleep-allies-chips">
+                                <button type="button" onclick="toggleChip(this, 'sleepAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Situazione serale tranquilla e luci basse soffuse</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Spegnimento delle notifiche o cellulare lasciato fuori portata</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Buio completo (tapparelle/mascherina) e stanza fresca</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Audiolibro familiare, podcast calmo o rumore della pioggia con timer</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Aver scaricato su carta le cose da fare domani prima di mettermi a letto</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Doccia calda serale o uso della coperta ponderata</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-emerald-200/60">
+                            <label class="block text-xs font-bold text-emerald-950 mb-1">Altri tuoi Alleati del sonno notati:</label>
+                            <textarea id="sleepAlliesOtherText" oninput="saveData()" rows="2" placeholder="Annota qui cos'altro ti ha aiutato a dormire o a svegliarti meglio..." class="w-full rounded-lg border border-emerald-200 bg-white p-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Colonna Destra: QUESTI SONO I TUOI OSTACOLI -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Questi sono i tuoi OSTACOLI
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">Elementi che hanno ostacolato il ritmo sonno-veglia:</h3>
+                            <p class="text-xs text-slate-500 mb-2.5">(Notifiche sul cellulare, videogiochi attivanti, iper-focus serale, ecc.)</p>
+                            <div class="flex flex-wrap gap-1.5" id="sleep-obstacles-chips">
+                                <button type="button" onclick="toggleChip(this, 'sleepObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Notifiche sul cellulare o scrolling infinito di video brevi a letto</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Videogiochi attivanti, lavoro al PC o studio fino a tarda sera</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Iniziare un nuovo progetto o riordino alle 22:30 ("Secondo vento")</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Non aver avuto un minuto di tempo libero durante il giorno ("Rivincita notturna")</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Caffè/bevande energetiche nel pomeriggio o cena troppo tardi/pesante</button>
+                                <button type="button" onclick="toggleChip(this, 'sleepObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Discussioni emotive serali o stanza troppo calda/rumorosa</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-rose-200/60">
+                            <label class="block text-xs font-bold text-rose-950 mb-1">Altri tuoi Ostacoli del sonno notati:</label>
+                            <textarea id="sleepObstaclesOtherText" oninput="saveData()" rows="2" placeholder="Annota qui cos'altro ha disturbato il tuo riposo..." class="w-full rounded-lg border border-rose-200 bg-white p-2 text-xs text-slate-800 focus:border-rose-600 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- IPOTESI DI MIGLIORAMENTO -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                    <label class="block text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> IPOTESI: Cerca di ridurre i tuoi Ostacoli. Come potresti farlo nei prossimi giorni?
+                    </label>
+                    <p class="text-xs text-slate-600">
+                        Ipotizza un'azione concreta e sostenibile per disinnescare il tuo ostacolo principale (es. mettere il caricabatterie del telefono su un mobile lontano dal letto e lasciare sul comodino solo gli auricolari con l'audiolibro già pronto):
+                    </p>
+                    <textarea id="sleepHypothesisText" oninput="saveData()" rows="2" placeholder="Scrivi qui la tua ipotesi pratica da confrontare nel prossimo incontro..." class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-indigo-600 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(3)" class="bg-indigo-900 hover:bg-indigo-950 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa allo Spazio 3: Costruisci la Tua Rampa Serale <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 3: IL COSTRUTTORE DELLA MIA "RAMPA DI ATTERRAGGIO IN 3 SCALINI"
+             ========================================================================= -->
+        <section id="space-3" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-amber-500">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Spazio 3 • Progettare il Tuo Rituale di Decompressione</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Disegna la Tua "Rampa di Atterraggio Serale" in 3 Scalini</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Clicca sui modelli rapidi qui sotto (o personalizzali) per creare una sequenza semplice che accompagni il tuo sistema nervoso dalla veglia al riposo:
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Scalino 1: -60 Minuti -->
+                    <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-2.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-amber-900">
+                            <i class="fa-solid fa-lightbulb mr-1"></i> Scalino 1 (Circa 60 min prima): Il Segnale Luminoso e di Chiusura Giornata
+                        </label>
+                        <div class="flex flex-wrap gap-1.5 no-print">
+                            <button type="button" onclick="setRampField('rampStep1Input', 'Spengo le luci grandi fredde, accendo solo una lampada calda soffusa e scrivo sull\'agenda le 2 cose di domani per svuotare la testa.')" class="px-2.5 py-1 rounded-lg bg-white border border-amber-300 hover:border-amber-600 text-[11px] text-slate-700">
+                                Modello A: Luci calde + Svuota-mente sull'agenda
+                            </button>
+                            <button type="button" onclick="setRampField('rampStep1Input', 'Chiudo computer e videogiochi, faccio una doccia calda per sciogliere la tensione fisica e metto il pigiama comodo.')" class="px-2.5 py-1 rounded-lg bg-white border border-amber-300 hover:border-amber-600 text-[11px] text-slate-700">
+                                Modello B: Stop PC + Doccia calda rilassante
+                            </button>
+                        </div>
+                        <input type="text" id="rampStep1Input" oninput="saveData()" placeholder="Cosa fai nel tuo Scalino 1 per segnalare al cervello che la giornata lavorativa è finita?..." class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none">
+                    </div>
+
+                    <!-- Scalino 2: -30 Minuti -->
+                    <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-2.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-indigo-900">
+                            <i class="fa-solid fa-couch mr-1"></i> Scalino 2 (Circa 30 min prima): Tempo Libero "Passivo e Familiare"
+                        </label>
+                        <div class="flex flex-wrap gap-1.5 no-print">
+                            <button type="button" onclick="setRampField('rampStep2Input', 'Metto il telefono in carica lontano dal letto e guardo un episodio di una serie TV che conosco già a memoria (o leggo qualche pagina).')" class="px-2.5 py-1 rounded-lg bg-white border border-indigo-300 hover:border-indigo-600 text-[11px] text-slate-700">
+                                Modello A: Serie/Libro familiare senza scrolling
+                            </button>
+                            <button type="button" onclick="setRampField('rampStep2Input', 'Preparo i vestiti per domani e il bicchiere d\'acqua sul comodino, poi mi concedo 20 minuti di relax in penombra.')" class="px-2.5 py-1 rounded-lg bg-white border border-indigo-300 hover:border-indigo-600 text-[11px] text-slate-700">
+                                Modello B: Preparo il mattino + Relax in penombra
+                            </button>
+                        </div>
+                        <input type="text" id="rampStep2Input" oninput="saveData()" placeholder="Quale attività calma e piacevole sostituisce lo scrolling interattivo?..." class="w-full rounded-xl border border-indigo-300 bg-white px-3.5 py-2 text-xs md:text-sm text-slate-800 focus:border-indigo-600 focus:outline-none">
+                    </div>
+
+                    <!-- Scalino 3: A Letto & Risveglio -->
+                    <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-2.5">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-teal-900">
+                            <i class="fa-solid fa-headphones mr-1"></i> Scalino 3 (A Letto al Buio + Risveglio Mattutino): L'Ancora Sensoriale
+                        </label>
+                        <div class="flex flex-wrap gap-1.5 no-print">
+                            <button type="button" onclick="setRampField('rampStep3Input', 'A letto avvio un audiolibro/podcast calmo con timer di spegnimento a 20 minuti; al mattino uso solo 2 sveglie e bevo subito l\'acqua sul comodino.')" class="px-2.5 py-1 rounded-lg bg-white border border-teal-300 hover:border-teal-600 text-[11px] text-slate-700">
+                                Modello A: Audiolibro con timer + Acqua al risveglio
+                            </button>
+                            <button type="button" onclick="setRampField('rampStep3Input', 'Stanza fresca, mascherina per il buio o coperta ponderata e suono della pioggia/rumore marrone per spegnere il flusso dei pensieri.')" class="px-2.5 py-1 rounded-lg bg-white border border-teal-300 hover:border-teal-600 text-[11px] text-slate-700">
+                                Modello B: Coperta ponderata + Rumore della pioggia
+                            </button>
+                        </div>
+                        <input type="text" id="rampStep3Input" oninput="saveData()" placeholder="Quale ancora uditiva o tattile ti accompagna nel sonno e facilita il risveglio?..." class="w-full rounded-xl border border-teal-300 bg-white px-3.5 py-2 text-xs md:text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- 2 Cursori Rapidi di Autovalutazione -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-plane-arrival text-indigo-700"></i> 1. Rispetto della Mia Rampa di Decompressione
+                            </label>
+                            <span id="rampScoreLabel" class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="rampScoreSlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-indigo-700 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>1 (Frenata brusca a mezzanotte)</span>
+                            <span>10 (Discesa graduale di luci e stimoli)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-battery-three-quarters text-teal-600"></i> 2. Qualità del Riposo e Riavvio Mattutino
+                            </label>
+                            <span id="restQualityLabel" class="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">6 / 10</span>
+                        </div>
+                        <input type="range" id="restQualitySlider" min="1" max="10" value="6" oninput="updateSliders()" class="w-full accent-teal-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>1 (Sonno agitato e risveglio pesante)</span>
+                            <span>10 (Sonno più ristoratore e risveglio fluido)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(4)" class="bg-indigo-900 hover:bg-indigo-950 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera la Card Notturna e il PDF <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 4: LA CARD NOTTURNA DI ATTERRAGGIO ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="space-4" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • Confronto Terapeutico</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">La Tua "Card Notturna di Atterraggio" e Report in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutte le sezioni aperte oppure la sintesi con la tua Card dei 3 Scalini Serali.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-indigo-900 hover:bg-indigo-950 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica la Card Notturna e la sintesi">
+                            <i class="fa-solid fa-moon"></i> PDF Card + Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-indigo-800"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-700 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-indigo-950 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-indigo-900">Percorso Modulare di Psicoeducazione • Modulo 13</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 13: Cura di Sé (Parte 1 - Sonno e Rampa Serale)</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- SCHEDA VISIVA: LA CARD NOTTURNA DELLA RAMPA DI ATTERRAGGIO IN 3 SCALINI -->
+                    <div id="nightLandingCard" class="rounded-2xl bg-gradient-to-r from-slate-950 via-indigo-950 to-teal-900 text-white p-5 shadow-md space-y-3">
+                        <!-- Popolata dinamicamente via JS -->
+                    </div>
+
+                    <!-- Contenuto analitico degli Spazi 1 e 2 -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Migliarese et al. (2023) • Kooij et al. (2019) • Bijlenga et al. (2019) • Baker & Richdale (2015)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToSpace(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_13_general_v1';
+
+        let appState = {
+            patientName: '',
+            sleepProblems: [],
+            sleepProblemCustomText: '',
+            sleepActions: [],
+            sleepActionCustomText: '',
+            sleepOutcomes: [],
+            sleepOutcomeNotes: '',
+            sleepAllies: [],
+            sleepAlliesOtherText: '',
+            sleepObstacles: [],
+            sleepObstaclesOtherText: '',
+            sleepHypothesisText: '',
+            rampStep1Input: '',
+            rampStep2Input: '',
+            rampStep3Input: '',
+            rampScoreLevel: 6,
+            restQualityLevel: 6
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToSpace(spaceNum) {
+            document.querySelectorAll('.space-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`space-${spaceNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-space-${i}`);
+                if (i === spaceNum) {
+                    btn.className = 'space-nav-btn bg-indigo-900 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (spaceNum === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-problem', 'active-action', 'active-outcome', 'active-ally', 'active-obstacle');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function setRampField(inputId, textValue) {
+            document.getElementById(inputId).value = textValue;
+            saveData();
+            showToast('Scalino salvato nella tua Rampa di Atterraggio!');
+        }
+
+        function updateSliders() {
+            const rVal = document.getElementById('rampScoreSlider').value;
+            const qVal = document.getElementById('restQualitySlider').value;
+
+            document.getElementById('rampScoreLabel').textContent = `${rVal} / 10`;
+            document.getElementById('restQualityLabel').textContent = `${qVal} / 10`;
+
+            appState.rampScoreLevel = rVal;
+            appState.restQualityLevel = qVal;
+            saveData();
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.sleepProblemCustomText = document.getElementById('sleepProblemCustomText').value;
+            appState.sleepActionCustomText = document.getElementById('sleepActionCustomText').value;
+            appState.sleepOutcomeNotes = document.getElementById('sleepOutcomeNotes').value;
+            appState.sleepAlliesOtherText = document.getElementById('sleepAlliesOtherText').value;
+            appState.sleepObstaclesOtherText = document.getElementById('sleepObstaclesOtherText').value;
+            appState.sleepHypothesisText = document.getElementById('sleepHypothesisText').value;
+            appState.rampStep1Input = document.getElementById('rampStep1Input').value;
+            appState.rampStep2Input = document.getElementById('rampStep2Input').value;
+            appState.rampStep3Input = document.getElementById('rampStep3Input').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('sleepProblemCustomText').value = appState.sleepProblemCustomText || '';
+            document.getElementById('sleepActionCustomText').value = appState.sleepActionCustomText || '';
+            document.getElementById('sleepOutcomeNotes').value = appState.sleepOutcomeNotes || '';
+            document.getElementById('sleepAlliesOtherText').value = appState.sleepAlliesOtherText || '';
+            document.getElementById('sleepObstaclesOtherText').value = appState.sleepObstaclesOtherText || '';
+            document.getElementById('sleepHypothesisText').value = appState.sleepHypothesisText || '';
+            document.getElementById('rampStep1Input').value = appState.rampStep1Input || '';
+            document.getElementById('rampStep2Input').value = appState.rampStep2Input || '';
+            document.getElementById('rampStep3Input').value = appState.rampStep3Input || '';
+
+            document.getElementById('rampScoreSlider').value = appState.rampScoreLevel ?? 6;
+            document.getElementById('restQualitySlider').value = appState.restQualityLevel ?? 6;
+            document.getElementById('rampScoreLabel').textContent = `${appState.rampScoreLevel ?? 6} / 10`;
+            document.getElementById('restQualityLabel').textContent = `${appState.restQualityLevel ?? 6} / 10`;
+
+            restoreChipGroup('sleep-problem-chips', appState.sleepProblems, 'active-problem');
+            restoreChipGroup('sleep-action-chips', appState.sleepActions, 'active-action');
+            restoreChipGroup('sleep-outcome-chips', appState.sleepOutcomes, 'active-outcome');
+            restoreChipGroup('sleep-allies-chips', appState.sleepAllies, 'active-ally');
+            restoreChipGroup('sleep-obstacles-chips', appState.sleepObstacles, 'active-obstacle');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const landingCard = document.getElementById('nightLandingCard');
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const s1 = appState.rampStep1Input
+                ? escapeHtml(appState.rampStep1Input)
+                : 'Abbassare le luci di casa (luci calde soffuse), chiudere le attività attivanti e appuntare sull\'agenda le cose di domani.';
+            const s2 = appState.rampStep2Input
+                ? escapeHtml(appState.rampStep2Input)
+                : 'Mettere il telefono in carica lontano dal letto e passare a un contenuto calmo, passivo e già familiare.';
+            const s3 = appState.rampStep3Input
+                ? escapeHtml(appState.rampStep3Input)
+                : 'Usare un audiolibro con timer di spegnimento (o rumore bianco/marrone) e preparare acqua e abiti per un risveglio dolce.';
+
+            // 1. Popola la Card Notturna della Rampa di Atterraggio
+            landingCard.innerHTML = `
+                <div class="flex items-center justify-between border-b border-white/15 pb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-widest text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-plane-arrival"></i> La Mia Rampa di Atterraggio Serale in 3 Scalini
+                    </span>
+                    <span class="text-[11px] text-indigo-200">Cura di Sé • Sonno</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-amber-200 uppercase text-[10px] tracking-wider block mb-1">1. -60 Min (Luci & Chiusura):</strong>
+                        <p class="text-white leading-relaxed">${s1}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-indigo-200 uppercase text-[10px] tracking-wider block mb-1">2. -30 Min (Passivo Familiare):</strong>
+                        <p class="text-white leading-relaxed">${s2}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-teal-200 uppercase text-[10px] tracking-wider block mb-1">3. A Letto & Risveglio:</strong>
+                        <p class="text-white leading-relaxed">${s3}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Popola il Report degli Spazi 1 e 2
+            const probs = appState.sleepProblems.length ? appState.sleepProblems.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const acts = appState.sleepActions.length ? appState.sleepActions.join(' • ') : '<em>Nessuna azione selezionata</em>';
+            const outc = appState.sleepOutcomes.length ? appState.sleepOutcomes.join(' • ') : '<em>Non specificato</em>';
+            const allies = appState.sleepAllies.length ? appState.sleepAllies.join(' • ') : '<em>Nessun alleato selezionato</em>';
+            const obsts = appState.sleepObstacles.length ? appState.sleepObstacles.join(' • ') : '<em>Nessun ostacolo selezionato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-900">1. Problema, Compito ed Esito sul Ritmo Sonno-Veglia</div>
+                    <p><strong class="text-indigo-800">Problematica scelta:</strong> ${probs}</p>
+                    ${appState.sleepProblemCustomText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.sleepProblemCustomText)}"</p>` : ''}
+                    <p><strong class="text-amber-800">Compito / Azione attuata:</strong> ${acts}</p>
+                    ${appState.sleepActionCustomText ? `<p class="text-amber-950 bg-amber-50 p-2 rounded-lg border border-amber-200 text-xs"><strong>Dettaglio azione:</strong> ${escapeHtml(appState.sleepActionCustomText)}</p>` : ''}
+                    <p><strong class="text-teal-800">Esito dell'azione:</strong> ${outc} ${appState.sleepOutcomeNotes ? `(${escapeHtml(appState.sleepOutcomeNotes)})` : ''}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">2. Valutazioni (Alleati vs Ostacoli) e Ipotesi</div>
+                    <p><strong class="text-emerald-700">I miei ALLEATI del sonno:</strong> ${allies} ${appState.sleepAlliesOtherText ? `• ${escapeHtml(appState.sleepAlliesOtherText)}` : ''}</p>
+                    <p><strong class="text-rose-700">I miei OSTACOLI del sonno:</strong> ${obsts} ${appState.sleepObstaclesOtherText ? `• ${escapeHtml(appState.sleepObstaclesOtherText)}` : ''}</p>
+                    ${appState.sleepHypothesisText ? `<p class="text-slate-800 bg-white p-2.5 rounded-lg border border-slate-200 text-xs"><strong>Ipotesi per ridurre gli ostacoli:</strong> "${escapeHtml(appState.sleepHypothesisText)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Rispetto della Rampa di Decompressione</span>
+                                <span class="text-indigo-800 font-bold">${appState.rampScoreLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-indigo-700 h-2 rounded-full" style="width: ${appState.rampScoreLevel * 10}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Qualità del Riposo e Riavvio Mattutino</span>
+                                <span class="text-teal-700 font-bold">${appState.restQualityLevel} / 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-teal-600 h-2 rounded-full" style="width: ${appState.restQualityLevel * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_13_Card_Sonno_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF Card Notturna scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_13_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 13: CURA DI SÉ (PARTE 1 - SONNO E RAMPA SERALE) ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. PROBLEMA, COMPITO ED ESITO",
+                "• Problematica scelta: " + (appState.sleepProblems.join(', ') || '-'),
+                appState.sleepProblemCustomText ? "• Contesto: " + appState.sleepProblemCustomText : null,
+                "• Azione attuata: " + (appState.sleepActions.join(', ') || '-'),
+                appState.sleepActionCustomText ? "• Dettaglio azione: " + appState.sleepActionCustomText : null,
+                "• Esito: " + (appState.sleepOutcomes.join(', ') || '-'),
+                "",
+                "2. VALUTAZIONI (ALLEATI VS OSTACOLI) E IPOTESI",
+                "• I miei ALLEATI del sonno: " + (appState.sleepAllies.join(', ') || '-'),
+                "• I miei OSTACOLI del sonno: " + (appState.sleepObstacles.join(', ') || '-'),
+                appState.sleepHypothesisText ? "• Ipotesi per ridurre gli ostacoli: " + appState.sleepHypothesisText : null,
+                "",
+                "3. LA MIA RAMPA DI ATTERRAGGIO IN 3 SCALINI",
+                appState.rampStep1Input ? "• Scalino 1 (-60 min): " + appState.rampStep1Input : null,
+                appState.rampStep2Input ? "• Scalino 2 (-30 min): " + appState.rampStep2Input : null,
+                appState.rampStep3Input ? "• Scalino 3 (A letto & Risveglio): " + appState.rampStep3Input : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                sleepProblems: [],
+                sleepProblemCustomText: '',
+                sleepActions: [],
+                sleepActionCustomText: '',
+                sleepOutcomes: [],
+                sleepOutcomeNotes: '',
+                sleepAllies: [],
+                sleepAlliesOtherText: '',
+                sleepObstacles: [],
+                sleepObstaclesOtherText: '',
+                sleepHypothesisText: '',
+                rampStep1Input: '',
+                rampStep2Input: '',
+                rampStep3Input: '',
+                rampScoreLevel: 6,
+                restQualityLevel: 6
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-problem', 'active-action', 'active-outcome', 'active-ally', 'active-obstacle');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToSpace(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

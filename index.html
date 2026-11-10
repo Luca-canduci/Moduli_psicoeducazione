@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portale di Psicoeducazione - Percorso Modulare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+        }
+        .module-card {
+            transition: all 0.22s ease;
+        }
+        .module-card:not(.locked):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.08);
+            border-color: #a5b4fc;
+        }
+        .locked {
+            opacity: 0.6;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+        }
+        .area-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .area-content.open {
+            max-height: 3000px;
+        }
+        .chevron {
+            transition: transform 0.3s ease;
+        }
+        .area-header.open .chevron {
+            transform: rotate(180deg);
+        }
+        .therapist-chip.selected {
+            background-color: #4f46e5;
+            color: #ffffff;
+            border-color: #4338ca;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+        }
+        .admin-top-banner {
+            background: linear-gradient(90deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            border-bottom: 2px solid #6366f1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di Notifica (Nessun alert browser) -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 transition-all">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- =========================================================================
+         BARRA SUPERIORE MODALITÀ ADMIN (Visibile SOLO a te quando sei autenticato)
+         ========================================================================= -->
+    <div id="adminStickyBar" class="hidden admin-top-banner text-white px-4 py-3 shadow-lg sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div class="flex items-center gap-3">
+                <span class="px-2.5 py-1 rounded-lg bg-indigo-500 text-white text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-user-Astronaut"></i> Modalità Admin (Terapeuta)
+                </span>
+                <p class="text-xs text-indigo-200">
+                    Puoi aprire qualsiasi modulo (anche bloccato) e cliccare su <strong>"Sblocca/Blocca"</strong> direttamente sulle schede per preparare il link del paziente.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                <button onclick="openTherapistModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all">
+                    <i class="fa-solid fa-sliders"></i> Rubrica Pazienti & Generatore Link
+                </button>
+                <button onclick="copyQuickPatientLinkFromBar()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all" title="Copia il link per il paziente con i moduli attualmente sbloccati">
+                    <i class="fa-solid fa-share-nodes"></i> Copia Link Paziente
+                </button>
+                <button onclick="exitAdminMode()" class="bg-slate-800 hover:bg-rose-900/80 text-slate-200 hover:text-white border border-slate-600 px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all" title="Torna alla visualizzazione standard che vede il paziente">
+                    <i class="fa-solid fa-eye"></i> Vedi come Paziente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-indigo-800 via-indigo-700 to-teal-700 text-white px-6 py-8 shadow-md relative overflow-hidden">
+        <i class="fa-solid fa-brain absolute -right-8 -bottom-8 text-9xl text-white opacity-10 pointer-events-none"></i>
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
+            <div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm text-xs font-bold uppercase tracking-widest text-indigo-100 flex items-center gap-2">
+                        <i class="fa-solid fa-compass"></i> Spazio Clinico Modulare
+                    </span>
+                    <span id="participantBadge" class="hidden bg-emerald-500/30 border border-emerald-300/40 px-3 py-1 rounded-full text-xs font-bold text-emerald-100">
+                        <i class="fa-solid fa-user-check mr-1"></i> Percorso: <span id="participantNameLabel"></span>
+                    </span>
+                </div>
+                <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight mt-2.5">Il Tuo Percorso di Psicoeducazione</h1>
+                <p class="text-indigo-100 text-sm md:text-base max-w-2xl mt-1 leading-relaxed">
+                    Esplora il tuo funzionamento neurobiologico attraverso schede interattive ed esercizi pratici sbloccati passo dopo passo.
+                </p>
+            </div>
+
+            <!-- Box Statistiche di Progresso -->
+            <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-5 shrink-0 w-full md:w-auto justify-around">
+                <div class="text-center">
+                    <div class="text-[11px] uppercase tracking-wider text-indigo-200 font-semibold">Moduli Attivi</div>
+                    <div class="text-xl md:text-2xl font-extrabold text-white mt-0.5" id="statUnlockedCount">1 / 16</div>
+                </div>
+                <div class="h-8 w-px bg-white/20"></div>
+                <div class="text-center">
+                    <div class="text-[11px] uppercase tracking-wider text-emerald-200 font-semibold">Completati</div>
+                    <div class="text-xl md:text-2xl font-extrabold text-emerald-300 mt-0.5" id="statCompletedCount">0</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto w-full p-4 md:p-6 flex-1 space-y-6 -mt-5 relative z-20">
+        
+        <!-- Barra di Controllo Rapido (Filtro Vista + Sblocco Codice) -->
+        <div class="glass-panel rounded-2xl p-4 md:p-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            
+            <!-- Selettore Modalità di Visualizzazione (Sensory-Friendly) -->
+            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                <button onclick="setViewMode('all')" id="btnViewAll" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all bg-white text-indigo-700 shadow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-layer-group"></i> Mappa Completa (5 Aree)
+                </button>
+                <button onclick="setViewMode('unlocked')" id="btnViewUnlocked" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-500"></i> Solo Moduli Attivi (<span id="unlockedInlineBadge">1</span>)
+                </button>
+            </div>
+
+            <!-- Sblocco Rapido tramite Codice Settimanale -->
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1 sm:w-60">
+                    <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="quickUnlockInput" onkeydown="if(event.key==='Enter') unlockByCode()" placeholder="Codice modulo (es. 2A, 3...)" class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-white text-xs md:text-sm text-slate-800 focus:border-indigo-500 focus:outline-none">
+                </div>
+                <button onclick="unlockByCode()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl text-xs md:text-sm transition-all shrink-0 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-unlock-keyhole"></i> Sblocca
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA 1: SOLO MODULI ATTIVI (Sensory-Friendly, senza lucchetti) -->
+        <div id="focusedUnlockedView" class="hidden space-y-4">
+            <div class="bg-indigo-50/80 border border-indigo-200/80 rounded-2xl p-4 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-star"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-sm md:text-base font-bold text-indigo-950">Vista Focalizzata: I Tuoi Moduli Attivi</h2>
+                        <p class="text-xs text-indigo-800">Qui visualizzi solo le schede e gli homework già sbloccati per il tuo percorso, riducendo le distrazioni visive.</p>
+                    </div>
+                </div>
+            </div>
+            <div id="focusedUnlockedContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- VISTA 2: MAPPA COMPLETA IN 5 AREE TEMATICHE -->
+        <div id="allAreasView" class="space-y-5">
+
+            <!-- AREA I -->
+            <section class="glass-panel rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                <button id="header-area-1" onclick="toggleArea('area-1')" class="area-header w-full bg-slate-100/90 hover:bg-slate-200/70 p-5 flex items-center justify-between transition-colors text-left group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-microscope"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Area I</span>
+                                <span id="badge-area-1" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700"></span>
+                            </div>
+                            <h3 class="text-base md:text-lg font-bold text-slate-800">Psicoinformazione e Profili Fenotipici</h3>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-400 chevron text-lg group-hover:text-indigo-600"></i>
+                </button>
+                <div id="area-1" class="area-content bg-white"><div class="p-4 md:p-5 space-y-3" id="container-area-1"></div></div>
+            </section>
+
+            <!-- AREA II -->
+            <section class="glass-panel rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                <button id="header-area-2" onclick="toggleArea('area-2')" class="area-header w-full bg-slate-100/90 hover:bg-slate-200/70 p-5 flex items-center justify-between transition-colors text-left group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-11 h-11 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-teal-600">Area II</span>
+                                <span id="badge-area-2" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700"></span>
+                            </div>
+                            <h3 class="text-base md:text-lg font-bold text-slate-800">Funzioni Esecutive, Tempo e Spazio</h3>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-400 chevron text-lg group-hover:text-teal-600"></i>
+                </button>
+                <div id="area-2" class="area-content bg-white"><div class="p-4 md:p-5 space-y-3" id="container-area-2"></div></div>
+            </section>
+
+            <!-- AREA III -->
+            <section class="glass-panel rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                <button id="header-area-3" onclick="toggleArea('area-3')" class="area-header w-full bg-slate-100/90 hover:bg-slate-200/70 p-5 flex items-center justify-between transition-colors text-left group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-11 h-11 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-bolt"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-rose-600">Area III</span>
+                                <span id="badge-area-3" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700"></span>
+                            </div>
+                            <h3 class="text-base md:text-lg font-bold text-slate-800">Sensorialità, Emozioni ed Energia</h3>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-400 chevron text-lg group-hover:text-rose-600"></i>
+                </button>
+                <div id="area-3" class="area-content bg-white"><div class="p-4 md:p-5 space-y-3" id="container-area-3"></div></div>
+            </section>
+
+            <!-- AREA IV -->
+            <section class="glass-panel rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                <button id="header-area-4" onclick="toggleArea('area-4')" class="area-header w-full bg-slate-100/90 hover:bg-slate-200/70 p-5 flex items-center justify-between transition-colors text-left group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-comments"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Area IV</span>
+                                <span id="badge-area-4" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"></span>
+                            </div>
+                            <h3 class="text-base md:text-lg font-bold text-slate-800">Relazioni, Comunicazione e Limiti</h3>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-400 chevron text-lg group-hover:text-amber-600"></i>
+                </button>
+                <div id="area-4" class="area-content bg-white"><div class="p-4 md:p-5 space-y-3" id="container-area-4"></div></div>
+            </section>
+
+            <!-- AREA V -->
+            <section class="glass-panel rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                <button id="header-area-5" onclick="toggleArea('area-5')" class="area-header w-full bg-slate-100/90 hover:bg-slate-200/70 p-5 flex items-center justify-between transition-colors text-left group">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-leaf"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Area V</span>
+                                <span id="badge-area-5" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700"></span>
+                            </div>
+                            <h3 class="text-base md:text-lg font-bold text-slate-800">Identità, Cura di Sé e Potenzialità</h3>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-400 chevron text-lg group-hover:text-emerald-600"></i>
+                </button>
+                <div id="area-5" class="area-content bg-white"><div class="p-4 md:p-5 space-y-3" id="container-area-5"></div></div>
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- Footer con Accesso Discreto alla Regia Terapeuta -->
+    <footer class="bg-slate-100 border-t border-slate-200 py-6 mt-12 no-print">
+        <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="text-xs text-slate-500 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-teal-600"></i>
+                <span>Tutti i dati inseriti nelle schede restano salvati esclusivamente in locale sul tuo dispositivo per garantire la privacy.</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="footerAdminBtn" onclick="handleAdminAccessClick()" class="text-xs font-semibold text-slate-400 hover:text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-slate-400"></i> Area Riservata Clinico
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- =========================================================================
+         MODALE PIN DI ACCESSO ADMIN (Protegge la console terapeuta dai pazienti)
+         ========================================================================= -->
+    <div id="adminPinModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-800">Accesso Regia Terapeuta (Admin)</h3>
+                        <p class="text-xs text-slate-500">Area riservata alla gestione clinica dei percorsi</p>
+                    </div>
+                </div>
+                <button onclick="closePinModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-slate-700">Inserisci il PIN Clinico:</label>
+                <input type="password" id="adminPinInput" onkeydown="if(event.key==='Enter') verifyAdminPin()" placeholder="••••" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-center text-lg tracking-widest font-bold text-slate-800 focus:border-indigo-600 focus:outline-none">
+                <p id="pinErrorMsg" class="hidden text-xs text-rose-600 font-semibold text-center">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> PIN non corretto. Riprova.
+                </p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 gap-2">
+                <button onclick="closePinModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold">
+                    Annulla
+                </button>
+                <button onclick="verifyAdminPin()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl text-xs md:text-sm shadow-sm transition-all">
+                    Entra in Modalità Admin <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =========================================================================
+         MODALE "REGIA TERAPEUTA": RUBRICA MULTI-PAZIENTE E GENERATORE LINK
+         ========================================================================= -->
+    <div id="therapistModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto">
+            
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
+                        <i class="fa-solid fa-sliders"></i>
+                    </span>
+                    <div>
+                        <h2 class="text-lg font-bold">Regia Terapeuta (Admin) • Gestione Sblocchi e Link Pazienti</h2>
+                        <p class="text-xs text-slate-400">Seleziona un profilo paziente o i moduli da sbloccare e copia il link pulito per il paziente</p>
+                    </div>
+                </div>
+                <button onclick="closeTherapistModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                
+                <!-- 1. RUBRICA PAZIENTI (Salva lo stato di avanzamento di ogni paziente sul PC del terapeuta) -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-address-book text-indigo-600"></i> 1. Rubrica Percorsi Pazienti (Salvata privatamente sul tuo browser)
+                            </h3>
+                            <p class="text-xs text-slate-500">Salva i profili dei tuoi pazienti per ritrovare subito quali moduli hai sbloccato a ciascuno di settimana in settimana.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 items-center pt-1">
+                        <input type="text" id="newPatientNameInput" placeholder="Iniziali o Nickname Paziente (es. M. R. - Giovedì)" class="flex-1 min-w-[200px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs md:text-sm focus:border-indigo-600 focus:outline-none">
+                        <button onclick="saveCurrentPatientProfile()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-floppy-disk"></i> Salva / Aggiorna Profilo Paziente
+                        </button>
+                    </div>
+
+                    <!-- Lista Pazienti Salvati -->
+                    <div id="savedPatientsList" class="flex flex-wrap gap-2 pt-2">
+                        <!-- Popolato via JS -->
+                    </div>
+                </div>
+
+                <!-- 2. PRESET RAPIDI E GRIGLIA SELEZIONE MODULI -->
+                <div class="space-y-3">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-unlock-keyhole text-teal-600"></i> 2. Clicca sui Moduli da Sbloccare per questo Paziente
+                        </h3>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="applyPreset(['1'])" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium">Solo Mod. 1</button>
+                            <button onclick="applyPreset(['1','2a','3','4'])" class="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-medium">Area I - Percorso 2A</button>
+                            <button onclick="applyPreset(['1','2b','3','4'])" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-medium">Area I - Percorso 2B</button>
+                            <button onclick="applyPreset(['1','2a','3','4','5','6','7','8','9','10','11','12','13','14','15'])" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold">Percorso Completo 2A (1–15)</button>
+                            <button onclick="applyPreset(['1','2b','3','4','5','6','7','8','9','10','11','12','13','14','15'])" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-semibold">Percorso Completo 2B (1–15)</button>
+                            <button onclick="applyPreset(['1','2a','2b','3','4','5','6','7','8','9','10','11','12','13','14','15'])" class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold">Sblocca Tutti (1–15)</button>
+                        </div>
+                    </div>
+
+                    <!-- Griglia interattiva dei 16 moduli (1..15 con 2A/2B) -->
+                    <div id="therapistModuleGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                        <!-- Popolato dinamicamente via JS -->
+                    </div>
+                </div>
+
+                <!-- 3. LINK GENERATO PRONTO DA CONDIVIDERE AL PAZIENTE -->
+                <div class="bg-indigo-950 text-white p-5 rounded-2xl space-y-3">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-link"></i> 3. Link Paziente Generato (Si apre in Vista Paziente pulita)
+                        </span>
+                        <span id="therapistSelectedSummary" class="text-xs text-emerald-300 font-semibold">Moduli attivi: 1</span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="generatedUrlOutput" readonly class="flex-1 rounded-xl bg-slate-900 border border-indigo-700/60 px-3.5 py-2.5 text-xs text-indigo-100 font-mono focus:outline-none">
+                        <button onclick="copyGeneratedLink()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shrink-0 shadow-md transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Link Paziente
+                        </button>
+                        <button onclick="copyWhatsAppMessage()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shrink-0 shadow-md transition-all">
+                            <i class="fa-brands fa-whatsapp text-base"></i> Copia Msg WhatsApp
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-indigo-300 leading-relaxed">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Il link copiato qui sopra <strong>non contiene i permessi Admin</strong>: quando il paziente lo apre, vede solo la sua dashboard pulita con i moduli che hai selezionato.
+                    </p>
+                </div>
+
+                <!-- 4. IMPOSTAZIONI PIN ADMIN E PROMEMORIA GITHUB -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 text-xs space-y-2">
+                        <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-key text-indigo-600"></i> Modifica PIN Clinico Admin
+                        </div>
+                        <p class="text-slate-500 text-[11px]">Puoi personalizzare in qualsiasi momento il codice riservato per l'accesso alla regia clinica su questo dispositivo.</p>
+                        <div class="flex gap-2 pt-1">
+                            <input type="password" id="customAdminPinInput" placeholder="Nuovo PIN" class="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs">
+                            <button onclick="saveCustomAdminPin()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold px-3 py-1.5 rounded-lg text-xs">Aggiorna PIN</button>
+                        </div>
+                    </div>
+
+                    <details class="bg-slate-50 rounded-2xl border border-slate-200 p-4 text-xs">
+                        <summary class="font-bold text-slate-700 cursor-pointer flex items-center justify-between">
+                            <span><i class="fa-brands fa-github text-slate-800 mr-1.5"></i> Nomi File Attivi su GitHub (33 file)</span>
+                            <span class="text-[11px] text-emerald-700 font-semibold">Tutti i Moduli 1–15 Pronti</span>
+                        </summary>
+                        <div class="mt-3 pt-2 border-t border-slate-200 space-y-1 text-slate-600 font-mono text-[11px]">
+                            <div>• <strong>Dashboard:</strong> index.html</div>
+                            <div>• <strong>Mod. 1:</strong> web_app_incontro_1.html + homework_incontro_1.html</div>
+                            <div>• <strong>Mod. 2A:</strong> web_app_incontro_2.html + homework_incontro_2.html</div>
+                            <div>• <strong>Mod. 2B:</strong> web_app_incontro_2b.html + homework_incontro_2b.html</div>
+                            <div>• <strong>Mod. 3–15:</strong> web_app_incontro_[3..15].html + homework_incontro_[3..15].html</div>
+                        </div>
+                    </details>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-100 border-t border-slate-200 px-6 py-3.5 flex flex-wrap justify-between items-center gap-3 shrink-0">
+                <button onclick="resetLocalPortalView()" class="text-xs font-semibold text-rose-600 hover:text-rose-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i> Ripristina Vista Default (Solo Mod. 1)
+                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="applyTherapistSelectionToLocalView()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition-all shadow-sm">
+                        <i class="fa-solid fa-check mr-1"></i> Applica questi Sblocchi sulla Pagina
+                    </button>
+                    <button onclick="closeTherapistModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-2 rounded-xl text-xs transition-all">
+                        Chiudi
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Area di testo nascosta per copia sicura negli appunti -->
+    <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+    <script>
+        /* =========================================================================
+           1. DATABASE COMPLETO DEI 15 MODULI (Inclusi 2A e 2B)
+           ========================================================================= */
+        const moduliData = [
+            // AREA 1
+            { id: '1', area: 1, title: "Comprendere l'ADHD in Età Adulta", desc: "Come funzionano la nostra attenzione e il motore mentale, sfatando i falsi miti più diffusi.", linkMod: "web_app_incontro_1.html", linkHw: "homework_incontro_1.html", ready: true },
+            { id: '2a', area: 1, title: "Profilo Internalizzante, Mascheramento Sociale e Sensi", desc: "Lo sforzo invisibile di adattarsi alle aspettative altrui, la sensibilità agli stimoli e il bisogno di routine.", linkMod: "web_app_incontro_2.html", linkHw: "homework_incontro_2.html", ready: true },
+            { id: '2b', area: 1, title: "Profilo Razionalizzante, Scudo Logico e Sensi", desc: "L'autosufficienza, l'ascolto dei segnali del corpo e il ruolo rigenerante dei propri interessi profondi.", linkMod: "web_app_incontro_2b.html", linkHw: "homework_incontro_2b.html", ready: true },
+            { id: '3', area: 1, title: "L'Intersezione AuDHD e i Paradossi Interni", desc: "Il tiro alla fune tra bisogno di prevedibilità e ricerca di novità, con la Ruota personalizzata dei Sintomi.", linkMod: "web_app_incontro_3.html", linkHw: "homework_incontro_3.html", ready: true },
+            { id: '4', area: 1, title: "Il Percorso di Cura e la Terapia Farmacologica", desc: "Procedere con una priorità alla volta e conoscere in modo chiaro e pratico i farmaci disponibili in Italia.", linkMod: "web_app_incontro_4.html", linkHw: "homework_incontro_4.html", ready: true },
+            
+            // AREA 2
+            { id: '5', area: 2, title: "Organizzazione del Tempo e dello Spazio", desc: "Rendere visibile il tempo, usare un'unica agenda sostenibile e creare ordine nello spazio senza stress.", linkMod: "web_app_incontro_5.html", linkHw: "homework_incontro_5.html", ready: true },
+            { id: '6', area: 2, title: "Paralisi d'Avvio, Procrastinazione e Piccoli Passi", desc: "Superare il blocco dell'inizio e il perfezionismo scomponendo i compiti complessi in azioni da pochi minuti.", linkMod: "web_app_incontro_6.html", linkHw: "homework_incontro_6.html", ready: true },
+            
+            // AREA 3
+            { id: '7', area: 3, title: "Benessere Sensoriale e Ascolto del Corpo", desc: "Riconoscere i segnali precoci di stanchezza e adattare gli ambienti quotidiani per risparmiare energia.", linkMod: "web_app_incontro_7.html", linkHw: "homework_incontro_7.html", ready: true },
+            { id: '8', area: 3, title: "Emozioni Intense, Sensibilità al Giudizio e Pensieri in Loop", desc: "Gestire le onde emotive rapide, il timore di deludere gli altri e il vortice di pensieri a fine giornata.", linkMod: "web_app_incontro_8.html", linkHw: "homework_incontro_8.html", ready: true },
+            { id: '9', area: 3, title: "Prevenire Sovraccarico, Blocchi ed Esaurimento", desc: "Proteggere la propria batteria quotidiana e riconoscere i segnali di Meltdown, Shutdown e Burnout.", linkMod: "web_app_incontro_9.html", linkHw: "homework_incontro_9.html", ready: true },
+            
+            // AREA 4
+            { id: '10', area: 4, title: "Relazioni e Comunicazione: Capirsi Senza Maschere", desc: "Superare i fraintendimenti nei dialoghi e tradurre con semplicità il proprio modo di ascoltare e comunicare.", linkMod: "web_app_incontro_10.html", linkHw: "homework_incontro_10.html", ready: true },
+            { id: '11', area: 4, title: "Autenticità, Confini Personali e Richiesta di Supporto", desc: "Sentirsi liberi di essere se stessi nei contesti sicuri e comunicare i propri limiti di tempo ed energia.", linkMod: "web_app_incontro_11.html", linkHw: "homework_incontro_11.html", ready: true },
+            
+            // AREA 5
+            { id: '12', area: 5, title: "Autostima e Superamento del Senso di Colpa", desc: "Costruire uno sguardo più gentile verso la propria storia lasciando andare la voce critica interiore.", linkMod: "web_app_incontro_12.html", linkHw: "homework_incontro_12.html", ready: true },
+            { id: '13', area: 5, title: "Cura di Sé I: Il Sonno e il Riposo Serale", desc: "Accompagnare la mente verso il riposo rispettando i propri ritmi e creando una routine serale rilassante.", linkMod: "web_app_incontro_13.html", linkHw: "homework_incontro_13.html", ready: true },
+            { id: '14', area: 5, title: "Cura di Sé II: Alimentazione Sostenibile e Movimento", desc: "Semplificare l'organizzazione dei pasti quotidiani e usare il movimento per scaricare la tensione.", linkMod: "web_app_incontro_14.html", linkHw: "homework_incontro_14.html", ready: true },
+            { id: '15', area: 5, title: "Valorizzare i Punti di Forza e Piano per il Futuro", desc: "Coltivare creatività, passioni profonde e costruire il proprio manuale personale di benessere.", linkMod: "web_app_incontro_15.html", linkHw: "homework_incontro_15.html", ready: true }
+        ];
+
+        /* =========================================================================
+           2. STATO DEL PORTALE E MEMORIA LOCALE (PAZIENTE vs ADMIN)
+           ========================================================================= */
+        const STORAGE_UNLOCKED_KEY = 'audhd_portal_unlocked_modules_v2';
+        const STORAGE_COMPLETED_KEY = 'audhd_portal_completed_modules_v2';
+        const STORAGE_PARTICIPANT_KEY = 'audhd_portal_participant_name_v2';
+        const STORAGE_THERAPIST_PATIENTS_KEY = 'audhd_therapist_saved_patients_v2';
+        const STORAGE_ADMIN_MODE_KEY = 'audhd_portal_is_admin_session_v2';
+        const STORAGE_ADMIN_PIN_KEY = 'audhd_portal_custom_admin_pin_v2';
+
+        let unlockedModules = ['1'];
+        let completedModules = [];
+        let participantName = '';
+        let currentViewMode = 'all'; // 'all' oppure 'unlocked'
+        let isAdminMode = false;
+
+        // Stato temporaneo per la Regia Terapeuta
+        let therapistSelectedModules = new Set(['1']);
+        let savedPatients = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStateFromUrlAndStorage();
+            updateAdminUI();
+            renderDashboard();
+            initTherapistModal();
+        });
+
+        function loadStateFromUrlAndStorage() {
+            // 1. Carica ciò che era già salvato nel browser
+            try {
+                const savedUnlocks = JSON.parse(localStorage.getItem(STORAGE_UNLOCKED_KEY));
+                if (Array.isArray(savedUnlocks) && savedUnlocks.length > 0) {
+                    unlockedModules = savedUnlocks;
+                }
+                const savedCompleted = JSON.parse(localStorage.getItem(STORAGE_COMPLETED_KEY));
+                if (Array.isArray(savedCompleted)) {
+                    completedModules = savedCompleted;
+                }
+                const savedName = localStorage.getItem(STORAGE_PARTICIPANT_KEY);
+                if (savedName) participantName = savedName;
+
+                const savedAdmin = sessionStorage.getItem(STORAGE_ADMIN_MODE_KEY);
+                if (savedAdmin === 'true') isAdminMode = true;
+            } catch (e) {
+                console.error('Errore lettura storage:', e);
+            }
+
+            // 2. Legge eventuali parametri dall'URL (?u=1,2a&p=M.R.&admin=1)
+            const params = new URLSearchParams(window.location.search);
+            const urlUnlocks = params.get('u');
+            const urlParticipant = params.get('p');
+            const urlAdmin = params.get('admin');
+
+            if (urlAdmin === '1' || urlAdmin === 'true') {
+                isAdminMode = true;
+                try { sessionStorage.setItem(STORAGE_ADMIN_MODE_KEY, 'true'); } catch (e) {}
+            }
+
+            if (urlParticipant !== null) {
+                participantName = urlParticipant.trim();
+                try { localStorage.setItem(STORAGE_PARTICIPANT_KEY, participantName); } catch (e) {}
+            }
+
+            if (urlUnlocks) {
+                const parsedFromUrl = urlUnlocks
+                    .split(',')
+                    .map(s => s.trim().toLowerCase())
+                    .filter(id => moduliData.some(m => m.id === id));
+
+                if (parsedFromUrl.length > 0) {
+                    unlockedModules = Array.from(new Set(parsedFromUrl));
+                    try {
+                        localStorage.setItem(STORAGE_UNLOCKED_KEY, JSON.stringify(unlockedModules));
+                    } catch (e) {}
+                }
+            }
+
+            therapistSelectedModules = new Set(unlockedModules);
+        }
+
+        /* =========================================================================
+           GESTIONE AUTENTICAZIONE E INTERFACCIA ADMIN vs PAZIENTE
+           ========================================================================= */
+        function handleAdminAccessClick() {
+            if (isAdminMode) {
+                openTherapistModal();
+            } else {
+                document.getElementById('adminPinInput').value = '';
+                document.getElementById('pinErrorMsg').classList.add('hidden');
+                document.getElementById('adminPinModal').classList.remove('hidden');
+                setTimeout(() => document.getElementById('adminPinInput').focus(), 100);
+            }
+        }
+
+        function closePinModal() {
+            document.getElementById('adminPinModal').classList.add('hidden');
+        }
+
+        function getActiveAdminPin() {
+            try {
+                return localStorage.getItem(STORAGE_ADMIN_PIN_KEY) || '2024';
+            } catch (e) {
+                return '2024';
+            }
+        }
+
+        function verifyAdminPin() {
+            const entered = document.getElementById('adminPinInput').value.trim();
+            const expected = getActiveAdminPin();
+
+            if (entered === expected) {
+                isAdminMode = true;
+                try { sessionStorage.setItem(STORAGE_ADMIN_MODE_KEY, 'true'); } catch (e) {}
+                closePinModal();
+                updateAdminUI();
+                renderDashboard();
+                openTherapistModal();
+                showToast('Modalità Admin (Terapeuta) attivata!');
+            } else {
+                document.getElementById('pinErrorMsg').classList.remove('hidden');
+            }
+        }
+
+        function saveCustomAdminPin() {
+            const newPin = document.getElementById('customAdminPinInput').value.trim();
+            if (!newPin || newPin.length < 3) {
+                showToast('Inserisci un PIN di almeno 3 caratteri.');
+                return;
+            }
+            try {
+                localStorage.setItem(STORAGE_ADMIN_PIN_KEY, newPin);
+                document.getElementById('customAdminPinInput').value = '';
+                showToast(`Nuovo PIN Clinico salvato (${newPin})!`);
+            } catch (e) {}
+        }
+
+        function exitAdminMode() {
+            isAdminMode = false;
+            try { sessionStorage.removeItem(STORAGE_ADMIN_MODE_KEY); } catch (e) {}
+            if (window.history && window.history.replaceState) {
+                const params = new URLSearchParams(window.location.search);
+                params.delete('admin');
+                const qs = params.toString();
+                window.history.replaceState({}, document.title, window.location.pathname + (qs ? `?${qs}` : ''));
+            }
+            updateAdminUI();
+            renderDashboard();
+            showToast('Sei passato alla Vista Paziente standard.');
+        }
+
+        function updateAdminUI() {
+            const adminBar = document.getElementById('adminStickyBar');
+            const footerBtn = document.getElementById('footerAdminBtn');
+
+            if (isAdminMode) {
+                adminBar.classList.remove('hidden');
+                if (footerBtn) {
+                    footerBtn.innerHTML = '<i class="fa-solid fa-sliders text-indigo-600"></i> Apri Regia Admin (Attiva)';
+                    footerBtn.className = 'text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-1.5 rounded-xl border border-indigo-200 transition-all flex items-center gap-1.5';
+                }
+            } else {
+                adminBar.classList.add('hidden');
+                if (footerBtn) {
+                    footerBtn.innerHTML = '<i class="fa-solid fa-lock text-slate-400"></i> Area Riservata Clinico';
+                    footerBtn.className = 'text-xs font-semibold text-slate-400 hover:text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 transition-all flex items-center gap-1.5';
+                }
+            }
+        }
+
+        // Permette all'Admin di sbloccare/bloccare un modulo con 1 clic direttamente dalla card nella dashboard
+        function toggleModuleUnlockDirect(modId) {
+            const id = modId.toLowerCase();
+            const idx = unlockedModules.indexOf(id);
+            if (idx > -1) {
+                if (unlockedModules.length === 1) {
+                    showToast('Mantieni almeno un modulo attivo per il paziente.');
+                    return;
+                }
+                unlockedModules.splice(idx, 1);
+                showToast(`Modulo ${id.toUpperCase()} bloccato per il paziente.`);
+            } else {
+                unlockedModules.push(id);
+                showToast(`Modulo ${id.toUpperCase()} sbloccato per il paziente!`);
+            }
+            therapistSelectedModules = new Set(unlockedModules);
+            try {
+                localStorage.setItem(STORAGE_UNLOCKED_KEY, JSON.stringify(unlockedModules));
+            } catch (e) {}
+            renderDashboard();
+            updateGeneratedUrl();
+        }
+
+        function copyQuickPatientLinkFromBar() {
+            therapistSelectedModules = new Set(unlockedModules);
+            updateGeneratedUrl();
+            copyGeneratedLink();
+        }
+
+        /* =========================================================================
+           3. RENDERING DELLA DASHBOARD
+           ========================================================================= */
+        function renderDashboard() {
+            // Intestazione partecipante
+            const pBadge = document.getElementById('participantBadge');
+            const pLabel = document.getElementById('participantNameLabel');
+            if (participantName) {
+                pLabel.textContent = participantName;
+                pBadge.classList.remove('hidden');
+            } else {
+                pBadge.classList.add('hidden');
+            }
+
+            // Statistiche
+            document.getElementById('statUnlockedCount').textContent = `${unlockedModules.length} / ${moduliData.length}`;
+            document.getElementById('statCompletedCount').textContent = completedModules.length;
+            document.getElementById('unlockedInlineBadge').textContent = unlockedModules.length;
+
+            // Svuota contenitori
+            for (let area = 1; area <= 5; area++) {
+                const c = document.getElementById(`container-area-${area}`);
+                if (c) c.innerHTML = '';
+            }
+            const focusedContainer = document.getElementById('focusedUnlockedContainer');
+            focusedContainer.innerHTML = '';
+
+            const areasWithUnlocked = new Set();
+            const areaUnlockedCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            const areaTotalCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+            moduliData.forEach(mod => {
+                areaTotalCounts[mod.area]++;
+                const isUnlocked = unlockedModules.includes(mod.id.toLowerCase());
+                const isCompleted = completedModules.includes(mod.id.toLowerCase());
+
+                if (isUnlocked) {
+                    areasWithUnlocked.add(mod.area);
+                    areaUnlockedCounts[mod.area]++;
+                }
+
+                const cardHTML = buildModuleCardHTML(mod, isUnlocked, isCompleted);
+                const areaContainer = document.getElementById(`container-area-${mod.area}`);
+                if (areaContainer) areaContainer.innerHTML += cardHTML;
+
+                if (isUnlocked) {
+                    focusedContainer.innerHTML += cardHTML;
+                }
+            });
+
+            // Aggiorna contatori di Area e apri automaticamente le aree con moduli attivi (o tutte se in Admin)
+            for (let area = 1; area <= 5; area++) {
+                const badge = document.getElementById(`badge-area-${area}`);
+                if (badge) {
+                    badge.textContent = `${areaUnlockedCounts[area]}/${areaTotalCounts[area]} sbloccati`;
+                }
+                const areaContent = document.getElementById(`area-${area}`);
+                const areaHeader = document.getElementById(`header-area-${area}`);
+                if (areasWithUnlocked.has(area) || (isAdminMode && area === 1)) {
+                    areaContent?.classList.add('open');
+                    areaHeader?.classList.add('open');
+                }
+            }
+        }
+
+        function buildModuleCardHTML(mod, isUnlocked, isCompleted) {
+            const displayId = mod.id.toUpperCase();
+
+            // Interruttore rapido Sblocca/Blocca visibile SOLO in Modalità Admin
+            const adminQuickToggleBtn = isAdminMode
+                ? `<button onclick="toggleModuleUnlockDirect('${mod.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all flex items-center gap-1 ${
+                      isUnlocked
+                          ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-700 shadow-sm'
+                  }" title="Comando Admin: cambia stato di sblocco per il paziente">
+                      <i class="fa-solid ${isUnlocked ? 'fa-lock' : 'fa-unlock'}"></i> ${isUnlocked ? 'Blocca per Paziente' : 'Sblocca per Paziente'}
+                   </button>`
+                : '';
+
+            // Se il modulo è SBLOCCATO per il paziente, oppure se siamo in MODALITÀ ADMIN (l'Admin può sempre aprirlo e testarlo)
+            if (isUnlocked || isAdminMode) {
+                const completedBadge = isUnlocked
+                    ? (isCompleted
+                        ? `<button onclick="toggleCompleteModule('${mod.id}')" class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold flex items-center gap-1 hover:bg-emerald-200 transition-all"><i class="fa-solid fa-circle-check text-emerald-600"></i> Completato</button>`
+                        : `<button onclick="toggleCompleteModule('${mod.id}')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 text-[11px] font-medium flex items-center gap-1 transition-all"><i class="fa-regular fa-circle-check"></i> Segna svolto</button>`)
+                    : `<span class="px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1"><i class="fa-solid fa-eye-slash text-[10px]"></i> Chiuso per il paziente (Visibile a te in Admin)</span>`;
+
+                const modActionBtn = mod.ready
+                    ? `<a href="${mod.linkMod}" class="flex-1 md:flex-initial text-center ${isUnlocked ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-700 hover:bg-slate-800 text-white'} px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5">
+                           <i class="fa-solid fa-book-open"></i> ${isUnlocked ? 'Apri Modulo' : 'Anteprima Modulo'}
+                       </a>`
+                    : `<button onclick="showToast('Questo modulo è in fase di sviluppo: costruiremmo il file ${mod.linkMod} nei prossimi step!')" class="flex-1 md:flex-initial text-center bg-slate-100 text-slate-500 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+                           <i class="fa-solid fa-hourglass-half"></i> Da generare
+                       </button>`;
+
+                const hwActionBtn = mod.ready
+                    ? `<a href="${mod.linkHw}" class="flex-1 md:flex-initial text-center bg-emerald-50 hover:bg-emerald-600 text-emerald-800 hover:text-white border border-emerald-300 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+                           <i class="fa-solid fa-pen-nib"></i> Homework
+                       </a>`
+                    : `<button onclick="showToast('L\\'homework (${mod.linkHw}) verrà generato insieme al modulo!')" class="flex-1 md:flex-initial text-center bg-slate-100 text-slate-400 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+                           <i class="fa-solid fa-pen-nib"></i> Homework
+                       </button>`;
+
+                return `
+                    <div class="module-card bg-white border ${!isUnlocked && isAdminMode ? 'border-dashed border-slate-300 bg-slate-50/70' : (isCompleted ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200')} rounded-2xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-start gap-3.5 flex-1">
+                            <div class="w-11 h-11 rounded-2xl ${!isUnlocked && isAdminMode ? 'bg-slate-200 text-slate-600' : (isCompleted ? 'bg-emerald-600 text-white' : 'bg-indigo-50 text-indigo-700 border border-indigo-200')} flex items-center justify-center font-extrabold shrink-0 text-sm shadow-sm">
+                                ${displayId}
+                            </div>
+                            <div class="space-y-1 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="font-bold text-slate-800 text-sm md:text-base">${mod.title}</h4>
+                                    ${completedBadge}
+                                    ${adminQuickToggleBtn}
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed">${mod.desc}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">
+                            ${modActionBtn}
+                            ${hwActionBtn}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Vista Paziente standard per un modulo ancora bloccato
+                return `
+                    <div class="module-card locked rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-start gap-3.5 flex-1">
+                            <div class="w-10 h-10 rounded-xl bg-slate-200/70 text-slate-500 flex items-center justify-center font-bold shrink-0 text-xs">
+                                ${displayId}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-700 text-sm md:text-base">${mod.title}</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">${mod.desc}</p>
+                            </div>
+                        </div>
+                        <div class="shrink-0">
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-200/70 text-slate-500 text-xs font-semibold">
+                                <i class="fa-solid fa-lock text-[11px]"></i> Da sbloccare
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        /* =========================================================================
+           4. AZIONI PARTECIPANTE (CAMBIO VISTA, SBLOCCO CODICE, SEGNA SVOLTO)
+           ========================================================================= */
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            const allView = document.getElementById('allAreasView');
+            const focusedView = document.getElementById('focusedUnlockedView');
+            const btnAll = document.getElementById('btnViewAll');
+            const btnUnlocked = document.getElementById('btnViewUnlocked');
+
+            if (mode === 'unlocked') {
+                allView.classList.add('hidden');
+                focusedView.classList.remove('hidden');
+                btnUnlocked.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all bg-white text-indigo-700 shadow-sm flex items-center justify-center gap-2';
+                btnAll.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2';
+            } else {
+                focusedView.classList.add('hidden');
+                allView.classList.remove('hidden');
+                btnAll.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all bg-white text-indigo-700 shadow-sm flex items-center justify-center gap-2';
+                btnUnlocked.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2';
+            }
+        }
+
+        function toggleArea(areaId) {
+            const content = document.getElementById(areaId);
+            const header = document.getElementById(`header-${areaId}`);
+            content.classList.toggle('open');
+            if (header) header.classList.toggle('open');
+        }
+
+        function unlockByCode() {
+            const input = document.getElementById('quickUnlockInput');
+            const raw = input.value.trim().toLowerCase();
+            if (!raw) {
+                showToast('Inserisci il numero o codice del modulo (es. 2A, 3, 5).');
+                return;
+            }
+
+            const codes = raw.split(/[\s,;+-]+/).filter(Boolean);
+            let added = [];
+
+            codes.forEach(code => {
+                const cleanCode = code.replace(/^mod(ulo)?/i, '');
+                const exists = moduliData.some(m => m.id === cleanCode);
+                if (exists && !unlockedModules.includes(cleanCode)) {
+                    unlockedModules.push(cleanCode);
+                    added.push(cleanCode.toUpperCase());
+                } else if (exists && unlockedModules.includes(cleanCode)) {
+                    added.push(cleanCode.toUpperCase());
+                }
+            });
+
+            if (added.length > 0) {
+                try {
+                    localStorage.setItem(STORAGE_UNLOCKED_KEY, JSON.stringify(unlockedModules));
+                } catch (e) {}
+                input.value = '';
+                renderDashboard();
+                showToast(`Modulo ${added.join(', ')} attivo e disponibile!`);
+            } else {
+                showToast('Codice non riconosciuto. Usa codici da 1 a 15 (inclusi 2A o 2B).');
+            }
+        }
+
+        function toggleCompleteModule(modId) {
+            const id = modId.toLowerCase();
+            const idx = completedModules.indexOf(id);
+            if (idx > -1) {
+                completedModules.splice(idx, 1);
+            } else {
+                completedModules.push(id);
+                showToast(`Ottimo lavoro! Modulo ${id.toUpperCase()} segnato come completato.`);
+            }
+            try {
+                localStorage.setItem(STORAGE_COMPLETED_KEY, JSON.stringify(completedModules));
+            } catch (e) {}
+            renderDashboard();
+        }
+
+
+        /* =========================================================================
+           5. REGIA TERAPEUTA (GESTIONE MULTI-PAZIENTE E GENERATORE URL)
+           ========================================================================= */
+        function initTherapistModal() {
+            try {
+                const rawPatients = JSON.parse(localStorage.getItem(STORAGE_THERAPIST_PATIENTS_KEY));
+                if (Array.isArray(rawPatients)) {
+                    savedPatients = rawPatients;
+                }
+            } catch (e) {}
+            renderTherapistGrid();
+            renderSavedPatientsList();
+            updateGeneratedUrl();
+        }
+
+        function openTherapistModal() {
+            therapistSelectedModules = new Set(unlockedModules);
+            document.getElementById('newPatientNameInput').value = participantName || '';
+            renderTherapistGrid();
+            renderSavedPatientsList();
+            updateGeneratedUrl();
+            document.getElementById('therapistModal').classList.remove('hidden');
+        }
+
+        function closeTherapistModal() {
+            document.getElementById('therapistModal').classList.add('hidden');
+        }
+
+        function renderTherapistGrid() {
+            const grid = document.getElementById('therapistModuleGrid');
+            grid.innerHTML = '';
+
+            moduliData.forEach(mod => {
+                const isSel = therapistSelectedModules.has(mod.id);
+                const statusBadge = mod.ready
+                    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Pronto</span>`
+                    : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 font-medium">In prog.</span>`;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => toggleTherapistModule(mod.id);
+                btn.className = `therapist-chip text-left p-3 rounded-xl border transition-all flex items-start gap-2.5 ${
+                    isSel ? 'selected' : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
+                }`;
+
+                btn.innerHTML = `
+                    <div class="w-7 h-7 rounded-lg ${isSel ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'} font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        ${mod.id.toUpperCase()}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1">
+                            <span class="text-xs font-bold truncate">Modulo ${mod.id.toUpperCase()}</span>
+                            ${isSel ? '<i class="fa-solid fa-unlock text-xs text-emerald-300"></i>' : statusBadge}
+                        </div>
+                        <p class="text-[11px] ${isSel ? 'text-indigo-100' : 'text-slate-500'} truncate mt-0.5">${mod.title}</p>
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function toggleTherapistModule(modId) {
+            if (therapistSelectedModules.has(modId)) {
+                if (therapistSelectedModules.size > 1) {
+                    therapistSelectedModules.delete(modId);
+                } else {
+                    showToast('Mantieni almeno un modulo sbloccato.');
+                }
+            } else {
+                therapistSelectedModules.add(modId);
+            }
+            renderTherapistGrid();
+            updateGeneratedUrl();
+        }
+
+        function applyPreset(moduleIds) {
+            therapistSelectedModules = new Set(moduleIds);
+            renderTherapistGrid();
+            updateGeneratedUrl();
+        }
+
+        function updateGeneratedUrl() {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const orderedIds = moduliData
+                .map(m => m.id)
+                .filter(id => therapistSelectedModules.has(id));
+
+            const pName = document.getElementById('newPatientNameInput').value.trim();
+            const params = new URLSearchParams();
+            params.set('u', orderedIds.join(','));
+            if (pName) {
+                params.set('p', pName);
+            }
+
+            const finalUrl = `${baseUrl}?${params.toString()}`;
+            document.getElementById('generatedUrlOutput').value = finalUrl;
+            document.getElementById('therapistSelectedSummary').textContent =
+                `Moduli sbloccati (${orderedIds.length}): ${orderedIds.map(i => i.toUpperCase()).join(', ')}`;
+        }
+
+        // Aggiorna l'URL in tempo reale anche quando si scrive il nome del paziente
+        document.getElementById('newPatientNameInput')?.addEventListener('input', updateGeneratedUrl);
+
+        function saveCurrentPatientProfile() {
+            const nameInput = document.getElementById('newPatientNameInput');
+            const name = nameInput.value.trim();
+            if (!name) {
+                showToast('Inserisci le iniziali o un identificativo per salvare il profilo in rubrica.');
+                return;
+            }
+
+            const orderedIds = moduliData
+                .map(m => m.id)
+                .filter(id => therapistSelectedModules.has(id));
+
+            const existingIdx = savedPatients.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+            const record = {
+                name: name,
+                modules: orderedIds,
+                updatedAt: new Date().toLocaleDateString('it-IT')
+            };
+
+            if (existingIdx > -1) {
+                savedPatients[existingIdx] = record;
+            } else {
+                savedPatients.push(record);
+            }
+
+            try {
+                localStorage.setItem(STORAGE_THERAPIST_PATIENTS_KEY, JSON.stringify(savedPatients));
+            } catch (e) {}
+
+            renderSavedPatientsList();
+            updateGeneratedUrl();
+            showToast(`Profilo "${name}" salvato con i moduli: ${orderedIds.map(x => x.toUpperCase()).join(', ')}`);
+        }
+
+        function renderSavedPatientsList() {
+            const container = document.getElementById('savedPatientsList');
+            if (!savedPatients.length) {
+                container.innerHTML = `<span class="text-xs text-slate-400 italic">Nessun profilo salvato. Inserisci le iniziali qui sopra per memorizzare i progressi dei singoli pazienti.</span>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            savedPatients.forEach((p, index) => {
+                const chip = document.createElement('div');
+                chip.className = 'inline-flex items-center gap-2 bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs shadow-sm';
+                chip.innerHTML = `
+                    <button type="button" onclick="loadPatientProfile(${index})" class="font-bold text-indigo-700 hover:underline flex items-center gap-1.5" title="Carica la configurazione di questo paziente">
+                        <i class="fa-solid fa-user"></i> ${escapeHtml(p.name)}
+                        <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-800 rounded text-[10px] font-semibold">${p.modules.map(m => m.toUpperCase()).join(',')}</span>
+                    </button>
+                    <button type="button" onclick="deletePatientProfile(${index})" class="text-slate-400 hover:text-rose-600 ml-1" title="Rimuovi dalla rubrica">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        function loadPatientProfile(index) {
+            const p = savedPatients[index];
+            if (!p) return;
+            document.getElementById('newPatientNameInput').value = p.name;
+            therapistSelectedModules = new Set(p.modules);
+            renderTherapistGrid();
+            updateGeneratedUrl();
+            showToast(`Caricata configurazione di ${p.name}`);
+        }
+
+        function deletePatientProfile(index) {
+            savedPatients.splice(index, 1);
+            try {
+                localStorage.setItem(STORAGE_THERAPIST_PATIENTS_KEY, JSON.stringify(savedPatients));
+            } catch (e) {}
+            renderSavedPatientsList();
+        }
+
+        function applyTherapistSelectionToLocalView() {
+            unlockedModules = moduliData
+                .map(m => m.id)
+                .filter(id => therapistSelectedModules.has(id));
+            participantName = document.getElementById('newPatientNameInput').value.trim();
+
+            try {
+                localStorage.setItem(STORAGE_UNLOCKED_KEY, JSON.stringify(unlockedModules));
+                localStorage.setItem(STORAGE_PARTICIPANT_KEY, participantName);
+            } catch (e) {}
+
+            renderDashboard();
+            closeTherapistModal();
+            showToast('Vista aggiornata con i moduli selezionati!');
+        }
+
+        function resetLocalPortalView() {
+            unlockedModules = ['1'];
+            completedModules = [];
+            participantName = '';
+            therapistSelectedModules = new Set(['1']);
+            try {
+                localStorage.removeItem(STORAGE_UNLOCKED_KEY);
+                localStorage.removeItem(STORAGE_COMPLETED_KEY);
+                localStorage.removeItem(STORAGE_PARTICIPANT_KEY);
+            } catch (e) {}
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            renderDashboard();
+            closeTherapistModal();
+            showToast('Vista locale ripristinata allo stato iniziale (Solo Modulo 1).');
+        }
+
+        function copyGeneratedLink() {
+            const url = document.getElementById('generatedUrlOutput').value;
+            copyTextToClipboard(url, 'Link personalizzato copiato negli appunti!');
+        }
+
+        function copyWhatsAppMessage() {
+            const url = document.getElementById('generatedUrlOutput').value;
+            const orderedIds = moduliData
+                .map(m => m.id.toUpperCase())
+                .filter(id => therapistSelectedModules.has(id.toLowerCase()));
+            const pName = document.getElementById('newPatientNameInput').value.trim();
+
+            const greeting = pName ? `Ciao ${pName},` : `Ciao,`;
+            const message = `${greeting} ecco il link aggiornato al tuo Portale di Psicoeducazione con i moduli attivi (${orderedIds.join(', ')}):\n${url}\n\nIn alternativa, se hai già la pagina aperta, puoi inserire direttamente il codice ${orderedIds[orderedIds.length - 1]} nel box "Sblocca" in alto.`;
+
+            copyTextToClipboard(message, 'Messaggio WhatsApp copiato negli appunti!');
+        }
+
+        function copyTextToClipboard(text, successMsg) {
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = text;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                showToast('Copia manuale richiesta dal campo del link.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3400);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 13 - Cura di Sé I: Il Sonno e il Riposo Serale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .space-panel {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .space-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .sleep-chip.selected {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.15);
+        }
+        .profile-tab-btn.active-prof {
+            background-color: #1e1b4b;
+            color: #ffffff;
+            border-color: #1e1b4b;
+            box-shadow: 0 4px 12px -2px rgba(30, 27, 75, 0.25);
+        }
+        .curve-mode-btn.active-curve {
+            background-color: #4f46e5;
+            color: #ffffff;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.35);
+        }
+        .factor-tag.active-ally {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .factor-tag.active-obstacle {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli spazi e i profili aperti)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode .space-panel {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.25rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .sleep-profile-card {
+            display: block !important;
+            margin-bottom: 1rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .space-panel {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .sleep-profile-card {
+                display: block !important;
+                margin-bottom: 14px !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-indigo-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Panoramico Area V (Palette Notturna Rilassante) -->
+    <header class="bg-gradient-to-r from-slate-950 via-indigo-950 to-teal-900 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-moon text-xl text-amber-300"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200">Modulo 13 • Area V</span>
+                        <span class="text-[11px] text-indigo-200 hidden sm:inline">• Identità, Cura di Sé e Potenzialità</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight mt-0.5">Cura di Sé I: Il Sonno, i Ritmi Circadiani e la Decompressione Serale</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide + Contatore Kit del Sonno -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end md:self-auto">
+                <button onclick="switchSpace(4)" class="bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-400/40 px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-bed text-amber-300"></i>
+                    <span>Il Mio Kit del Sonno: <strong id="sleepKitCountBadge" class="text-white font-bold">0</strong></span>
+                </button>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Spazi -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button onclick="switchSpace(1)" id="space-btn-1" class="space-btn bg-indigo-900 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-clock"></i> 1. I 4 Ostacoli Notturni
+                </button>
+                <button onclick="switchSpace(2)" id="space-btn-2" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-plane-arrival"></i> 2. Rampa di Atterraggio
+                </button>
+                <button onclick="switchSpace(3)" id="space-btn-3" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-sliders"></i> 3. Alleati & Risveglio
+                </button>
+                <button onclick="switchSpace(4)" id="space-btn-4" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-moon"></i> 4. Scenari & Kit PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainScrollArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-8">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+        <div class="print-only-header hidden border-b-2 border-indigo-950 pb-4 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-indigo-900">Programma Clinico Modulare di Psicoeducazione • Area V</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 13: Cura di Sé I – Il Sonno, i Ritmi Circadiani e il Riposo Serale</h1>
+                    <p class="text-xs text-slate-500 mt-1">Rif. Scientifici: Migliarese et al. (2023) • Kooij et al. (2019) • Bijlenga et al. (2019) • Baker & Richdale (2015).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             SPAZIO 1: IL LEGAME SONNO-FUNZIONAMENTO E I 4 OSTACOLI NOTTURNI
+             ========================================================================= -->
+        <section id="space-1" class="space-panel active space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-indigo-900">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 1 • Perché Dormire Bene È la Base di Ogni Strategia
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Migliarese et al. (2023) • Bijlenga et al. (2019)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Il Circolo Bidirezionale tra Sonno, Attenzione e Soglia Sensoriale</h2>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-6">
+                    Quando dormiamo poco o male, il giorno successivo non ci sentiamo semplicemente "assonnati": la carenza di sonno colpisce in modo diretto la corteccia prefrontale, <strong>amplificando l'inattenzione, la fatica nella memoria di lavoro, l'impulsività emotiva e l'ipersensibilità a luci e rumori</strong>. A sua volta, arrivare a sera con il sistema nervoso sovraccarico e iper-stimolato rende ancora più difficile prendere sonno, creando un circolo vizioso che merita di essere compreso senza sensi di colpa.
+                </p>
+
+                <!-- ESPLORATORE INTERATTIVO DEI 4 PROFILI DI DIFFICOLTÀ DEL SONNO -->
+                <div class="bg-slate-100 p-4 md:p-6 rounded-2xl border border-slate-200 space-y-5">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <h3 class="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass-chart text-indigo-800"></i> I 4 Ostacoli Tipici del Sonno: Tocca Quelli in Cui Ti Riconosci
+                        </h3>
+                        <span class="text-xs text-slate-500">Nel PDF verranno stampati tutti e 4 aperti</span>
+                    </div>
+
+                    <!-- Bottoni Selettori dei 4 Ostacoli -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 no-print">
+                        <button type="button" onclick="selectSleepProfile(1, this)" class="profile-tab-btn active-prof p-3 rounded-2xl border border-slate-300 text-left text-xs font-bold transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-moon text-amber-300 text-sm"></i>
+                            <span>1. Orologio Serotino</span>
+                        </button>
+                        <button type="button" onclick="selectSleepProfile(2, this)" class="profile-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-300 text-left text-xs font-bold transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-mobile-screen text-indigo-600 text-sm"></i>
+                            <span>2. Rivincita Notturna</span>
+                        </button>
+                        <button type="button" onclick="selectSleepProfile(3, this)" class="profile-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-300 text-left text-xs font-bold transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-rose-600 text-sm"></i>
+                            <span>3. Corpo & Mente Attivi</span>
+                        </button>
+                        <button type="button" onclick="selectSleepProfile(4, this)" class="profile-tab-btn bg-white text-slate-700 hover:bg-slate-50 p-3 rounded-2xl border border-slate-300 text-left text-xs font-bold transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-sun text-amber-500 text-sm"></i>
+                            <span>4. Inerzia al Risveglio</span>
+                        </button>
+                    </div>
+
+                    <!-- PROFILO 1: RITARDO DI FASE CIRCADIANA (CRONOTIPO GUFO) -->
+                    <div id="sleep-prof-1" class="sleep-profile-card bg-white rounded-2xl p-5 border-l-4 border-l-indigo-700 shadow-sm space-y-3">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">1. Ritardo di Fase Circadiana • L'Effetto "Secondo Vento"</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 text-[11px] font-bold">Biologia della Melatonina</span>
+                        </div>
+                        <h4 class="text-lg font-extrabold text-slate-900">Sentirsi Stanchi Tutto il Giorno e "Svegliarsi" Improvvisamente alle 22:30</h4>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            In oltre il 70% delle persone adulte con questo funzionamento, il rilascio naturale di <strong>melatonina</strong> (l'ormone che apre la porta del sonno) avviene con <strong>1,5 – 2 ore di ritardo</strong> rispetto alla media. Ecco perché verso le 22:00 o le 23:00, quando calano i rumori e le interruzioni esterne, il cervello sperimenta un "secondo vento" di lucidità, creatività e voglia di fare!
+                        </p>
+                        <div class="flex justify-end">
+                            <button type="button" onclick="toggleSleepKit(this, 'Rispetto del Cronotipo: Sapere che il mio picco serale è biologico mi aiuta a iniziare la decompressione luminosa in anticipo per accompagnare la melatonina')" class="sleep-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit del Sonno
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PROFILO 2: REVENGE BEDTIME PROCRASTINATION -->
+                    <div id="sleep-prof-2" class="sleep-profile-card hidden bg-white rounded-2xl p-5 border-l-4 border-l-purple-600 shadow-sm space-y-3">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">2. La "Procrastinazione della Buonanotte per Rivincita"</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 text-[11px] font-bold">Bisogno di Tempo Libero</span>
+                        </div>
+                        <h4 class="text-lg font-extrabold text-slate-900">Rimandare il Momento di Andare a Letto Perché la Notte È l'Unico Momento "Solo Tuo"</h4>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Se tutta la giornata è stata assorbita da doveri, impegni lavorativi, fatica esecutiva e <em>masking</em> sociale, arrivare alle 23:00 e andare subito a dormire fa sentire come se la vita fosse solo "lavorare e dormire". Così, anche con gli occhi che bruciano dalla stanchezza, restiamo svegli sul divano o con il telefono fino alle 2 di notte per <strong>reclamare finalmente un'ora di libertà senza che nessuno ci chieda nulla</strong>.
+                        </p>
+                        <div class="flex justify-end">
+                            <button type="button" onclick="toggleSleepKit(this, 'Disinnescare la Procrastinazione della Buonanotte: Ritagliarmi 30 minuti di tempo sacro e libero PRIMA di cena o nel tardo pomeriggio, così da non doverlo rubare al sonno')" class="sleep-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit del Sonno
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PROFILO 3: IPER-AROUSAL SENSORIALE E IRREQUIETEZZA MOTORIA -->
+                    <div id="sleep-prof-3" class="sleep-profile-card hidden bg-white rounded-2xl p-5 border-l-4 border-l-rose-600 shadow-sm space-y-3">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-rose-700">3. Iper-Attivazione Notturna e Irrequietezza Motoria</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-800 text-[11px] font-bold">Sensi & Dopamina</span>
+                        </div>
+                        <h4 class="text-lg font-extrabold text-slate-900">Gambe Senza Riposo, Risvegli Frequenti e Fastidi Sensoriali a Letto</h4>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            A volte il corpo è esausto ma non trova pace nel letto: bisogno continuo di muovere le gambe o cambiare posizione, fastidio improvviso per il caldo, per le pieghe delle lenzuola o per minimi rumori notturni, oltre a un sonno frammentato con frequenti risvegli che lascia spossati al mattino.
+                        </p>
+                        <div class="flex justify-end">
+                            <button type="button" onclick="toggleSleepKit(this, 'Conforto Somatico a Letto: Curare la temperatura fresca della stanza, usare lenzuola morbide o una coperta ponderata per calmare l\'irrequietezza fisica')" class="sleep-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit del Sonno
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PROFILO 4: INERZIA DEL SONNO AL RISVEGLIO -->
+                    <div id="sleep-prof-4" class="sleep-profile-card hidden bg-white rounded-2xl p-5 border-l-4 border-l-amber-500 shadow-sm space-y-3">
+                        <div class="flex flex-wrap justify-between items-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-800">4. L'Inerzia del Risveglio Mattutino</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 text-[11px] font-bold">Riavvio Prefrontale</span>
+                        </div>
+                        <h4 class="text-lg font-extrabold text-slate-900">La Fatica Estrema a "Mettere in Moto il Cervello" Quando Suona la Sveglia</h4>
+                        <p class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                            Al mattino la corteccia prefrontale impiega più tempo a riattivare i livelli di dopamina e noradrenalina: suonano cinque sveglie di fila, le si spegne nel dormiveglia e alzarsi dal letto appare come scalare una montagna, innescando subito fretta e senso di colpa fin dalla prima ora del giorno.
+                        </p>
+                        <div class="flex justify-end">
+                            <button type="button" onclick="toggleSleepKit(this, 'Risveglio Assistito a Zero Attrito: Usare la luce naturale/lampada alba, mettere un bicchiere d\'acqua sul comodino e preparare i vestiti la sera prima')" class="sleep-chip py-2 px-4 rounded-xl border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit del Sonno
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 no-print">
+                <button onclick="switchSpace(2)" class="bg-indigo-900 hover:bg-indigo-950 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 2: La Rampa di Atterraggio Serale <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 2: IL SIMULATORE DELLA "RAMPA DI ATTERRAGGIO" (PERCHÉ IL CERVELLO NON HA UN INTERRUTTORE ON/OFF)
+             ========================================================================= -->
+        <section id="space-2" class="space-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-indigo-600 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 2 • Accompagnare il Cervello dalla Marcia Alta al Folle
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Un Aereo che Vola a 900 km/h Non Può Atterrare in Verticale in 2 Minuti</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        Spesso pretendiamo di lavorare al computer, rispondere ai messaggi, guardare video rapidi o giocare a videogiochi attivanti fino alle 23:55, e poi spegnere la luce alle 23:56 aspettandoci che il cervello dorma alle 24:00. Ma il nostro sistema nervoso non ha un interruttore "On/Off": ha bisogno di una <strong>Rampa di Atterraggio (Decompressione Graduale)</strong> per far scendere dopamina e cortisolo e far salire la melatonina.
+                    </p>
+                </div>
+
+                <!-- SIMULATORE GRAFICO SVG: FRENATA BRUSCA VS RAMPA DI ATTERRAGGIO -->
+                <div class="bg-slate-950 text-white p-5 md:p-7 rounded-3xl border border-slate-800 space-y-5 shadow-xl">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Simulatore Circadiano Serale (20:00 – 02:00)</span>
+                            <h3 class="text-lg md:text-xl font-extrabold text-white mt-0.5">Confronta l'Effetto "Frenata Brusca" con la "Rampa di Atterraggio"</h3>
+                        </div>
+                    </div>
+
+                    <!-- Bottoni Selettori della Curva Serale -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 no-print">
+                        <button type="button" onclick="setSleepCurve('crash', this)" class="curve-mode-btn active-curve p-3.5 rounded-2xl border border-slate-700 text-left text-xs md:text-sm font-bold transition-all flex items-center gap-3">
+                            <i class="fa-solid fa-bolt text-rose-400 text-lg"></i>
+                            <div>
+                                <div>1. Frenata Brusca (Schermi/Iper-Focus fino a Letto)</div>
+                                <div class="text-[11px] font-normal opacity-80">Attivazione alta fino a mezzanotte → Insonnia e rimbalzo</div>
+                            </div>
+                        </button>
+
+                        <button type="button" onclick="setSleepCurve('glide', this)" class="curve-mode-btn bg-slate-900 hover:bg-slate-800 text-slate-200 p-3.5 rounded-2xl border border-slate-700 text-left text-xs md:text-sm font-bold transition-all flex items-center gap-3">
+                            <i class="fa-solid fa-plane-arrival text-emerald-400 text-lg"></i>
+                            <div>
+                                <div>2. Rampa di Atterraggio (Discesa in 3 Scalini)</div>
+                                <div class="text-[11px] font-normal opacity-80">Abbassare luci e stimoli 45 min prima → Ingresso fluido nel sonno</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Grafico SVG della Rampa Serale -->
+                    <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800">
+                        <svg viewBox="0 0 700 220" class="w-full h-auto overflow-visible">
+                            <!-- Linea Soglia di Addormentamento -->
+                            <line x1="55" y1="155" x2="665" y2="155" stroke="#10b981" stroke-width="1.5" stroke-dasharray="5,5" />
+                            <text x="62" y="148" fill="#6ee7b7" font-size="10" font-weight="700">ZONA PORTA DEL SONNO (Sotto questa soglia il cervello scivola nel riposo)</text>
+
+                            <!-- Assi -->
+                            <line x1="55" y1="20" x2="55" y2="195" stroke="#475569" stroke-width="1.5" />
+                            <line x1="55" y1="195" x2="665" y2="195" stroke="#475569" stroke-width="1.5" />
+
+                            <text x="10" y="35" fill="#94a3b8" font-size="9.5" font-weight="600">Alta Attiv.</text>
+                            <text x="10" y="160" fill="#6ee7b7" font-size="9.5" font-weight="600">Calma</text>
+
+                            <text x="60" y="212" fill="#94a3b8" font-size="10">20:30</text>
+                            <text x="210" y="212" fill="#94a3b8" font-size="10">22:00 (Inizio Rampa)</text>
+                            <text x="390" y="212" fill="#94a3b8" font-size="10">23:15 (A letto)</text>
+                            <text x="580" y="212" fill="#94a3b8" font-size="10">01:30</text>
+
+                            <!-- Curva 1: Frenata Brusca (Rossa) -->
+                            <path id="svgCurveCrash" d="M 55 55 L 390 45 C 430 45, 450 110, 490 95 C 530 85, 570 130, 655 158" fill="none" stroke="#f43f5e" stroke-width="3.5" />
+
+                            <!-- Curva 2: Rampa di Atterraggio (Verde/Teal) -->
+                            <path id="svgCurveGlide" d="M 55 55 Q 180 65, 230 95 T 390 162 L 655 182" fill="none" stroke="#10b981" stroke-width="3.5" opacity="0.2" />
+
+                            <!-- Punto di inizio rampa -->
+                            <circle cx="230" cy="95" r="5.5" fill="#fbbf24" stroke="#0f172a" stroke-width="2" />
+                        </svg>
+                    </div>
+
+                    <div id="sleepCurveCaption" class="p-4 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-xs md:text-sm text-rose-100 leading-relaxed">
+                        <strong class="text-rose-300 uppercase tracking-wider block mb-1">Curva 1 (Rossa) • L'Effetto "Mente che Rimbalza nel Buio":</strong>
+                        Se teniamo il cervello ad alta velocità (luci fredde, notifiche, videogiochi, lavoro o discussioni) fino al secondo in cui ci mettiamo sotto le coperte alle 23:15, l'attivazione nervosa resta ben sopra la linea verde per oltre un'ora e mezza: nel buio della stanza scatta il rimuginio e la frustrazione di non riuscire a dormire.
+                    </div>
+                </div>
+
+                <!-- LA RAMPA DI ATTERRAGGIO IN 3 SCALINI GENTILI -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-5 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-800">Scalino 1 • 60 Minuti Prima</span>
+                            <h4 class="font-bold text-slate-800 text-base mt-1 mb-2">Il Segnale Luminoso alla Melatonina</h4>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Spegnere i lampadari freddi centrali e passare a <strong>luci calde soffuse/ambrate</strong>. Attivare il filtro notturno sugli schermi e chiudere le attività che richiedono decisioni lavorative o discussioni emotive.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleSleepKit(this, 'Scalino 1 (Luci Calde): Abbassare le luci di casa 60 minuti prima di dormire per segnalare al cervello che la giornata produttiva è conclusa')" class="sleep-chip w-full py-2 px-3 rounded-xl border border-amber-300 bg-white text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-800">Scalino 2 • 30 Minuti Prima</span>
+                            <h4 class="font-bold text-slate-800 text-base mt-1 mb-2">Passare dall'Attivo al "Passivo Familiare"</h4>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Sostituire lo scrolling interattivo (che chiede continuamente micro-scelte dopaminergiche) con uno <strong>stimolo passivo e già conosciuto</strong>: rivedere una serie TV vista mille volte, leggere qualche pagina o ascoltare una voce calma.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleSleepKit(this, 'Scalino 2 (Stimolo Passivo Familiare): Sostituire lo scrolling sui social con un contenuto calmo e già noto che non attivi la ricerca di novità')" class="sleep-chip w-full py-2 px-3 rounded-xl border border-indigo-300 bg-white text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-teal-50/60 border border-teal-200 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-800">Scalino 3 • A Letto</span>
+                            <h4 class="font-bold text-slate-800 text-base mt-1 mb-2">L'Ancora Auditiva o Propriocettiva</h4>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+                                Quando spegni la luce, se il silenzio assoluto fa ripartire i pensieri, usa un <strong>audiolibro con timer di spegnimento (15–30 min)</strong>, rumore della pioggia o una coperta ponderata per accompagnare il corpo nel sonno.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleSleepKit(this, 'Scalino 3 (Ancora nel Letto): Usare un audiolibro familiare con timer di spegnimento o rumore bianco/marrone per non lasciare la mente nel vuoto')" class="sleep-chip w-full py-2 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna ai 4 Ostacoli Notturni
+                </button>
+                <button onclick="switchSpace(3)" class="bg-indigo-900 hover:bg-indigo-950 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 3: Alleati, Ostacoli e Risveglio <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 3: IGIENE ECOLOGICA DEL SONNO, RISVEGLIO DOLCE E MAPPATURA ALLEATI VS OSTACOLI
+             ========================================================================= -->
+        <section id="space-3" class="space-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-teal-700 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 3 • Regole Pratiche per la Sera e per il Mattino
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Costruire Condizioni Amiche del Riposo (e Semplificare il Risveglio)</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        Piccoli aggiustamenti fisiologici durante il pomeriggio, la sera e al momento del risveglio riducono drasticamente lo sforzo richiesto per addormentarsi e per alzarsi al mattino:
+                    </p>
+                </div>
+
+                <!-- 4 Regole Fisiologiche Chiave -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-mug-hot text-amber-700"></i> 1. La Finestra di Caffeina e Stimolanti
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                La caffeina ha un'emivita lunga: assumerla nel tardo pomeriggio o di sera blocca i recettori dell'adenosina e sposta ancora più avanti l'addormentamento. Anche gli orari di eventuale terapia farmacologica vanno sempre calibrati con il medico per evitare insonnia serale.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleSleepKit(this, 'Finestra Caffeina: Evitare caffè, tè o bevande energizzanti dal tardo pomeriggio in poi per non posticipare il sonno')" class="sleep-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-left text-indigo-600"></i> 2. La "Regola dei 20–30 Minuti" se Non Prendi Sonno
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Restare nel letto per due ore girandosi e rigirandosi nervosamente fa sì che il cervello associ il letto alla frustrazione e alla veglia. Se dopo circa 20–30 minuti senti di essere completamente sveglio/a, <strong>alzati con luci basse, fai qualcosa di calmo e torna a letto appena senti calare le palpebre</strong>.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleSleepKit(this, 'Proteggere l\'Associazione Letto-Sonno: Se dopo 25-30 minuti non riesco a dormire e mi sento agitato/a, mi alzo in penombra per qualche minuto invece di lottare con il cuscino')" class="sleep-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-temperature-arrow-down text-teal-600"></i> 3. Termoregolazione: Doccia Calda + Stanza Fresca
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Per entrare nel sonno profondo, la temperatura interna del nostro corpo deve scendere di circa $1^\circ\text{C}$. Fare una <strong>doccia o un bagno caldo la sera</strong> seguito dall'ingresso in una camera da letto fresca favorisce la vasodilatazione periferica e accelera fisiologicamente la sonnolenza.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleSleepKit(this, 'Trucco Termico: Fare una doccia calda la sera e mantenere la camera da letto fresca e buia per favorire la discesa della temperatura corporea')" class="sleep-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-sun text-amber-500"></i> 4. Vincere l'Inerzia Mattutina Senza 10 Sveglie
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-3">
+                                Impostare 8 sveglie ogni 5 minuti frammenta l'ultima ora di sonno rendendoti ancora più stanco/a. Meglio <strong>due sole sveglie</strong> (la prima con musica morbida/luce alba, la seconda posizionata lontano dal letto accanto a un bicchiere d'acqua e agli abiti già pronti).
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleSleepKit(this, 'Risveglio in 2 Tempi: Evitare la raffica di 10 sveglie; usare luce mattutina, acqua sul comodino e abiti già pronti la sera prima')" class="sleep-chip w-full py-2 px-3 rounded-xl border border-slate-300 bg-white text-xs text-slate-700 hover:border-indigo-500 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Aggiungi al mio Kit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MAPPATURA INTERATTIVA: I MIEI ALLEATI VS I MIEI OSTACOLI DEL SONNO -->
+                <div class="pt-4 border-t border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-indigo-700"></i> Mappa Personale: Cosa Favorisce vs Cosa Ostacola il Tuo Sonno?
+                    </h3>
+                    <p class="text-xs text-slate-600 mb-4">
+                        Tocca gli elementi che riconosci nella tua esperienza per inserirli nello specchio finale:
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Ostacoli del Sonno -->
+                        <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-2.5">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800">
+                                <i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> I Miei Principali OSTACOLI Serali
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="toggleFactorTag(this, 'obstacle')" class="factor-tag obstacle-sleep px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Notifiche e scrolling sul cellulare a letto</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'obstacle')" class="factor-tag obstacle-sleep px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Videogiochi o lavoro attivante dopo le 22:00</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'obstacle')" class="factor-tag obstacle-sleep px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Entrare in iper-focus su un progetto a tarda sera</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'obstacle')" class="factor-tag obstacle-sleep px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Caffè/bevande stimolanti nel pomeriggio o cene pesanti</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'obstacle')" class="factor-tag obstacle-sleep px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Stanza troppo calda o rumori/luci disturbanti</button>
+                            </div>
+                        </div>
+
+                        <!-- Alleati del Sonno -->
+                        <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-2.5">
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> I Miei Principali ALLEATI del Sonno
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="toggleFactorTag(this, 'ally')" class="factor-tag ally-sleep px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Spegnere luci forti e mettere il telefono in modalità notte</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'ally')" class="factor-tag ally-sleep px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Audiolibro familiare / Podcast con timer di spegnimento</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'ally')" class="factor-tag ally-sleep px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Buio completo (mascherina) e stanza fresca</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'ally')" class="factor-tag ally-sleep px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Coperta ponderata o doccia calda prima di coricarsi</button>
+                                <button type="button" onclick="toggleFactorTag(this, 'ally')" class="factor-tag ally-sleep px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Scrivere sull'agenda le cose di domani per svuotare la testa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna alla Rampa di Atterraggio
+                </button>
+                <button onclick="switchSpace(4)" class="bg-indigo-900 hover:bg-indigo-950 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 4: Scenari e Kit del Sonno <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 4: IL TUO KIT DEL SONNO PERSONALIZZATO E BUSSOLA DELLE NOTTI DIFFICILI
+             ========================================================================= -->
+        <section id="space-4" class="space-panel space-y-6 pb-8">
+            
+            <!-- 1. IL TUO KIT DEL SONNO RISTORATORE -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-500">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-bed text-indigo-800"></i> Il Tuo Kit del Sonno Ristoratore (Modulo 13)
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                            Riepilogo delle strategie circadiane, dei tuoi Alleati e degli Ostacoli selezionati durante il modulo:
+                        </p>
+                    </div>
+                    <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                        <i class="fa-solid fa-file-pdf"></i> Esporta Tutto in PDF
+                    </button>
+                </div>
+
+                <div id="sleepKitSummaryContainer" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 mb-4">
+                    <!-- Popolato via JS -->
+                </div>
+
+                <div>
+                    <label for="customSleepRitualNote" class="block text-xs font-bold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-pen-to-square text-indigo-700 mr-1"></i> Qual è il tuo singolo piccolo "Segnale di Chiusura Giornata" che vuoi sperimentare questa settimana?
+                    </label>
+                    <input type="text" id="customSleepRitualNote" oninput="renderSleepKitSummary()" placeholder="Es. «Alle 22:30 spengo la luce grande del salotto, metto il telefono in carica lontano dal letto e avvio il mio audiolibro.»" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:border-indigo-600 focus:outline-none">
+                </div>
+            </div>
+
+            <!-- 2. CLINICA DEGLI SCENARI NOTTURNI (3 SIMULAZIONI PRATICHE) -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold uppercase tracking-wide">
+                        Verifica Pratica • Bussola per la Sera e il Mattino
+                    </span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-2">Quale Scelta Aiuta Davvero il Tuo Orologio Biologico?</h2>
+                    <p class="text-xs md:text-sm text-slate-600 mt-1">
+                        Mettiti alla prova in questi 3 momenti critici della serata e del risveglio:
+                    </p>
+                </div>
+
+                <!-- Scenario 1 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-800">Scenario 1 • La Trappola della "Rivincita Notturna" alle 23:30</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Hai passato tutta la giornata a lavorare e correre dietro agli impegni. Alle 23:30 ti bruciano gli occhi dal sonno, ma senti una forte resistenza ad andare a letto perché "non hai ancora avuto un minuto per te". Come disinneschi questo blocco?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkSleepQuiz(1, false, this)" class="squiz-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Restare sul divano a scorrere reel o giocare fino alle 2:30 di notte, svegliandoti distrutto/a il giorno dopo.
+                        </button>
+                        <button type="button" onclick="checkSleepQuiz(1, true, this)" class="squiz-btn-1 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Concederti 20 minuti di piacere passivo *già a letto al buio* (es. ascoltare il tuo podcast/audiolibro preferito con il timer) e, da domani, proteggere 30 minuti di tempo libero nel tardo pomeriggio prima di cena.
+                        </button>
+                    </div>
+                    <div id="squiz-fb-1" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Scenario 2 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-purple-800">Scenario 2 • Il "Secondo Vento" Creativo delle 22:30</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Alle 22:30 ti viene improvvisamente voglia di iniziare a riordinare un armadio o metterti al computer su un nuovo progetto. Cosa protegge la tua notte?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkSleepQuiz(2, true, this)" class="squiz-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Appuntare l'idea sull'Agenda Unica per domani mattina ("Parcheggio Idee") ed evitare di accendere schermi o luci forti che bloccherebbero la melatonina per altre 3 ore.
+                        </button>
+                        <button type="button" onclick="checkSleepQuiz(2, false, this)" class="squiz-btn-2 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Sfruttare l'onda aprendo il computer e tirando dritto fino alle 3:00 del mattino.
+                        </button>
+                    </div>
+                    <div id="squiz-fb-2" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+                <!-- Scenario 3 -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">Scenario 3 • Svegliarsi nel Cuore della Notte o Non Prendere Sonno</div>
+                    <p class="text-sm font-semibold text-slate-800">
+                        Sono passati 30 minuti da quando hai spento la luce, ma ti senti teso/a e continui a guardare l'ora sul telefono calcolando quante poche ore ti restano da dormire. Qual è la mossa più funzionale?
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <button type="button" onclick="checkSleepQuiz(3, false, this)" class="squiz-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-rose-400 text-xs text-slate-700 transition-all">
+                            <strong>A)</strong> Continuare a controllare l'orologio ogni 5 minuti imponendoti con rabbia di addormentarti.
+                        </button>
+                        <button type="button" onclick="checkSleepQuiz(3, true, this)" class="squiz-btn-3 text-left p-3.5 rounded-xl border border-slate-300 bg-white hover:border-emerald-500 text-xs text-slate-700 transition-all">
+                            <strong>B)</strong> Non guardare più l'orologio, alzarti per 10 minuti in penombra (o bere un sorso d'acqua) e ricordare che anche il riposo tranquillo a occhi chiusi con un audio calmo rigenera il sistema nervoso.
+                        </button>
+                    </div>
+                    <div id="squiz-fb-3" class="hidden p-3.5 rounded-xl text-xs leading-relaxed"></div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna agli Alleati e Risveglio
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const selectedSleepKit = new Set();
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+            renderSleepKitSummary();
+        };
+
+        // Navigazione Orizzontale dei 4 Spazi
+        function switchSpace(spaceNum) {
+            document.querySelectorAll('.space-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`space-${spaceNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`space-btn-${i}`);
+                if (i === spaceNum) {
+                    btn.className = 'space-btn bg-indigo-900 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (spaceNum === 4) {
+                renderSleepKitSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Selettore dei 4 Profili del Sonno (Spazio 1)
+        function selectSleepProfile(profNum, btnEl) {
+            document.querySelectorAll('.sleep-profile-card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`sleep-prof-${profNum}`).classList.remove('hidden');
+
+            document.querySelectorAll('.profile-tab-btn').forEach(b => {
+                b.classList.remove('active-prof');
+                b.classList.add('bg-white', 'text-slate-700');
+            });
+            btnEl.classList.remove('bg-white', 'text-slate-700');
+            btnEl.classList.add('active-prof');
+        }
+
+        // Simulatore Curva Serale (Spazio 2)
+        function setSleepCurve(mode, btnEl) {
+            document.querySelectorAll('.curve-mode-btn').forEach(b => {
+                b.classList.remove('active-curve');
+                b.classList.add('bg-slate-900', 'text-slate-200');
+            });
+            btnEl.classList.remove('bg-slate-900', 'text-slate-200');
+            btnEl.classList.add('active-curve');
+
+            const crashPath = document.getElementById('svgCurveCrash');
+            const glidePath = document.getElementById('svgCurveGlide');
+            const caption = document.getElementById('sleepCurveCaption');
+
+            if (mode === 'crash') {
+                crashPath.setAttribute('opacity', '1');
+                glidePath.setAttribute('opacity', '0.2');
+                caption.className = 'p-4 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-xs md:text-sm text-rose-100 leading-relaxed';
+                caption.innerHTML = `<strong class="text-rose-300 uppercase tracking-wider block mb-1">Curva 1 (Rossa) • L'Effetto "Mente che Rimbalza nel Buio":</strong> Se teniamo il cervello ad alta velocità (luci fredde, notifiche, videogiochi, lavoro o discussioni) fino al secondo in cui ci mettiamo sotto le coperte alle 23:15, l'attivazione nervosa resta ben sopra la linea verde per oltre un'ora e mezza: nel buio della stanza scatta il rimuginio e la frustrazione di non riuscire a dormire.`;
+            } else {
+                crashPath.setAttribute('opacity', '0.2');
+                glidePath.setAttribute('opacity', '1');
+                caption.className = 'p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-xs md:text-sm text-emerald-100 leading-relaxed';
+                caption.innerHTML = `<strong class="text-emerald-300 uppercase tracking-wider block mb-1">Curva 2 (Verde) • La "Rampa di Atterraggio" in 3 Scalini:</strong> Iniziando ad abbassare le luci e a ridurre gli stimoli interattivi circa 45–60 minuti prima di coricarsi, la curva dell'attivazione scende dolcemente sotto la soglia verde proprio quando appoggi la testa sul cuscino.`;
+            }
+        }
+
+        // Toggle Tag Alleati / Ostacoli (Spazio 3)
+        function toggleFactorTag(btn, type) {
+            const cls = type === 'ally' ? 'active-ally' : 'active-obstacle';
+            btn.classList.toggle(cls);
+            renderSleepKitSummary();
+        }
+
+        // Gestione Kit del Sonno
+        function toggleSleepKit(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedSleepKit.has(textLabel)) {
+                selectedSleepKit.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) icon.className = 'fa-solid fa-plus text-[10px]';
+            } else {
+                selectedSleepKit.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) icon.className = 'fa-solid fa-check text-[10px]';
+                showToast('Aggiunto al tuo Kit del Sonno!');
+            }
+            document.getElementById('sleepKitCountBadge').textContent = selectedSleepKit.size;
+            renderSleepKitSummary();
+        }
+
+        function renderSleepKitSummary() {
+            const container = document.getElementById('sleepKitSummaryContainer');
+            const customRitual = (document.getElementById('customSleepRitualNote')?.value || '').trim();
+
+            const selectedObstacles = Array.from(document.querySelectorAll('.obstacle-sleep.active-obstacle')).map(el => el.textContent.trim());
+            const selectedAllies = Array.from(document.querySelectorAll('.ally-sleep.active-ally')).map(el => el.textContent.trim());
+
+            const hasTags = selectedObstacles.length > 0 || selectedAllies.length > 0;
+
+            if (selectedSleepKit.size === 0 && !customRitual && !hasTags) {
+                container.innerHTML = `<em>Non hai ancora selezionato elementi per il tuo Kit del Sonno. Tocca i pulsanti "+ Aggiungi al mio Kit" o i tag Alleati/Ostacoli negli spazi precedenti.</em>`;
+                return;
+            }
+
+            let html = '<div class="space-y-4">';
+
+            if (selectedSleepKit.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedSleepKit.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-indigo-200 shadow-sm">
+                            <i class="fa-solid fa-moon text-indigo-600 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (hasTags) {
+                html += `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bg-rose-50/70 p-3 rounded-xl border border-rose-200 text-xs">
+                            <strong class="text-rose-900 uppercase tracking-wider block text-[10px] mb-1">Ostacoli Serali Individuati:</strong>
+                            <span class="text-slate-700">${selectedObstacles.length ? selectedObstacles.join(' • ') : '<em>-</em>'}</span>
+                        </div>
+                        <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-xs">
+                            <strong class="text-emerald-900 uppercase tracking-wider block text-[10px] mb-1">Alleati del Sonno Scelti:</strong>
+                            <span class="text-slate-700">${selectedAllies.length ? selectedAllies.join(' • ') : '<em>-</em>'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (customRitual) {
+                html += `
+                    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                        <strong class="uppercase tracking-wider block text-[10px] text-amber-800 mb-0.5">Il Mio Segnale di Chiusura Giornata:</strong>
+                        "${escapeHtml(customRitual)}"
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Gestione Scenari Notturni (Spazio 4)
+        function checkSleepQuiz(num, isFunctional, btnEl) {
+            document.querySelectorAll(`.squiz-btn-${num}`).forEach(b => {
+                b.classList.remove('ring-2', 'ring-emerald-600', 'ring-rose-500', 'bg-emerald-50', 'bg-rose-50');
+            });
+
+            const fb = document.getElementById(`squiz-fb-${num}`);
+            fb.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'bg-amber-50', 'border-amber-300', 'text-amber-950');
+
+            if (isFunctional) {
+                btnEl.classList.add('ring-2', 'ring-emerald-600', 'bg-emerald-50');
+                fb.classList.add('bg-emerald-50', 'border', 'border-emerald-300', 'text-emerald-950');
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> <strong>Scelta Amica del Sonno!</strong> Questa strategia rispetta la neurobiologia del tuo orologio circadiano e accompagna la mente verso il riposo senza sforzo.`;
+            } else {
+                btnEl.classList.add('ring-2', 'ring-rose-500', 'bg-rose-50');
+                fb.classList.add('bg-amber-50', 'border', 'border-amber-300', 'text-amber-950');
+                fb.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-600 mr-1"></i> <strong>Attenzione alla Trappola Notturna:</strong> Questo comportamento riaccende la corteccia prefrontale e sposta in avanti di ore la finestra del sonno. Prova l'altra opzione!`;
+            }
+        }
+
+        // Esportazione PDF con tutti gli spazi e i profili aperti
+        function exportFullStaticPDF() {
+            renderSleepKitSummary();
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_13_Cura_di_Se_Sonno_Ritmi_Circadiani_e_Decompressione.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 13 scaricato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

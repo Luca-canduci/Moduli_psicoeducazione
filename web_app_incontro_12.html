@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo 12 - Autostima, Superamento del Senso di Colpa e Immagine di Sé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .space-panel {
+            display: none;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .space-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .treasure-chip.selected {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+        }
+        .day-sim-btn.active-day {
+            background-color: #065f46;
+            color: #ffffff;
+            border-color: #065f46;
+            box-shadow: 0 4px 12px -2px rgba(6, 95, 70, 0.3);
+        }
+        .critic-card {
+            transition: all 0.25s ease;
+        }
+        .critic-card:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli spazi e le carte aperti)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode .space-panel {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 2.25rem !important;
+            padding-bottom: 1.5rem !important;
+            border-bottom: 2px dashed #cbd5e1 !important;
+        }
+        body.pdf-export-mode .reframe-truth-box {
+            display: block !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-panel {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            .space-panel {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+            }
+            .reframe-truth-box {
+                display: block !important;
+            }
+            .glass-panel {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-amber-400"></i>
+        <span id="toastText" class="text-xs md:text-sm font-medium">Operazione completata</span>
+    </div>
+
+    <!-- Header Panoramico Area V -->
+    <header class="bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-800 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-seedling text-xl text-amber-300"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full text-amber-200">Modulo 12 • Area V</span>
+                        <span class="text-[11px] text-emerald-200 hidden sm:inline">• Identità, Cura di Sé e Potenzialità</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight mt-0.5">Autostima, Superamento del Senso di Colpa e Immagine di Sé</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide + Contatore Scrigno del Valore -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end md:self-auto">
+                <button onclick="switchSpace(4)" class="bg-emerald-950/70 hover:bg-emerald-950 border border-amber-400/40 px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-gem text-amber-300"></i>
+                    <span>Il Mio Scrigno: <strong id="treasureCountBadge" class="text-white font-bold">0</strong></span>
+                </button>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="window.print()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Spazi dell'Area V -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <button onclick="switchSpace(1)" id="space-btn-1" class="space-btn bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-comment-slash"></i> 1. Il Critico Interiore
+                </button>
+                <button onclick="switchSpace(2)" id="space-btn-2" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-link-slash"></i> 2. Valore vs Produttività
+                </button>
+                <button onclick="switchSpace(3)" id="space-btn-3" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-award"></i> 3. Vantaggi & Riconoscimenti
+                </button>
+                <button onclick="switchSpace(4)" id="space-btn-4" class="space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-compass-drafting"></i> 4. Intoppi Senza Colpa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainScrollArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 space-y-8">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF -->
+        <div class="print-only-header hidden border-b-2 border-emerald-900 pb-4 mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-emerald-800">Programma Clinico Modulare di Psicoeducazione • Area V</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Modulo 12: Autostima, Superamento del Senso di Colpa e Immagine di Sé</h1>
+                    <p class="text-xs text-slate-500 mt-1">Rif. Scientifici: Migliarese et al. (2023) • Cook et al. (2021) • Neff (2003) • Kooij et al. (2019).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             SPAZIO 1: LA GENESI DEL CRITICO INTERIORE E IL TRADUTTORE DELLE 4 ACCUSE
+             ========================================================================= -->
+        <section id="space-1" class="space-panel active space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-emerald-700">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 1 • Da Dove Nasce la Voce Severa che Abbiamo Dentro?
+                    </span>
+                    <span class="text-xs text-slate-400">Rif.: Migliarese et al. (2023) • Cook et al. (2021)</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-3">Non Sei Nato/a con una Bassa Autostima: È l'Effetto di Anni Senza Manuale</h2>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed mb-5">
+                    Crescere e diventare adulti con un funzionamento neurodivergente (spesso senza saperlo per decenni) significa aver accumulato migliaia di piccoli episodi in cui ci siamo chiesti: <em>«Perché agli altri viene così facile essere costanti, ordinati o riposati e a me costa una fatica immane?»</em>. Nel tentativo di spronarci a non sbagliare, la nostra mente ha costruito un <strong>"Critico Interiore" severissimo</strong>, convinto che rimproverandoci duramente ci avrebbe tenuti al sicuro dai fallimenti. In realtà, il senso di colpa cronico non motiva la corteccia prefrontale: <strong>la paralizza e prosciuga l'autostima</strong>.
+                </p>
+
+                <!-- La Metafora del Pesce sull'Albero -->
+                <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white shadow-md">
+                    <div class="flex items-start gap-3.5">
+                        <i class="fa-solid fa-fish-fins text-2xl text-amber-300 mt-1"></i>
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">Sospendere il Paragone Ingiusto</div>
+                            <p class="text-xs md:text-sm text-slate-100 leading-relaxed">
+                                Valutare il proprio valore confrontando la propria memoria di lavoro, la propria tenuta sensoriale o la propria continuità abitudinaria con chi ha un sistema nervoso neurotipico è come <strong>giudicare un pesce dalla sua capacità di arrampicarsi sugli alberi</strong>: passerà tutta la vita a credersi inadeguato, senza accorgersi di essere progettato per nuotare in acque profonde.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STRUMENTO INTERATTIVO 1: IL TRADUTTORE DEL CRITICO INTERIORE (4 CARTE RIBALTABILI) -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 space-y-5">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Laboratorio di Ristrutturazione • Smonta le 4 Accuse Storiche
+                    </span>
+                    <h3 class="text-xl font-bold text-slate-800 mt-1">Tocca le 4 Carte per Trasformare l'Accusa nella Realtà Neuro-Affermativa</h3>
+                    <p class="text-xs md:text-sm text-slate-500">
+                        Individua quali di queste frasi il tuo Critico Interiore ripete più spesso e clicca su <strong>"Ristruttura con Realtà"</strong>:
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- CARTA CRITICO 1: L'Incostanza e i Progetti -->
+                    <div class="critic-card rounded-2xl border border-slate-200 bg-white p-5 flex flex-col justify-between shadow-sm">
+                        <div class="space-y-3">
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[11px] font-bold">Accusa 1 • Continuità e Interessi</span>
+                            <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200 text-xs text-rose-950 italic">
+                                «Inizio mille progetti, hobby o agende con entusiasmo e poi li lascio a metà. Non ho carattere né costanza, sono una persona inconcludente.»
+                            </div>
+
+                            <div id="reframe-box-1" class="reframe-truth-box hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 space-y-1.5">
+                                <strong class="block text-emerald-800 uppercase text-[10px] tracking-wider"><i class="fa-solid fa-seedling mr-1"></i> La Verità Neurobiologica:</strong>
+                                <p class="text-slate-700 leading-relaxed">
+                                    Il tuo cervello impara per <strong>immersione rapida ed esplorazione</strong>: quando hai assorbito il cuore di un argomento, la novità dopaminergica si esaurisce. Le competenze che hai acquisito in ogni progetto non vanno perse, ma formano un bagaglio trasversale ricchissimo!
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 mt-3 border-t border-slate-100 flex gap-2 no-print">
+                            <button type="button" onclick="toggleReframeCard(1, this)" class="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-rotate"></i> <span>Ristruttura con Realtà</span>
+                            </button>
+                            <button type="button" onclick="toggleTreasureItem(this, 'Nuova Lente sulla Costanza: Funzionare a cicli e stagioni di interesse non è inconcludenza, ma curiosità esplorativa e apprendimento rapido')" class="treasure-chip py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 hover:border-amber-400 transition-all">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARTA CRITICO 2: La Sindrome dell'Impostore -->
+                    <div class="critic-card rounded-2xl border border-slate-200 bg-white p-5 flex flex-col justify-between shadow-sm">
+                        <div class="space-y-3">
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[11px] font-bold">Accusa 2 • Sindrome dell'Impostore</span>
+                            <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200 text-xs text-rose-950 italic">
+                                «Anche quando ottengo un buon risultato nello studio o nel lavoro, so di averlo fatto all'ultimo minuto o nel caos: sto solo ingannando tutti, non è vero merito.»
+                            </div>
+
+                            <div id="reframe-box-2" class="reframe-truth-box hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 space-y-1.5">
+                                <strong class="block text-emerald-800 uppercase text-[10px] tracking-wider"><i class="fa-solid fa-seedling mr-1"></i> La Verità Neurobiologica:</strong>
+                                <p class="text-slate-700 leading-relaxed">
+                                    Il valore di un risultato <strong>non si misura dall'aver seguito un metodo lineare standard</strong>! Riuscire a sintetizzare, risolvere problemi e consegnare un lavoro valido nonostante la fatica esecutiva dimostra una grandissima intelligenza adattiva.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 mt-3 border-t border-slate-100 flex gap-2 no-print">
+                            <button type="button" onclick="toggleReframeCard(2, this)" class="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-rotate"></i> <span>Ristruttura con Realtà</span>
+                            </button>
+                            <button type="button" onclick="toggleTreasureItem(this, 'Stop Sindrome dell\'Impostore: I miei risultati sono pienamente meritati anche se raggiunti con sprint intensivi e non con metodi lineari')" class="treasure-chip py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 hover:border-amber-400 transition-all">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARTA CRITICO 3: Il Confronto sulle "Cose Semplici" -->
+                    <div class="critic-card rounded-2xl border border-slate-200 bg-white p-5 flex flex-col justify-between shadow-sm">
+                        <div class="space-y-3">
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[11px] font-bold">Accusa 3 • Il Paragone Quotidiano</span>
+                            <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200 text-xs text-rose-950 italic">
+                                «Riesco a capire concetti difficilissimi, ma poi mi blocco per fare una telefonata, tenere in ordine la stanza o fare la spesa. Com'è possibile che io cada sulle cose banali?»
+                            </div>
+
+                            <div id="reframe-box-3" class="reframe-truth-box hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 space-y-1.5">
+                                <strong class="block text-emerald-800 uppercase text-[10px] tracking-wider"><i class="fa-solid fa-seedling mr-1"></i> La Verità Neurobiologica:</strong>
+                                <p class="text-slate-700 leading-relaxed">
+                                    Per il tuo sistema nervoso le commissioni ripetitive e multi-step <strong>non sono affatto "banali"</strong>: sono compiti ad altissimo costo esecutivo e sensoriale e a zero rilascio dopaminergico. Semplificarli o usare aiuti esterni è intelligenza ecologica, non debolezza.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 mt-3 border-t border-slate-100 flex gap-2 no-print">
+                            <button type="button" onclick="toggleReframeCard(3, this)" class="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-rotate"></i> <span>Ristruttura con Realtà</span>
+                            </button>
+                            <button type="button" onclick="toggleTreasureItem(this, 'Rispetto del Profilo Asincrono: È normale eccellere in compiti complessi e faticare nella routine burocratica/domestica a bassa dopamina')" class="treasure-chip py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 hover:border-amber-400 transition-all">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARTA CRITICO 4: Il Timore di Essere "Troppo" o "Difettosi" -->
+                    <div class="critic-card rounded-2xl border border-slate-200 bg-white p-5 flex flex-col justify-between shadow-sm">
+                        <div class="space-y-3">
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[11px] font-bold">Accusa 4 • Autenticità e Relazioni</span>
+                            <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200 text-xs text-rose-950 italic">
+                                «Sono sempre "troppo" (troppo sensibile, troppo intenso/a) oppure "troppo poco" (troppo stanco/a, troppo silenzioso/a). Per essere accettato/a devo nascondere come sono.»
+                            </div>
+
+                            <div id="reframe-box-4" class="reframe-truth-box hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-950 space-y-1.5">
+                                <strong class="block text-emerald-800 uppercase text-[10px] tracking-wider"><i class="fa-solid fa-seedling mr-1"></i> La Verità Neurobiologica:</strong>
+                                <p class="text-slate-700 leading-relaxed">
+                                    La tua intensità, la tua profondità di analisi, la tua lealtà e la tua sensibilità sono <strong>qualità preziose</strong> per le persone giuste. Ridurre il <em>masking</em> ti permette di costruire legami in cui vieni amato/a per chi sei davvero, non per la maschera che indossi.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 mt-3 border-t border-slate-100 flex gap-2 no-print">
+                            <button type="button" onclick="toggleReframeCard(4, this)" class="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-rotate"></i> <span>Ristruttura con Realtà</span>
+                            </button>
+                            <button type="button" onclick="toggleTreasureItem(this, 'Diritto all\'Autenticità: La mia sensibilità e il mio modo di sentire non sono difetti da nascondere, ma parti autentiche della mia identità')" class="treasure-chip py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 hover:border-amber-400 transition-all">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Salva
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 no-print">
+                <button onclick="switchSpace(2)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 2: Disaccoppiare Valore e Produttività <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 2: IL DISACCOPPIATORE "VALORE UMANO VS PRODUTTIVITÀ ESECUTIVA"
+             ========================================================================= -->
+        <section id="space-2" class="space-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-500 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 2 • Spezzare l'Equazione Più Dolorosa
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Il Tuo Valore Come Persona Non Dipende da Quante Cose Hai Spuntato Oggi</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        Fin dall'infanzia siamo stati abituati a collegare la nostra autostima alla performance giornaliera: se oggi produco molto mi sento degno di rispetto e di riposo; se oggi ho una giornata di paralisi esecutiva o di sovraccarico sensoriale, mi sento "inutile e in colpa". Poiché nel funzionamento neurodivergente l'energia oscilla fisiologicamente, <strong>legare l'autostima alla produttività giornaliera condanna alle montagne russe emotive</strong>.
+                    </p>
+                </div>
+
+                <!-- SIMULATORE INTERATTIVO 2: IL DISACCOPPIATORE A DOPPIA BARRA INDIPENDENTE -->
+                <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl border border-slate-700 space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Simulatore di Disaccoppiamento Cognitivo</span>
+                            <h3 class="text-lg md:text-xl font-extrabold text-white mt-0.5">Prova a Cambiare il Tipo di Giornata e Osserva i Due Indicatori</h3>
+                        </div>
+                    </div>
+
+                    <!-- Bottoni dei 3 Tipi di Giornata -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 no-print">
+                        <button type="button" onclick="simulateDayType('high', this)" class="day-sim-btn bg-slate-800 hover:bg-slate-700 text-slate-200 p-3.5 rounded-2xl border border-slate-700 text-left text-xs font-bold transition-all">
+                            <div class="text-emerald-300 mb-0.5"><i class="fa-solid fa-bolt mr-1"></i> 1. Giornata di Sprint (Batteria 85%)</div>
+                            <div class="font-normal text-[11px] opacity-80">Focus alto e molte cose concluse</div>
+                        </button>
+                        <button type="button" onclick="simulateDayType('medium', this)" class="day-sim-btn bg-slate-800 hover:bg-slate-700 text-slate-200 p-3.5 rounded-2xl border border-slate-700 text-left text-xs font-bold transition-all">
+                            <div class="text-amber-300 mb-0.5"><i class="fa-solid fa-cloud-sun mr-1"></i> 2. Giornata con Imprevisti (45%)</div>
+                            <div class="font-normal text-[11px] opacity-80">Fatto solo l'essenziale con fatica</div>
+                        </button>
+                        <button type="button" onclick="simulateDayType('low', this)" class="day-sim-btn active-day p-3.5 rounded-2xl border border-slate-700 text-left text-xs font-bold transition-all">
+                            <div class="text-rose-300 mb-0.5"><i class="fa-solid fa-battery-quarter mr-1"></i> 3. Giornata di Blocco / Riserva (15%)</div>
+                            <div class="font-normal text-[11px] opacity-80">Sovraccarico o Paralisi Esecutiva</div>
+                        </button>
+                    </div>
+
+                    <!-- I Due Indicatori Indipendenti -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Indicatore 1: Produttività Esecutiva (Variabile) -->
+                        <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2.5">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-slate-300"><i class="fa-solid fa-gauge mr-1 text-sky-400"></i> 1. Batteria & Output Esecutivo di Oggi</span>
+                                <span id="simExecBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold">15% (In Riserva)</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden p-0.5">
+                                <div id="simExecBar" class="bg-rose-500 h-full rounded-full transition-all duration-500" style="width: 15%"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-400">
+                                Oscilla fisiologicamente ogni giorno in base a sonno, ormoni, carico sensoriale e imprevisti.
+                            </p>
+                        </div>
+
+                        <!-- Indicatore 2: Valore Umano e Diritto al Riposo (Costante al 100%) -->
+                        <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-500/40 space-y-2.5">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-emerald-200"><i class="fa-solid fa-lock mr-1 text-amber-300"></i> 2. Il Tuo Valore e Diritto al Rispetto</span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 font-extrabold border border-emerald-400/40">100% INVARIABILE</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden p-0.5">
+                                <div class="bg-gradient-to-r from-emerald-500 to-amber-400 h-full rounded-full" style="width: 100%"></div>
+                            </div>
+                            <p class="text-[11px] text-emerald-200/90">
+                                <strong>Sganciato dalla performance:</strong> anche nei giorni da 15% di batteria meriti gentilezza, cibo nutriente e riposo senza colpa.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="simDayExplanation" class="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs md:text-sm text-emerald-100 leading-relaxed">
+                        <strong class="text-amber-300 block mb-1">Giornata di Blocco o Sovraccarico (15%):</strong>
+                        Quando la batteria esecutiva è al 15%, attaccarsi con il senso di colpa è come prendere a calci un telefono scarico perché non si accende. In queste giornate il tuo unico "compito" è mettere il sistema in carica, ricordando che il tuo valore resta intatto al 100%.
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna al Critico Interiore
+                </button>
+                <button onclick="switchSpace(3)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 3: Vantaggi e Riconoscimenti <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 3: CONTRO LO "SCONTO DEI MERITI" – NOTARE VANTAGGI E RICONOSCIMENTI
+             ========================================================================= -->
+        <section id="space-3" class="space-panel space-y-6">
+            
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-teal-600 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 3 • Riallenare lo Sguardo sui Propri Punti di Forza
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Perché Ignoriamo i Complimenti e Svalutiamo Ciò che Facciamo Bene?</h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mt-1">
+                        L'autostima non si ricostruisce ripetendo frasi astratte allo specchio, ma correggendo un <strong>errore percettivo automatico</strong>: la tendenza a notare con il microscopio ogni singola dimenticanza e, contemporaneamente, a <strong>non cogliere o minimizzare i complimenti ricevuti e i vantaggi del nostro funzionamento</strong> (dicendo <em>«Eh vabbè, non era niente di speciale, chiunque ci sarebbe riuscito»</em>). Alleniamoci a riconoscere le <strong>3 Fonti Reali di Autostima</strong>:
+                    </p>
+                </div>
+
+                <!-- Le 3 Fonti di Riconoscimento Quotidiano -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- 1. I Vantaggi del Proprio Funzionamento -->
+                    <div class="p-5 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                        <div>
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold mb-3">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </div>
+                            <h3 class="font-bold text-amber-950 text-base mb-1.5">1. I Vantaggi della Tua Mente</h3>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-4">
+                                Notare i momenti in cui le tue caratteristiche neurodivergenti si sono rivelate una risorsa: trovare una soluzione creativa a un imprevisto in poco tempo, proporre un'idea originale, cogliere un dettaglio che nessuno aveva visto o approfondire un tema con passione.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleTreasureItem(this, 'Riconoscere i Miei Vantaggi: Dare valore alla mia rapidità nel risolvere gli imprevisti, alla creatività associativa e alla profondità con cui approfondisco i temi')" class="treasure-chip w-full py-2 px-3 rounded-xl border border-amber-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Metti nello Scrigno
+                        </button>
+                    </div>
+
+                    <!-- 2. Accogliere i Riconoscimenti Positivi Altrui -->
+                    <div class="p-5 rounded-2xl bg-teal-50/60 border border-teal-200 flex flex-col justify-between">
+                        <div>
+                            <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold mb-3">
+                                <i class="fa-solid fa-hands-clapping"></i>
+                            </div>
+                            <h3 class="font-bold text-teal-950 text-base mb-1.5">2. Non Respingere i Complimenti</h3>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-4">
+                                Spesso quando qualcuno ci ringrazia o ci fa un apprezzamento lo lasciamo cadere nel vuoto perché siamo già concentrati su cosa manca. Imparare a fermarsi 5 secondi, dire <em>«Grazie!»</em> e <strong>registrare in memoria quel feedback positivo</strong> nutre la fiducia in sé.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleTreasureItem(this, 'Accogliere i Riconoscimenti: Quando qualcuno mi fa un complimento o mi ringrazia, non lo minimizzo ma lo lascio entrare dicendo semplicemente «Grazie!»')" class="treasure-chip w-full py-2 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Metti nello Scrigno
+                        </button>
+                    </div>
+
+                    <!-- 3. Darsi Feedback sui "Progressi Invisibili" -->
+                    <div class="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex flex-col justify-between">
+                        <div>
+                            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold mb-3">
+                                <i class="fa-solid fa-medal"></i>
+                            </div>
+                            <h3 class="font-bold text-emerald-950 text-base mb-1.5">3. Validare lo Sforzo Invisibile</h3>
+                            <p class="text-xs text-slate-700 leading-relaxed mb-4">
+                                Darsi una pacca sulla spalla non solo per i grandi traguardi esterni, ma per le <strong>piccole vittorie di autoregolazione</strong>: aver scritto un promemoria sull'agenda, aver usato le cuffie prima del mal di testa o essersi fermati 10 minuti prima di rispondere a caldo.
+                            </p>
+                        </div>
+                        <button type="button" onclick="toggleTreasureItem(this, 'Validare i Micro-Progressi: Riconoscermi il merito ogni volta che applico una piccola strategia o rispetto i miei limiti energetici')" class="treasure-chip w-full py-2 px-3 rounded-xl border border-emerald-300 bg-white text-xs text-slate-700 hover:border-amber-500 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Metti nello Scrigno
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna a Valore vs Produttività
+                </button>
+                <button onclick="switchSpace(4)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm">
+                    Vai allo Spazio 4: Gestire gli Intoppi Senza Colpa <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 4: IL DIAGNOSTICATORE GENTILE DEGLI INTOPPI + LO SCRIGNO DEL VALORE
+             ========================================================================= -->
+        <section id="space-4" class="space-panel space-y-6 pb-8">
+            
+            <!-- 1. IL DIAGNOSTICATORE GENTILE: COSA FARE QUANDO UNA STRATEGIA NON FUNZIONA -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-indigo-600 space-y-5">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-bold uppercase tracking-wide">
+                        Spazio 4 • Dal Giudizio ("Sono Sbagliato/a") alla Calibrazione ("Adatto lo Strumento")
+                    </span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-2">Il Diagnosticatore Gentile: Quando Non Riesci ad Applicare una Strategia</h2>
+                    <p class="text-xs md:text-sm text-slate-600 mt-1">
+                        Quando proviamo una nuova abitudine e per qualche giorno non riusciamo a seguirla, il Critico Interiore sentenzia subito: <em>«Vedi? Con te non funziona mai niente!»</em>. Impariamo invece a fare come uno scienziato curioso: <strong>clicca sul motivo per cui un compito o una strategia si è inceppata</strong> per scoprire come ritararla senza intaccare la tua autostima:
+                    </p>
+                </div>
+
+                <!-- Bottoni Diagnostici degli Intoppi -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button type="button" onclick="diagnoseObstacle(1, this)" class="diag-btn text-left p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-300 transition-all space-y-1">
+                        <div class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-mountain text-indigo-600"></i> 1. «Mi ero dato/a un compito troppo difficile o ampio?»
+                        </div>
+                        <p class="text-[11px] text-slate-500">Volevo cambiare troppe cose insieme o senza micro-passi.</p>
+                    </button>
+
+                    <button type="button" onclick="diagnoseObstacle(2, this)" class="diag-btn text-left p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-300 transition-all space-y-1">
+                        <div class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-tornado text-amber-600"></i> 2. «Ci sono stati troppi imprevisti o sovraccarico?»
+                        </div>
+                        <p class="text-[11px] text-slate-500">La settimana ha consumato tutti i miei cucchiai di energia.</p>
+                    </button>
+
+                    <button type="button" onclick="diagnoseObstacle(3, this)" class="diag-btn text-left p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-300 transition-all space-y-1">
+                        <div class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-Showers-heavy text-rose-600"></i> 3. «Avevo il timore che tanto non sarebbe servito a nulla?»
+                        </div>
+                        <p class="text-[11px] text-slate-500">La sfiducia del passato mi ha bloccato prima ancora di provare.</p>
+                    </button>
+
+                    <button type="button" onclick="diagnoseObstacle(4, this)" class="diag-btn text-left p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-300 transition-all space-y-1">
+                        <div class="font-bold text-slate-800 text-xs md:text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye text-teal-600"></i> 4. «Era davvero un'area prioritaria per me adesso?»
+                        </div>
+                        <p class="text-[11px] text-slate-500">Forse stavo cercando di fare qualcosa solo per compiacere altri.</p>
+                    </button>
+                </div>
+
+                <!-- Box Risposta del Diagnosticatore Gentile -->
+                <div id="diagnosticFeedbackBox" class="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 text-xs md:text-sm text-indigo-950 leading-relaxed">
+                    <i class="fa-solid fa-compass text-indigo-600 mr-1"></i> <strong>Regola d'Oro per l'Autostima:</strong> Se una strategia non ha funzionato questa settimana, <em>non sei tu ad aver fallito</em>: significa solo che l'obiettivo andava reso più semplice, più circoscritto o diluito in un arco di tempo più ampio!
+                </div>
+            </div>
+
+            <!-- 2. LO SCRIGNO DEL VALORE E DEI PUNTI DI FORZA -->
+            <div class="glass-panel rounded-3xl p-6 md:p-8 border-t-4 border-t-amber-500">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-gem text-amber-500"></i> Il Tuo Scrigno dell'Autostima (Modulo 12)
+                        </h3>
+                        <p class="text-xs md:text-sm text-slate-600 mt-0.5">
+                            I principi neuro-affermativi e di protezione del valore personale che hai raccolto lungo il modulo:
+                        </p>
+                    </div>
+                    <button onclick="exportFullStaticPDF()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all shrink-0">
+                        <i class="fa-solid fa-file-pdf"></i> Esporta Tutto in PDF
+                    </button>
+                </div>
+
+                <div id="treasureSummaryContainer" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 mb-4">
+                    <!-- Popolato via JS -->
+                </div>
+
+                <div>
+                    <label for="customStrengthNote" class="block text-xs font-bold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-star text-amber-500 mr-1"></i> Scrivi qui una qualità, un vantaggio del tuo funzionamento o un complimento ricevuto che scegli di riconoscere oggi:
+                    </label>
+                    <input type="text" id="customStrengthNote" oninput="renderTreasureSummary()" placeholder="Es. «So trovare soluzioni creative quando c'è un imprevisto e sono una persona profonda e leale.»" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs md:text-sm text-slate-800 focus:border-emerald-600 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 no-print">
+                <button onclick="switchSpace(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Torna a Vantaggi e Riconoscimenti
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const selectedTreasures = new Set();
+
+        window.onload = function() {
+            const dateLabel = document.getElementById('printDateLabel');
+            if (dateLabel) {
+                dateLabel.textContent = 'Data: ' + new Date().toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            }
+            renderTreasureSummary();
+        };
+
+        // Navigazione Orizzontale dei 4 Spazi
+        function switchSpace(spaceNum) {
+            document.querySelectorAll('.space-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`space-${spaceNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`space-btn-${i}`);
+                if (i === spaceNum) {
+                    btn.className = 'space-btn bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'space-btn bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium px-4 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (spaceNum === 4) {
+                renderTreasureSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Gestione Carte Traduttore del Critico Interiore (Spazio 1)
+        function toggleReframeCard(cardNum, btnEl) {
+            const box = document.getElementById(`reframe-box-${cardNum}`);
+            const isHidden = box.classList.contains('hidden');
+            if (isHidden) {
+                box.classList.remove('hidden');
+                btnEl.innerHTML = `<i class="fa-solid fa-check"></i> <span>Verità Attivata</span>`;
+                btnEl.className = 'flex-1 py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5';
+            } else {
+                box.classList.add('hidden');
+                btnEl.innerHTML = `<i class="fa-solid fa-rotate"></i> <span>Ristruttura con Realtà</span>`;
+                btnEl.className = 'flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5';
+            }
+        }
+
+        // Simulatore Disaccoppiamento Valore vs Produttività (Spazio 2)
+        function simulateDayType(dayType, btnEl) {
+            document.querySelectorAll('.day-sim-btn').forEach(b => {
+                b.classList.remove('active-day');
+                b.classList.add('bg-slate-800', 'text-slate-200');
+            });
+            btnEl.classList.remove('bg-slate-800', 'text-slate-200');
+            btnEl.classList.add('active-day');
+
+            const bar = document.getElementById('simExecBar');
+            const badge = document.getElementById('simExecBadge');
+            const exp = document.getElementById('simDayExplanation');
+
+            bar.classList.remove('bg-emerald-500', 'bg-amber-500', 'bg-rose-500');
+
+            if (dayType === 'high') {
+                bar.style.width = '85%';
+                bar.classList.add('bg-emerald-500');
+                badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold';
+                badge.textContent = '85% (Giornata Fluida)';
+                exp.innerHTML = `<strong class="text-emerald-300 block mb-1">Giornata di Sprint (85%):</strong> Oggi la dopamina e l'energia ti hanno sostenuto: goditi i risultati ottenuti, ma ricorda che non sei obbligato/a a pretendere questo stesso ritmo ogni singolo giorno dell'anno per sentirti degno/a di stima.`;
+            } else if (dayType === 'medium') {
+                bar.style.width = '45%';
+                bar.classList.add('bg-amber-500');
+                badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold';
+                badge.textContent = '45% (Giornata con Attrito)';
+                exp.innerHTML = `<strong class="text-amber-300 block mb-1">Giornata con Imprevisti (45%):</strong> Aver portato a casa anche solo una o due piccole cose mentre gestivi stanchezza o contrattempi vale quanto uno sprint nei giorni facili. Il tuo valore rimane fisso al 100%.`;
+            } else {
+                bar.style.width = '15%';
+                bar.classList.add('bg-rose-500');
+                badge.className = 'px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold';
+                badge.textContent = '15% (In Riserva)';
+                exp.innerHTML = `<strong class="text-rose-300 block mb-1">Giornata di Blocco o Sovraccarico (15%):</strong> Quando la batteria esecutiva è al 15%, attaccarsi con il senso di colpa è come prendere a calci un telefono scarico perché non si accende. In queste giornate il tuo unico compito è mettere il sistema in carica, ricordando che il tuo valore resta intatto al 100%.`;
+            }
+        }
+
+        // Diagnosticatore Gentile degli Intoppi (Spazio 4)
+        function diagnoseObstacle(typeNum, btnEl) {
+            document.querySelectorAll('.diag-btn').forEach(b => {
+                b.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50');
+            });
+            btnEl.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50');
+
+            const box = document.getElementById('diagnosticFeedbackBox');
+            if (typeNum === 1) {
+                box.innerHTML = `<i class="fa-solid fa-sliders text-indigo-600 mr-1"></i> <strong>Calibrazione Gentile (Rimpicciolisci l'Obiettivo):</strong> Ottima osservazione! Non è mancanza di volontà: avevi solo scelto un gradino troppo alto. Dimezza la richiesta o trasformala in un micro-passo da 2 minuti e concediti un arco di tempo più ampio.`;
+            } else if (typeNum === 2) {
+                box.innerHTML = `<i class="fa-solid fa-shield-heart text-amber-600 mr-1"></i> <strong>Calibrazione Gentile (Priorità alla Sopravvivenza Energetica):</strong> Quando una settimana è piena di imprevisti, tutta la tua energia serve a reggere l'onda. Mettere in pausa i nuovi esercizi nei giorni di tempesta è saggezza clinica, non fallimento!`;
+            } else if (typeNum === 3) {
+                box.innerHTML = `<i class="fa-solid fa-seedling text-rose-600 mr-1"></i> <strong>Calibrazione Gentile (Accogliere la Diffidenza):</strong> È comprensibile avere poca fiducia dopo tanti metodi standard che in passato non hanno funzionato. Prova la strategia solo come un piccolo "esperimento curioso" per un giorno, senza pretendere la perfezione.`;
+            } else {
+                box.innerHTML = `<i class="fa-solid fa-compass text-teal-600 mr-1"></i> <strong>Calibrazione Gentile (Motivazione Autentica):</strong> Il nostro cervello fa una fatica enorme ad attivarsi su obiettivi scelti solo per "dovere esterno". Scegli un'area che porti un sollievo immediato e concreto prima di tutto a te!`;
+            }
+        }
+
+        // Gestione Scrigno del Valore
+        function toggleTreasureItem(btn, textLabel) {
+            const icon = btn.querySelector('i');
+            if (selectedTreasures.has(textLabel)) {
+                selectedTreasures.delete(textLabel);
+                btn.classList.remove('selected');
+                if (icon) icon.className = 'fa-solid fa-plus text-[10px]';
+            } else {
+                selectedTreasures.add(textLabel);
+                btn.classList.add('selected');
+                if (icon) icon.className = 'fa-solid fa-check text-[10px]';
+                showToast('Aggiunto al tuo Scrigno dell\'Autostima!');
+            }
+            document.getElementById('treasureCountBadge').textContent = selectedTreasures.size;
+            renderTreasureSummary();
+        }
+
+        function renderTreasureSummary() {
+            const container = document.getElementById('treasureSummaryContainer');
+            const customStrength = (document.getElementById('customStrengthNote')?.value || '').trim();
+
+            if (selectedTreasures.size === 0 && !customStrength) {
+                container.innerHTML = `<em>Non hai ancora salvato elementi nello Scrigno. Tocca i pulsanti "+ Salva" o "+ Metti nello Scrigno" negli spazi precedenti.</em>`;
+                return;
+            }
+
+            let html = '<div class="space-y-3">';
+            if (selectedTreasures.size > 0) {
+                html += '<ul class="space-y-2">';
+                selectedTreasures.forEach(item => {
+                    html += `
+                        <li class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-amber-200 shadow-sm">
+                            <i class="fa-solid fa-gem text-amber-500 mt-0.5"></i>
+                            <span class="text-slate-800 font-medium text-xs md:text-sm">${item}</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+
+            if (customStrength) {
+                html += `
+                    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                        <strong class="uppercase tracking-wider block text-[10px] text-amber-800 mb-0.5">Il Punto di Forza / Riconoscimento che Valido Oggi:</strong>
+                        "${escapeHtml(customStrength)}"
+                    </div>
+                `;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Esportazione PDF con tutti gli spazi e le carte aperte
+        function exportFullStaticPDF() {
+            renderTreasureSummary();
+            const btn = document.getElementById('btnDownloadFullPdf');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainScrollArea');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Modulo_12_Autostima_Superamento_Senso_di_Colpa_e_Immagine_di_Se.pdf',
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF completo del Modulo 12 scaricato con tutte le sezioni aperte!');
+                }).catch(err => {
+                    console.error('Errore generazione PDF:', err);
+                    document.body.classList.remove('pdf-export-mode');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                document.body.classList.remove('pdf-export-mode');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 14 - Cura di Sé (Alimentazione e Movimento)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .space-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .space-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-problem {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-action {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-outcome {
+            background-color: #ccfbf1;
+            border-color: #0d9488;
+            color: #115e59;
+            font-weight: 600;
+        }
+        .selectable-chip.active-ally {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-obstacle {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+        .day-badge-btn {
+            transition: all 0.18s ease;
+            user-select: none;
+        }
+        .day-badge-btn.selected-day {
+            background-color: #059669;
+            color: #ffffff;
+            border-color: #047857;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli spazi aperti e statici)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .space-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .space-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Panoramico Area V -->
+    <header class="bg-gradient-to-r from-emerald-900 via-teal-800 to-orange-800 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-apple-whole text-amber-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-amber-100 font-bold">Homework • Modulo 14</span>
+                        <span class="text-[11px] text-emerald-100 hidden sm:inline">• Area V: Cura di Sé (Parte 2 - Alimentazione e Movimento)</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold mt-0.5">Dispensa Salva-Batteria, Alleati a Tavola e Snack Motori</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-emerald-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Spazi -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="goToSpace(1)" id="nav-space-1" class="space-nav-btn bg-emerald-800 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-utensils"></i> 1. Problema & Azione
+                </button>
+                <button onclick="goToSpace(2)" id="nav-space-2" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-scale-balanced"></i> 2. Alleati vs Ostacoli
+                </button>
+                <button onclick="goToSpace(3)" id="nav-space-3" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-calendar-check"></i> 3. Pianifica 3 Livelli
+                </button>
+                <button onclick="goToSpace(4)" id="nav-space-4" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> 4. Card Frigo & PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-emerald-900 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-emerald-800">Programma Clinico Modulare di Psicoeducazione • Modulo 14</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 14: Cura di Sé (Parte 2 - Alimentazione e Movimento)</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Migliarese et al. (2023) • Kaisari et al. (2017) • Kinnaird et al. (2019) • Ratey (2008).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Guida Anti-Perfezionismo -->
+        <div class="bg-emerald-50/90 border border-emerald-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-seedling"></i>
+            </span>
+            <div class="text-xs md:text-sm text-emerald-950 leading-relaxed flex-1">
+                <strong class="font-bold">Ricordati che è importante nutrirsi a ogni pasto, anche senza "cucinare"!</strong> 
+                Un pasto assemblato in 3 minuti senza sporcare pentole o uno "snack motorio" da 10 minuti valgono al 100%. In questa scheda individuiamo <strong>i tuoi Alleati e i tuoi Ostacoli</strong> e prepariamo un <strong>Menu Salva-Batteria</strong> che ti tolga la fatica di decidere cosa mangiare quando hai già fame.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Bussola 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 14 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-emerald-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-emerald-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-emerald-700"></i> I 3 Pilastri di Alimentazione e Movimento Sostenibili
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Prevenire il Crollo Serale</div>
+                    <p class="text-slate-600 text-xs">Saltare il pranzo per iperfocalizzazione porta in ipoglicemia alle 18:00, innescando irritabilità e fame impulsiva serale.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Menu a 3 Livelli di Batteria</div>
+                    <p class="text-slate-600 text-xs"><strong>Verde:</strong> cucinare porzione doppia. <strong>Giallo:</strong> assemblare 3 ingredienti pronti in 5 min. <strong>Rosso:</strong> scorta d'emergenza a zero passaggi.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Snack Motori a Zero Attrito</div>
+                    <p class="text-slate-600 text-xs">Anche solo 10–15 minuti di camminata ascoltando il proprio podcast preferito rilasciano dopamina e scaricano la tensione.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             SPAZIO 1: CURA DI SÉ (PARTE 2 - ALIMENTAZIONE E MOVIMENTO): PROBLEMA -> COMPITO -> ESITO
+             ========================================================================= -->
+        <section id="space-1" class="space-section active space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Spazio 1 • Dal Problema all'Azione Sostenibile</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Scegliere un Aspetto su Alimentazione o Movimento su Cui Migliorare</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Identifica una problematica specifica relativa ai pasti o all'attività fisica e abbina un'azione a basso attrito da sperimentare in settimana.
+                    </p>
+                </div>
+
+                <!-- 1. PROBLEMA -->
+                <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
+                    <label class="block text-sm font-bold text-amber-950 flex items-center gap-2">
+                        <i class="fa-solid fa-utensils text-amber-600"></i> 1. PROBLEMA: Identifica e scegli una problematica specifica su cui vuoi migliorare
+                    </label>
+                    <p class="text-xs text-slate-600">Tocca la difficoltà che ti capita più spesso nella quotidianità:</p>
+                    <div class="flex flex-wrap gap-2" id="food-problem-chips">
+                        <button type="button" onclick="toggleChip(this, 'foodProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Saltare i pasti (o dimenticare di bere) perché assorbito/a da altri compiti e arrivare affamato/a a sera</button>
+                        <button type="button" onclick="toggleChip(this, 'foodProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Andare in "paralisi davanti al frigo aperto" a orari sballati perché cucinare richiede troppi passaggi</button>
+                        <button type="button" onclick="toggleChip(this, 'foodProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Mangiare di fretta o cercare continuamente snack/junk food per noia, nervosismo o calo di dopamina</button>
+                        <button type="button" onclick="toggleChip(this, 'foodProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Rimanere col frigo vuoto perché fare la spesa e pianificare i pasti mi sovraccarica</button>
+                        <button type="button" onclick="toggleChip(this, 'foodProblems', 'active-problem')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Blocco del "Tutto o Niente" nel movimento (non riuscire a fare sport con costanza per l'attrito di prepararsi)</button>
+                    </div>
+                    <textarea id="foodProblemCustomText" oninput="saveData()" rows="2" placeholder="Descrivi brevemente la problematica scelta (es. 'A pranzo non mi fermo mai e alle 19:00 mangio qualsiasi cosa trovi in dispensa')..." class="w-full rounded-xl border border-amber-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 2. COMPITO / AZIONE -->
+                <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3">
+                    <label class="block text-sm font-bold text-emerald-950 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i> 2. COMPITO: Individua almeno un'azione concreta da attuare per migliorare questo aspetto
+                    </label>
+                    <p class="text-xs text-slate-600">Scegli una strategia a basso sforzo esecutivo tra quelle proposte:</p>
+                    <div class="flex flex-wrap gap-2" id="food-action-chips">
+                        <button type="button" onclick="toggleChip(this, 'foodActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Tenere borraccia d'acqua e uno spuntino proteico/nutriente sempre visibili sulla scrivania</button>
+                        <button type="button" onclick="toggleChip(this, 'foodActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Procurarmi gli ingredienti per 2–3 "Pasti da Assemblaggio in 5 minuti" (Livello Giallo senza fornelli)</button>
+                        <button type="button" onclick="toggleChip(this, 'foodActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Tenere sempre in dispensa/freezer una "Scorta di Emergenza" a zero passaggi (Livello Rosso)</button>
+                        <button type="button" onclick="toggleChip(this, 'foodActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Quando cucino nei giorni a batteria alta, preparare una porzione doppia da conservare pronta</button>
+                        <button type="button" onclick="toggleChip(this, 'foodActions', 'active-action')" class="selectable-chip px-3 py-1.5 rounded-xl border border-emerald-200 bg-white text-xs text-slate-700">Inserire 10–15 minuti di "Snack Motorio" (camminata veloce o stretching) abbinato al mio podcast preferito</button>
+                    </div>
+                    <textarea id="foodActionCustomText" oninput="saveData()" rows="2" placeholder="Specifica qui l'azione pratica che hai scelto di mettere in atto..." class="w-full rounded-xl border border-emerald-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 3. ESITO DELL'AZIONE -->
+                <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3">
+                    <label class="block text-sm font-bold text-teal-950 flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check text-teal-600"></i> 3. ESITO DELL'AZIONE: Ora mettila in atto! Sei riuscita/o?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="food-outcome-chips">
+                        <button type="button" onclick="toggleChip(this, 'foodOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">Sì, avere già le opzioni pronte mi ha evitato di saltare il pasto e mi ha dato energia più stabile</button>
+                        <button type="button" onclick="toggleChip(this, 'foodOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">In parte: in alcuni giorni ha funzionato bene, in altri mi sono accorto/a della fame un po' tardi</button>
+                        <button type="button" onclick="toggleChip(this, 'foodOutcomes', 'active-outcome')" class="selectable-chip px-3.5 py-2 rounded-xl border border-teal-200 bg-white text-xs text-slate-800">Ho fatto fatica, ma ho riconosciuto chiaramente quali ostacoli mi hanno bloccato</button>
+                    </div>
+                    <input type="text" id="foodOutcomeNotes" oninput="saveData()" placeholder="Come ti sei sentito/a a livello di energia e concentrazione?..." class="w-full rounded-xl border border-teal-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa alle Valutazioni (Alleati vs Ostacoli) <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 2: VALUTAZIONI (QUESTI SONO I TUOI ALLEATI VS QUESTI SONO I TUOI OSTACOLI) & IPOTESI
+             ========================================================================= -->
+        <section id="space-2" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-teal-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-800">Spazio 2 • Valutazioni e Ipotesi</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Riconosci i Tuoi "Alleati" e i Tuoi "Ostacoli"</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Cerca di riconoscere gli elementi che in questa settimana hanno favorito un'alimentazione adeguata (e il movimento) e quelli che invece l'hanno ostacolata.
+                    </p>
+                </div>
+
+                <!-- Tabella a 2 Colonne: ALLEATI vs OSTACOLI -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Colonna Sinistra: QUESTI SONO I TUOI ALLEATI -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Questi sono i tuoi ALLEATI
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">Elementi che hanno favorito un'adeguata alimentazione e movimento:</h3>
+                            <p class="text-xs text-slate-500 mb-2.5">(Scegliere momenti calmi per la spesa, riuscire a interrompere il lavoro per la pausa pranzo, ecc.)</p>
+                            <div class="flex flex-wrap gap-1.5" id="food-allies-chips">
+                                <button type="button" onclick="toggleChip(this, 'foodAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Aver fatto la spesa in anticipo (o online) avendo già il cibo pronto in casa</button>
+                                <button type="button" onclick="toggleChip(this, 'foodAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Riuscire a interrompere il lavoro per fare la pausa pranzo prima di essere a zero</button>
+                                <button type="button" onclick="toggleChip(this, 'foodAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Tenere gli ingredienti veloci/sani ad altezza occhi nel frigo</button>
+                                <button type="button" onclick="toggleChip(this, 'foodAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Concedermi un pasto assemblato in 5 minuti senza pretendere di cucinare</button>
+                                <button type="button" onclick="toggleChip(this, 'foodAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Usare verdure già lavate o surgelate che non richiedono taglio</button>
+                                <button type="button" onclick="toggleChip(this, 'foodAllies', 'active-ally')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Tenere le scarpe da ginnastica pronte e ascoltare un podcast mentre cammino</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-emerald-200/60">
+                            <label class="block text-xs font-bold text-emerald-950 mb-1">Altri tuoi Alleati notati in settimana:</label>
+                            <textarea id="foodAlliesOtherText" oninput="saveData()" rows="2" placeholder="Annota qui cos'altro ti ha aiutato a nutrirmi o muoverti con regolarità..." class="w-full rounded-lg border border-emerald-200 bg-white p-2 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Colonna Destra: QUESTI SONO I TUOI OSTACOLI -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Questi sono i tuoi OSTACOLI
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm mb-1">Elementi che hanno ostacolato l'alimentazione o il movimento:</h3>
+                            <p class="text-xs text-slate-500 mb-2.5">(Essere in ritardo, essere nervoso/a, annoiato/a, essere preso/a eccessivamente da altri compiti, ecc.)</p>
+                            <div class="flex flex-wrap gap-1.5" id="food-obstacles-chips">
+                                <button type="button" onclick="toggleChip(this, 'foodObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Essere preso/a eccessivamente da altri compiti (iper-focus) e dimenticare il pasto</button>
+                                <button type="button" onclick="toggleChip(this, 'foodObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Essere in ritardo o di fretta senza cuscinetti di tempo per mangiare</button>
+                                <button type="button" onclick="toggleChip(this, 'foodObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Essere nervoso/a, annoiato/a o stanco/a e cercare dopamina rapida nel junk food</button>
+                                <button type="button" onclick="toggleChip(this, 'foodObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Arrivare a sera senza aver pensato prima a cosa mangiare e con la cucina in disordine</button>
+                                <button type="button" onclick="toggleChip(this, 'foodObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Non avere in casa i miei "cibi sicuri" (safe foods) o opzioni pronte</button>
+                                <button type="button" onclick="toggleChip(this, 'foodObstacles', 'active-obstacle')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Pensare "Se non faccio un'ora intera di sport allora è inutile muoversi"</button>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-rose-200/60">
+                            <label class="block text-xs font-bold text-rose-950 mb-1">Altri tuoi Ostacoli notati in settimana:</label>
+                            <textarea id="foodObstaclesOtherText" oninput="saveData()" rows="2" placeholder="Annota qui cos'altro ti ha ostacolato..." class="w-full rounded-lg border border-rose-200 bg-white p-2 text-xs text-slate-800 focus:border-rose-600 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- IPOTESI DI MIGLIORAMENTO -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                    <label class="block text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> IPOTESI: Cerca di ridurre i tuoi Ostacoli. Ipotizza come potresti farlo:
+                    </label>
+                    <p class="text-xs text-slate-600">
+                        Scrivi una piccola soluzione pratica per aggirare l'ostacolo principale (es. tenere sempre una scorta di piadine, hummus e tonno/uova in frigo per le sere in cui torno tardi, o mettere una sveglia alle 13:15 per la pausa pranzo):
+                    </p>
+                    <textarea id="foodHypothesisText" oninput="saveData()" rows="2" placeholder="Scrivi qui la tua ipotesi pratica..." class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(3)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa allo Spazio 3: Pianifica il Menu Salva-Batteria <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 3: PIANIFICA SENZA PARALISI (IL MENU A 3 LIVELLI + TRACKER LUNEDÌ-DOMENICA)
+             ========================================================================= -->
+        <section id="space-3" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-amber-500">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Spazio 3 • Pianifica e Procurati Prima il Necessario</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Pianifica il Tuo "Menu Salva-Batteria" e il Tracker Settimanale</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Invece di un piano rigido che cambia ogni singolo giorno (difficilissimo da sostenere), scegli e procurati in anticipo le tue <strong>4 Opzioni Base Pre-Approvate</strong> da ruotare liberamente in settimana in base alla tua energia:
+                    </p>
+                </div>
+
+                <!-- 1. LE 4 OPZIONI BASE PRE-APPROVATE (COLAZIONE/SPUNTINO, LIVELLO GIALLO, LIVELLO ROSSO, SNACK MOTORIO) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Opzione 1: Colazione & Spuntino Ancora -->
+                    <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-2">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-amber-900">
+                            <i class="fa-solid fa-mug-saucer mr-1"></i> 1. Colazione & Spuntini "Ancora" (Sempre in Vista):
+                        </label>
+                        <div class="flex flex-wrap gap-1 no-print">
+                            <button type="button" onclick="setPlanField('planBreakfastSnack', 'Yogurt greco / latte + cereali o pane tostato; sulla scrivania: frutta secca, banana o barretta proteica + borraccia d\'acqua.')" class="px-2 py-1 rounded bg-white border border-amber-300 text-[11px] text-slate-700 hover:border-amber-600">
+                                Esempio Rapido
+                            </button>
+                        </div>
+                        <textarea id="planBreakfastSnack" oninput="saveData()" rows="2" placeholder="Quali 2 colazioni o spuntini veloci tieni sempre pronti in casa/borsa?..." class="w-full rounded-xl border border-amber-300 bg-white p-2.5 text-xs text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Opzione 2: Pasti Livello Giallo (Assemblaggio in 5 min) -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-2">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-emerald-900">
+                            <i class="fa-solid fa-bowl-food mr-1"></i> 2. Pranzo/Cena "Livello Giallo" (Assemblaggio in 5 Min):
+                        </label>
+                        <div class="flex flex-wrap gap-1 no-print">
+                            <button type="button" onclick="setPlanField('planYellowMeal', 'Piadina o pane tostato + hummus/formaggio/uova/tonno + pomodorini o insalata già lavata (zero pentole da lavare).')" class="px-2 py-1 rounded bg-white border border-emerald-300 text-[11px] text-slate-700 hover:border-emerald-600">
+                                Esempio Rapido
+                            </button>
+                        </div>
+                        <textarea id="planYellowMeal" oninput="saveData()" rows="2" placeholder="Quali 3 ingredienti già pronti puoi unire nel piatto in 5 minuti quando hai batteria media?..." class="w-full rounded-xl border border-emerald-300 bg-white p-2.5 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Opzione 3: Pasti Livello Rosso (Emergenza a Zero Passaggi) -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-2">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-rose-900">
+                            <i class="fa-solid fa-life-ring mr-1"></i> 3. Pranzo/Cena "Livello Rosso" (Scorta d'Emergenza):
+                        </label>
+                        <div class="flex flex-wrap gap-1 no-print">
+                            <button type="button" onclick="setPlanField('planRedMeal', 'Zuppa o piatto pronto da scaldare 2 min in microonde, oppure tortellini/ravioli in freezer, crackers + parmigiano.')" class="px-2 py-1 rounded bg-white border border-rose-300 text-[11px] text-slate-700 hover:border-rose-600">
+                                Esempio Rapido
+                            </button>
+                        </div>
+                        <textarea id="planRedMeal" oninput="saveData()" rows="2" placeholder="Quale cibo pronto tieni di scorta in dispensa/freezer per le sere a batteria zero?..." class="w-full rounded-xl border border-rose-300 bg-white p-2.5 text-xs text-slate-800 focus:border-rose-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Opzione 4: Il Mio Snack Motorio da 10–15 Minuti -->
+                    <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-2">
+                        <label class="block text-xs font-extrabold uppercase tracking-wider text-teal-900">
+                            <i class="fa-solid fa-person-walking mr-1"></i> 4. Il Mio "Snack Motorio" a Zero Attrito (10–15 Min):
+                        </label>
+                        <div class="flex flex-wrap gap-1 no-print">
+                            <button type="button" onclick="setPlanField('planMovementSnack', '15 minuti di camminata veloce all\'aperto ascoltando il mio podcast preferito (o stretching sul tappetino già aperto in camera).')" class="px-2 py-1 rounded bg-white border border-teal-300 text-[11px] text-slate-700 hover:border-teal-600">
+                                Esempio Rapido
+                            </button>
+                        </div>
+                        <textarea id="planMovementSnack" oninput="saveData()" rows="2" placeholder="Quale piccolo movimento piacevole e senza attrito vuoi fare 2 o 3 volte in settimana?..." class="w-full rounded-xl border border-teal-300 bg-white p-2.5 text-xs text-slate-800 focus:border-teal-600 focus:outline-none"></textarea>
+                    </div>
+
+                </div>
+
+                <!-- 2. SCHEMA SETTIMANALE LEGGERO (LUNEDÌ - DOMENICA): SEGNA CON UN CLIC SE SEI RIUSCITO/A A NUTRIRTI E MUOVERTI -->
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-week text-emerald-700"></i> Schema Settimanale (Lunedì – Domenica): Tocca i Pasti e gli Snack Motori Effettuati
+                            </h3>
+                            <p class="text-xs text-slate-500">
+                                Ogni casella toccata conta come successo, sia che tu abbia cucinato (Verde), assemblato in 5 min (Giallo) o usato la scorta d'emergenza (Rosso)!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-200/80 text-slate-700 font-bold">
+                                    <th class="p-2 text-left rounded-tl-xl">Momento</th>
+                                    <th class="p-2">Lun</th>
+                                    <th class="p-2">Mar</th>
+                                    <th class="p-2">Mer</th>
+                                    <th class="p-2">Gio</th>
+                                    <th class="p-2">Ven</th>
+                                    <th class="p-2">Sab</th>
+                                    <th class="p-2 rounded-tr-xl">Dom</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weeklyGridBody" class="divide-y divide-slate-200 bg-white">
+                                <!-- Generato dinamicamente via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(4)" class="bg-emerald-800 hover:bg-emerald-900 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera la Card da Frigo e il PDF <i class="fa-solid fa-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 4: CARD "DISPENSA & MOVIMENTO SALVA-BATTERIA" ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="space-4" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Step Finale • Confronto Terapeutico</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">La Tua "Card Salva-Batteria" e Report Completo in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo con tutte le sezioni aperte oppure la sintesi con la tua Card da attaccare al frigo.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-teal-700 hover:bg-teal-800 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica la Card Salva-Batteria e la sintesi">
+                            <i class="fa-solid fa-apple-whole"></i> PDF Card + Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-emerald-800"></i> Intestazione PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-emerald-700 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-emerald-900 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-800">Percorso Modulare di Psicoeducazione • Modulo 14</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Scheda Homework 14: Cura di Sé (Parte 2 - Alimentazione e Movimento)</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- SCHEDA VISIVA: LA CARD DA FRIGO "DISPENSA & MOVIMENTO SALVA-BATTERIA" -->
+                    <div id="fridgeMenuCard" class="rounded-2xl bg-gradient-to-r from-emerald-900 via-teal-800 to-orange-800 text-white p-5 shadow-md space-y-3">
+                        <!-- Popolata dinamicamente via JS -->
+                    </div>
+
+                    <!-- Contenuto analitico degli Spazi 1, 2 e 3 -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Migliarese et al. (2023) • Kaisari et al. (2017) • Kinnaird et al. (2019) • Ratey (2008)</span>
+                        <span>Documento generato per il colloquio clinico</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToSpace(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_14_general_v1';
+
+        const gridRows = [
+            { id: 'colazione', label: 'Colazione' },
+            { id: 'spuntino1', label: 'Spuntino / Acqua' },
+            { id: 'pranzo', label: 'Pranzo (🟢/🟡/🔴)' },
+            { id: 'spuntino2', label: 'Merenda' },
+            { id: 'cena', label: 'Cena (🟢/🟡/🔴)' },
+            { id: 'movimento', label: 'Snack Motorio 🏃' }
+        ];
+        const daysShort = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+
+        let appState = {
+            patientName: '',
+            foodProblems: [],
+            foodProblemCustomText: '',
+            foodActions: [],
+            foodActionCustomText: '',
+            foodOutcomes: [],
+            foodOutcomeNotes: '',
+            foodAllies: [],
+            foodAlliesOtherText: '',
+            foodObstacles: [],
+            foodObstaclesOtherText: '',
+            foodHypothesisText: '',
+            planBreakfastSnack: '',
+            planYellowMeal: '',
+            planRedMeal: '',
+            planMovementSnack: '',
+            checkedGridCells: []
+        };
+
+        window.onload = function() {
+            buildWeeklyGridUI();
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function buildWeeklyGridUI() {
+            const tbody = document.getElementById('weeklyGridBody');
+            if (!tbody) return;
+            let html = '';
+            gridRows.forEach(row => {
+                html += `<tr><td class="p-2 text-left font-bold text-slate-700">${row.label}</td>`;
+                daysShort.forEach((day, dIdx) => {
+                    const cellKey = `${row.id}_${dIdx}`;
+                    html += `
+                        <td class="p-1.5">
+                            <button type="button" id="cell-${cellKey}" onclick="toggleGridCell('${cellKey}')" class="day-badge-btn w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 hover:border-emerald-400 flex items-center justify-center mx-auto">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </button>
+                        </td>
+                    `;
+                });
+                html += `</tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function toggleGridCell(cellKey) {
+            const idx = appState.checkedGridCells.indexOf(cellKey);
+            const btn = document.getElementById(`cell-${cellKey}`);
+            if (idx > -1) {
+                appState.checkedGridCells.splice(idx, 1);
+                btn?.classList.remove('selected-day');
+            } else {
+                appState.checkedGridCells.push(cellKey);
+                btn?.classList.add('selected-day');
+            }
+            saveData();
+        }
+
+        function goToSpace(spaceNum) {
+            document.querySelectorAll('.space-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`space-${spaceNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-space-${i}`);
+                if (i === spaceNum) {
+                    btn.className = 'space-nav-btn bg-emerald-800 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (spaceNum === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-problem', 'active-action', 'active-outcome', 'active-ally', 'active-obstacle');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function setPlanField(inputId, textValue) {
+            document.getElementById(inputId).value = textValue;
+            saveData();
+            showToast('Opzione inserita nel tuo Menu Salva-Batteria!');
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.foodProblemCustomText = document.getElementById('foodProblemCustomText').value;
+            appState.foodActionCustomText = document.getElementById('foodActionCustomText').value;
+            appState.foodOutcomeNotes = document.getElementById('foodOutcomeNotes').value;
+            appState.foodAlliesOtherText = document.getElementById('foodAlliesOtherText').value;
+            appState.foodObstaclesOtherText = document.getElementById('foodObstaclesOtherText').value;
+            appState.foodHypothesisText = document.getElementById('foodHypothesisText').value;
+            appState.planBreakfastSnack = document.getElementById('planBreakfastSnack').value;
+            appState.planYellowMeal = document.getElementById('planYellowMeal').value;
+            appState.planRedMeal = document.getElementById('planRedMeal').value;
+            appState.planMovementSnack = document.getElementById('planMovementSnack').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('foodProblemCustomText').value = appState.foodProblemCustomText || '';
+            document.getElementById('foodActionCustomText').value = appState.foodActionCustomText || '';
+            document.getElementById('foodOutcomeNotes').value = appState.foodOutcomeNotes || '';
+            document.getElementById('foodAlliesOtherText').value = appState.foodAlliesOtherText || '';
+            document.getElementById('foodObstaclesOtherText').value = appState.foodObstaclesOtherText || '';
+            document.getElementById('foodHypothesisText').value = appState.foodHypothesisText || '';
+            document.getElementById('planBreakfastSnack').value = appState.planBreakfastSnack || '';
+            document.getElementById('planYellowMeal').value = appState.planYellowMeal || '';
+            document.getElementById('planRedMeal').value = appState.planRedMeal || '';
+            document.getElementById('planMovementSnack').value = appState.planMovementSnack || '';
+
+            restoreChipGroup('food-problem-chips', appState.foodProblems, 'active-problem');
+            restoreChipGroup('food-action-chips', appState.foodActions, 'active-action');
+            restoreChipGroup('food-outcome-chips', appState.foodOutcomes, 'active-outcome');
+            restoreChipGroup('food-allies-chips', appState.foodAllies, 'active-ally');
+            restoreChipGroup('food-obstacles-chips', appState.foodObstacles, 'active-obstacle');
+
+            if (Array.isArray(appState.checkedGridCells)) {
+                appState.checkedGridCells.forEach(cellKey => {
+                    document.getElementById(`cell-${cellKey}`)?.classList.add('selected-day');
+                });
+            }
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const fridgeCard = document.getElementById('fridgeMenuCard');
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const pBreak = appState.planBreakfastSnack
+                ? escapeHtml(appState.planBreakfastSnack)
+                : 'Borraccia d\'acqua e spuntino proteico/nutriente sempre visibili sulla scrivania.';
+            const pYellow = appState.planYellowMeal
+                ? escapeHtml(appState.planYellowMeal)
+                : 'Assemblare nel piatto 3 ingredienti già pronti in 5 minuti senza sporcare pentole.';
+            const pRed = appState.planRedMeal
+                ? escapeHtml(appState.planRedMeal)
+                : 'Scorta d\'emergenza a zero passaggi pronta in dispensa/freezer.';
+            const pMove = appState.planMovementSnack
+                ? escapeHtml(appState.planMovementSnack)
+                : '10–15 minuti di camminata o movimento libero abbinato al mio podcast/musica preferita.';
+
+            // 1. Popola la Card da Frigo Salva-Batteria
+            fridgeCard.innerHTML = `
+                <div class="flex items-center justify-between border-b border-white/15 pb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-widest text-amber-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-basket-shopping"></i> La Mia Card da Frigo: Menu Salva-Batteria & Snack Motorio
+                    </span>
+                    <span class="text-[11px] text-emerald-100">Cura di Sé • Modulo 14</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-amber-200 uppercase text-[10px] tracking-wider block mb-0.5">1. Colazione & Spuntino in Vista:</strong>
+                        <p class="text-white leading-relaxed">${pBreak}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-emerald-200 uppercase text-[10px] tracking-wider block mb-0.5">2. Pasto Giallo (Assemblato in 5 Min):</strong>
+                        <p class="text-white leading-relaxed">${pYellow}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-rose-200 uppercase text-[10px] tracking-wider block mb-0.5">3. Pasto Rosso (Emergenza Zero Passaggi):</strong>
+                        <p class="text-white leading-relaxed">${pRed}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-teal-200 uppercase text-[10px] tracking-wider block mb-0.5">4. Snack Motorio (10–15 Min):</strong>
+                        <p class="text-white leading-relaxed">${pMove}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Popola il Report analitico
+            const probs = appState.foodProblems.length ? appState.foodProblems.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const acts = appState.foodActions.length ? appState.foodActions.join(' • ') : '<em>Nessuna azione selezionata</em>';
+            const outc = appState.foodOutcomes.length ? appState.foodOutcomes.join(' • ') : '<em>Non specificato</em>';
+            const allies = appState.foodAllies.length ? appState.foodAllies.join(' • ') : '<em>Nessun alleato selezionato</em>';
+            const obsts = appState.foodObstacles.length ? appState.foodObstacles.join(' • ') : '<em>Nessun ostacolo selezionato</em>';
+            const totalChecked = appState.checkedGridCells ? appState.checkedGridCells.length : 0;
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-800">1. Problema, Compito ed Esito su Alimentazione e Movimento</div>
+                    <p><strong class="text-amber-800">Problematica scelta:</strong> ${probs}</p>
+                    ${appState.foodProblemCustomText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.foodProblemCustomText)}"</p>` : ''}
+                    <p><strong class="text-emerald-700">Compito / Azione attuata:</strong> ${acts}</p>
+                    ${appState.foodActionCustomText ? `<p class="text-emerald-950 bg-emerald-50 p-2 rounded-lg border border-emerald-200 text-xs"><strong>Dettaglio azione:</strong> ${escapeHtml(appState.foodActionCustomText)}</p>` : ''}
+                    <p><strong class="text-teal-800">Esito dell'azione:</strong> ${outc} ${appState.foodOutcomeNotes ? `(${escapeHtml(appState.foodOutcomeNotes)})` : ''}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">2. Valutazioni (Alleati vs Ostacoli) e Ipotesi</div>
+                    <p><strong class="text-emerald-700">I miei ALLEATI:</strong> ${allies} ${appState.foodAlliesOtherText ? `• ${escapeHtml(appState.foodAlliesOtherText)}` : ''}</p>
+                    <p><strong class="text-rose-700">I miei OSTACOLI:</strong> ${obsts} ${appState.foodObstaclesOtherText ? `• ${escapeHtml(appState.foodObstaclesOtherText)}` : ''}</p>
+                    ${appState.foodHypothesisText ? `<p class="text-slate-800 bg-white p-2.5 rounded-lg border border-slate-200 text-xs"><strong>Ipotesi per ridurre gli ostacoli:</strong> "${escapeHtml(appState.foodHypothesisText)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-700">Momenti di nutrimento e movimento registrati nello schema settimanale:</span>
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold">${totalChecked} spunte registrate</span>
+                </div>
+            `;
+        }
+
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_14_Card_Alimentazione_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF Card Salva-Batteria scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_14_Scheda_Completa_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 14: CURA DI SÉ (ALIMENTAZIONE E MOVIMENTO) ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. PROBLEMA, COMPITO ED ESITO",
+                "• Problematica scelta: " + (appState.foodProblems.join(', ') || '-'),
+                appState.foodProblemCustomText ? "• Contesto: " + appState.foodProblemCustomText : null,
+                "• Azione attuata: " + (appState.foodActions.join(', ') || '-'),
+                appState.foodActionCustomText ? "• Dettaglio azione: " + appState.foodActionCustomText : null,
+                "• Esito: " + (appState.foodOutcomes.join(', ') || '-'),
+                "",
+                "2. VALUTAZIONI (ALLEATI VS OSTACOLI) E IPOTESI",
+                "• I miei ALLEATI: " + (appState.foodAllies.join(', ') || '-'),
+                "• I miei OSTACOLI: " + (appState.foodObstacles.join(', ') || '-'),
+                appState.foodHypothesisText ? "• Ipotesi per ridurre gli ostacoli: " + appState.foodHypothesisText : null,
+                "",
+                "3. IL MIO MENU SALVA-BATTERIA & SNACK MOTORIO",
+                appState.planBreakfastSnack ? "• Colazione/Spuntino in vista: " + appState.planBreakfastSnack : null,
+                appState.planYellowMeal ? "• Pasto Livello Giallo (5 min): " + appState.planYellowMeal : null,
+                appState.planRedMeal ? "• Pasto Livello Rosso (Emergenza): " + appState.planRedMeal : null,
+                appState.planMovementSnack ? "• Snack Motorio (10-15 min): " + appState.planMovementSnack : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Riepilogo copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                foodProblems: [],
+                foodProblemCustomText: '',
+                foodActions: [],
+                foodActionCustomText: '',
+                foodOutcomes: [],
+                foodOutcomeNotes: '',
+                foodAllies: [],
+                foodAlliesOtherText: '',
+                foodObstacles: [],
+                foodObstaclesOtherText: '',
+                foodHypothesisText: '',
+                planBreakfastSnack: '',
+                planYellowMeal: '',
+                planRedMeal: '',
+                planMovementSnack: '',
+                checkedGridCells: []
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-problem', 'active-action', 'active-outcome', 'active-ally', 'active-obstacle');
+            });
+            document.querySelectorAll('.day-badge-btn').forEach(btn => {
+                btn.classList.remove('selected-day');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToSpace(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>

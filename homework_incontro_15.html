@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Modulo 15 - Il Mio Manuale per il Futuro e Punti di Forza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .space-section {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .space-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+        }
+        .selectable-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .selectable-chip.active-strength {
+            background-color: #fef3c7;
+            border-color: #d97706;
+            color: #78350f;
+            font-weight: 600;
+        }
+        .selectable-chip.active-flight {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #312e81;
+            font-weight: 600;
+        }
+        .selectable-chip.active-thrive {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .selectable-chip.active-drain {
+            background-color: #ffe4e6;
+            border-color: #e11d48;
+            color: #881337;
+            font-weight: 600;
+        }
+
+        /* ============================================================================
+           MODALITÀ STAMPA E PDF COMPLETO (Tutti gli spazi aperti e statici)
+           ============================================================================ */
+        body.pdf-export-mode {
+            height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+        }
+        body.pdf-export-mode #mainHomeworkArea {
+            overflow: visible !important;
+            padding: 16px !important;
+        }
+        body.pdf-export-mode #quickRecapDrawer,
+        body.pdf-export-mode .space-section {
+            display: block !important;
+            opacity: 1 !important;
+            transform: none !important;
+            margin-bottom: 1.75rem !important;
+        }
+        body.pdf-export-mode .no-print {
+            display: none !important;
+        }
+        body.pdf-export-mode .print-only-header {
+            display: block !important;
+        }
+        body.pdf-export-mode .glass-card {
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm;
+            }
+            body {
+                height: auto !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            #mainHomeworkArea {
+                overflow: visible !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-header {
+                display: block !important;
+            }
+            #quickRecapDrawer,
+            .space-section {
+                display: block !important;
+                opacity: 1 !important;
+                transform: none !important;
+                margin-bottom: 20px !important;
+            }
+            .glass-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            #pdfDocumentArea {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Toast di notifica -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 no-print">
+        <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Salvato automaticamente</span>
+    </div>
+
+    <!-- Header Panoramico Conclusivo -->
+    <header class="bg-gradient-to-r from-indigo-900 via-teal-800 to-amber-700 text-white px-4 md:px-8 py-5 shadow-lg no-print">
+        <div class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div class="flex items-center gap-3.5">
+                <span class="bg-white/15 p-3 rounded-2xl backdrop-blur-sm border border-white/15">
+                    <i class="fa-solid fa-compass text-amber-200 text-xl"></i>
+                </span>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full text-amber-100 font-bold">Homework Finale • Modulo 15</span>
+                        <span class="text-[11px] text-teal-100 hidden sm:inline">• Area V: Identità, Cura di Sé e Potenzialità</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold mt-0.5">Il Mio Manuale di Manutenzione Personale e Punti di Forza</h1>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="flex flex-wrap items-center gap-2.5 self-end lg:self-auto">
+                <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-amber-100 border border-white/15">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-300"></i>
+                    <span id="saveStatusText">Salvataggio automatico attivo</span>
+                </div>
+
+                <button id="btnDownloadFullPdf" onclick="exportFullStaticPDF()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-file-pdf"></i> Scarica PDF Completo
+                </button>
+
+                <button onclick="printCleanReport()" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-3.5 py-2 rounded-xl text-xs md:text-sm flex items-center gap-2 border border-white/20 transition-all">
+                    <i class="fa-solid fa-print"></i> Stampa Tutto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra Orizzontale dei 4 Spazi -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="goToSpace(1)" id="nav-space-1" class="space-nav-btn bg-indigo-700 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> 1. I Miei Talenti
+                </button>
+                <button onclick="goToSpace(2)" id="nav-space-2" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-seedling"></i> 2. Habitat Ideale
+                </button>
+                <button onclick="goToSpace(3)" id="nav-space-3" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-toolbox"></i> 3. Kit delle 5 Aree
+                </button>
+                <button onclick="goToSpace(4)" id="nav-space-4" class="space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-passport"></i> 4. Passaporto & PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Principale -->
+    <main id="mainHomeworkArea" class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Intestazione visibile SOLO nella versione stampata / PDF Completo -->
+        <div class="print-only-header hidden border-b-2 border-indigo-900 pb-4 mb-4">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-widest text-indigo-800">Programma Clinico Modulare di Psicoeducazione • Modulo Conclusivo 15</div>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-1">Homework Modulo 15: Il Mio Manuale di Manutenzione Personale per il Futuro</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Rif. Scientifici: Migliarese et al. (2023) • Sedgwick et al. (2019) • Boot et al. (2017) • Murray et al. (2005).</p>
+                </div>
+                <div class="text-xs text-slate-500 text-right">
+                    <div id="printTopDateLabel"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Celebrativo di Fine Percorso -->
+        <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-trophy"></i>
+            </span>
+            <div class="text-xs md:text-sm text-amber-950 leading-relaxed flex-1">
+                <strong class="font-bold">Complimenti per essere arrivato/a all'ultima tappa del percorso!</strong> 
+                Questa scheda conclusiva non è un compito settimanale come gli altri, ma il tuo <strong>"Libretto di Istruzioni Personale"</strong> da conservare: raccoglie i tuoi punti di forza, le condizioni in cui fiorisci e gli strumenti che ti permettono di ripartire con gentilezza ogni volta che attraverserai una settimana faticosa.
+            </div>
+            <button onclick="toggleQuickRecap()" class="no-print shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-book-open"></i> Bussola 1 min
+            </button>
+        </div>
+
+        <!-- Cassetto a comparsa: Bussola Rapida Modulo 15 -->
+        <div id="quickRecapDrawer" class="hidden glass-card rounded-2xl p-5 border-l-4 border-l-indigo-700 space-y-3 text-xs md:text-sm no-print">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-indigo-950 flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-indigo-700"></i> I 3 Pilastri per il Futuro (Modulo 15)
+                </h3>
+                <button onclick="toggleQuickRecap()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">1. Governare i Superpoteri</div>
+                    <p class="text-slate-600 text-xs">Coltivare iperfocalizzazione, pensiero divergente, curiosità e prontezza nelle emergenze proteggendo il corpo con "paracadute esterni".</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">2. Scegliere il Terreno Giusto</div>
+                    <p class="text-slate-600 text-xs">Orientare le scelte future di studio, lavoro e relazioni verso ambienti "neuro-affini" che valorizzino i tuoi talenti naturali.</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="font-bold text-slate-800 mb-1">3. Ripartenza Senza Colpa</div>
+                    <p class="text-slate-600 text-xs">Le oscillazioni fanno parte della neurobiologia: quando un'abitudine salta per due settimane, si riapre l'agenda da <em>oggi</em> senza auto-rimproveri.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================================================================
+             SPAZIO 1: LA CARTA D'IDENTITÀ DELLE MIE POTENZIALITÀ E IL VOLO SICURO IN HYPERFOCUS
+             ========================================================================= -->
+        <section id="space-1" class="space-section active space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-indigo-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-800">Spazio 1 • Riconoscere e Governare le Tue Risorse</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Le Mie Potenzialità Neurodivergenti e il "Piano di Volo" per l'Hyperfocus</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Seleziona i punti di forza che riconosci maggiormente in te e configura le tue ancore per goderti l'iperfocalizzazione e gli interessi speciali senza andare in riserva.
+                    </p>
+                </div>
+
+                <!-- 1. LE MIE POTENZIALITÀ CHIAVE -->
+                <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-3">
+                    <label class="block text-sm font-bold text-amber-950 flex items-center gap-2">
+                        <i class="fa-solid fa-star text-amber-500"></i> 1. Quali potenzialità del tuo funzionamento scegli di riconoscere e valorizzare?
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="strength-identity-chips">
+                        <button type="button" onclick="toggleChip(this, 'myStrengths', 'active-strength')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Iperfocalizzazione e capacità di immersione profonda nei temi che amo</button>
+                        <button type="button" onclick="toggleChip(this, 'myStrengths', 'active-strength')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Pensiero divergente, intuizioni rapide e soluzioni fuori dagli schemi (Mind Wandering creativo)</button>
+                        <button type="button" onclick="toggleChip(this, 'myStrengths', 'active-strength')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Capacità di cogliere pattern, dettagli e connessioni che agli altri sfuggono</button>
+                        <button type="button" onclick="toggleChip(this, 'myStrengths', 'active-strength')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Curiosità intellettuale viva, spirito d'iniziativa e versatilità</button>
+                        <button type="button" onclick="toggleChip(this, 'myStrengths', 'active-strength')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Lucidità, sangue freddo e prontezza risolutiva nelle vere emergenze</button>
+                        <button type="button" onclick="toggleChip(this, 'myStrengths', 'active-strength')" class="selectable-chip px-3 py-1.5 rounded-xl border border-amber-200 bg-white text-xs text-slate-700">Forte senso di giustizia, onestà intellettuale, lealtà e sensibilità autentica</button>
+                    </div>
+                    <textarea id="strengthExampleText" oninput="saveData()" rows="2" placeholder="Racconta brevemente un episodio (passato o recente) in cui una di queste qualità ti ha permesso di fare qualcosa di speciale..." class="w-full rounded-xl border border-amber-200 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                </div>
+
+                <!-- 2. IL MIO PROTOCOLLO DI "VOLO SICURO" PER L'IPERFOCALIZZAZIONE -->
+                <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-3">
+                    <label class="block text-sm font-bold text-indigo-950 flex items-center gap-2">
+                        <i class="fa-solid fa-rocket text-indigo-600"></i> 2. Il Mio "Piano di Volo" per Godermi l'Iperfocalizzazione Senza Crash
+                    </label>
+                    <p class="text-xs text-slate-600">Quali "paracadute esterni" attivi quando senti partire il turbo attentivo su un progetto o un interesse speciale?</p>
+                    <div class="flex flex-wrap gap-2" id="hyperfocus-safety-chips">
+                        <button type="button" onclick="toggleChip(this, 'hyperfocusSafeties', 'active-flight')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Verificare prima di iniziare di non avere scadenze urgenti nelle 2 ore successive</button>
+                        <button type="button" onclick="toggleChip(this, 'hyperfocusSafeties', 'active-flight')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Preparare borraccia d'acqua e uno spuntino nel mio campo visivo prima di immergermi</button>
+                        <button type="button" onclick="toggleChip(this, 'hyperfocusSafeties', 'active-flight')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Impostare una sveglia "corda di sicurezza" per non sforare a tarda notte</button>
+                        <button type="button" onclick="toggleChip(this, 'hyperfocusSafeties', 'active-flight')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Annotare un "segnalibro scritto" prima di staccare per riprendere facilmente domani</button>
+                        <button type="button" onclick="toggleChip(this, 'hyperfocusSafeties', 'active-flight')" class="selectable-chip px-3 py-1.5 rounded-xl border border-indigo-200 bg-white text-xs text-slate-700">Concedermi passeggiate o docce di "Mind Wandering creativo" tenendo pronte le note vocali</button>
+                    </div>
+                    <input type="text" id="specialInterestNote" oninput="saveData()" placeholder="Quali sono i tuoi Interessi Speciali o le passioni che ti ricaricano di più in questo periodo?..." class="w-full rounded-xl border border-indigo-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none">
+                </div>
+
+                <div class="flex justify-end pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa allo Spazio 2: Il Tuo Habitat Ideale <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 2: DISEGNARE IL MIO "HABITAT NEURO-AFFINE" PER LE SCELTE FUTURE
+             ========================================================================= -->
+        <section id="space-2" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-teal-700">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-teal-800">Spazio 2 • Bussola Ecologica per Lavoro, Studio e Vita Quotidiana</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Il Mio "Habitat Neuro-Affine": Dove Fiorisco vs Cosa Evitare</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Usa la consapevolezza acquisita in questi 15 moduli per definire i criteri con cui scegliere (o adattare) i tuoi ambienti futuri:
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Colonna 1: Il Terreno che mi fa Fiorire -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-seedling text-emerald-600 mr-1"></i> Condizioni che Mi Fanno FIORIRE (Alleati Futuri)
+                            </div>
+                            <div class="flex flex-wrap gap-1.5" id="habitat-thrive-chips">
+                                <button type="button" onclick="toggleChip(this, 'thriveConditions', 'active-thrive')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Lavorare/studiare per obiettivi con autonomia e flessibilità sui metodi</button>
+                                <button type="button" onclick="toggleChip(this, 'thriveConditions', 'active-thrive')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Ambienti sensorialmente calmi (o smart-working / uso libero di cuffie ANC)</button>
+                                <button type="button" onclick="toggleChip(this, 'thriveConditions', 'active-thrive')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Progetti stimolanti in cui usare problem-solving, creatività o analisi profonda</button>
+                                <button type="button" onclick="toggleChip(this, 'thriveConditions', 'active-thrive')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Comunicazioni chiare, dirette e scritte, prive di sottintesi</button>
+                                <button type="button" onclick="toggleChip(this, 'thriveConditions', 'active-thrive')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-slate-700">Relazioni sicure in cui poter essere autentico/a senza indossare una maschera</button>
+                            </div>
+                        </div>
+                        <input type="text" id="thriveOtherText" oninput="saveData()" placeholder="Altra condizione che fa fiorire le tue qualità..." class="w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none">
+                    </div>
+
+                    <!-- Colonna 2: Condizioni da Ridurre o Negoziare -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-3 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100/80 px-2.5 py-1 rounded-lg inline-block mb-2">
+                                <i class="fa-solid fa-ban text-rose-600 mr-1"></i> Condizioni da RIDURRE / Evitare (Vampiri di Energia)
+                            </div>
+                            <div class="flex flex-wrap gap-1.5" id="habitat-drain-chips">
+                                <button type="button" onclick="toggleChip(this, 'drainConditions', 'active-drain')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Mansioni esclusivamente ripetitive, burocratiche e prive di stimolo</button>
+                                <button type="button" onclick="toggleChip(this, 'drainConditions', 'active-drain')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Open-space caotici con interruzioni continue durante il focus</button>
+                                <button type="button" onclick="toggleChip(this, 'drainConditions', 'active-drain')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Controllo rigido sui micro-passaggi anziché fiducia sul risultato</button>
+                                <button type="button" onclick="toggleChip(this, 'drainConditions', 'active-drain')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Agende piene al 100% senza cuscinetti di solitudine e decompressione</button>
+                                <button type="button" onclick="toggleChip(this, 'drainConditions', 'active-drain')" class="selectable-chip px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-slate-700">Dover recitare un ruolo sociale per 10 ore al giorno (Masking cronico)</button>
+                            </div>
+                        </div>
+                        <input type="text" id="drainOtherText" oninput="saveData()" placeholder="Altra condizione da cui vuoi proteggerti..." class="w-full rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-rose-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Prossimo Passo Concreto per il Mio Habitat -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <label class="block text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-compass-drafting text-teal-700"></i> Quale piccolo aggiustamento vuoi portare nel tuo ambiente di vita, di studio o di lavoro nei prossimi mesi?
+                    </label>
+                    <input type="text" id="futureHabitatAdjustment" oninput="saveData()" placeholder="Es. Chiedere un giorno in più di lavoro da remoto, ritagliarmi un angolo studio silenzioso o dedicare tempo al mio progetto creativo..." class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs md:text-sm text-slate-800 focus:border-teal-600 focus:outline-none">
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(1)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(3)" class="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Passa allo Spazio 3: Il Kit delle 5 Aree <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 3: IL COSTRUTTORE DEL MANUALE DELLE 5 AREE + PROTOCOLLO DI RIPARTENZA GENTILE
+             ========================================================================= -->
+        <section id="space-3" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-amber-500">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Spazio 3 • La Tua Cassetta degli Attrezzi Definitiva</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">Scegli i Tuoi 5 Strumenti-Chiave e il "Piano per le Giornate di Tempesta"</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Per ciascuna delle 5 Aree del percorso, clicca sul modello rapido (o scrivi con parole tue) lo strumento che ti ha aiutato di più e che vuoi portare con te nel futuro:
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Area I -->
+                    <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-900">1. Area I • Conoscersi & Menu A/B/C</span>
+                            <button type="button" onclick="setManualTool('toolArea1', 'Uso la lente neurobiologica invece del senso di colpa, procedo con una sola priorità alla volta e adatto le mie giornate con il Menu A/B/C.')" class="no-print text-[11px] bg-white px-2 py-0.5 rounded border border-indigo-300 text-indigo-800 hover:bg-indigo-100">Inserisci modello</button>
+                        </div>
+                        <textarea id="toolArea1" oninput="saveData()" rows="2" placeholder="Qual è l'insegnamento più importante che porti con te dai Moduli 1–4?..." class="w-full rounded-xl border border-indigo-200 bg-white p-2.5 text-xs text-slate-800 focus:border-indigo-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Area II -->
+                    <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-900">2. Area II • Tempo, Spazio & Micro-Step</span>
+                            <button type="button" onclick="setManualTool('toolArea2', 'Tengo l\'Agenda Unica sempre aperta in vista con cuscinetti di transizione, sblocco la paralisi con un micro-passo da 2 minuti e lascio un segnalibro di ripresa.')" class="no-print text-[11px] bg-white px-2 py-0.5 rounded border border-teal-300 text-teal-800 hover:bg-teal-100">Inserisci modello</button>
+                        </div>
+                        <textarea id="toolArea2" oninput="saveData()" rows="2" placeholder="Qual è lo strumento più utile che porti con te dai Moduli 5–6?..." class="w-full rounded-xl border border-teal-200 bg-white p-2.5 text-xs text-slate-800 focus:border-teal-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Area III -->
+                    <div class="p-4 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-rose-900">3. Area III • Sensi, Emozioni & Cucchiai</span>
+                            <button type="button" onclick="setManualTool('toolArea3', 'Proteggo i miei sensi in Zona Gialla (cuffie, penombra), applico la regola dei 10 minuti sull\'onda emotiva/RSD e lascio 2 cucchiai di margine ogni giorno.')" class="no-print text-[11px] bg-white px-2 py-0.5 rounded border border-rose-300 text-rose-800 hover:bg-rose-100">Inserisci modello</button>
+                        </div>
+                        <textarea id="toolArea3" oninput="saveData()" rows="2" placeholder="Qual è lo strumento salvavita che porti con te dai Moduli 7–9?..." class="w-full rounded-xl border border-rose-200 bg-white p-2.5 text-xs text-slate-800 focus:border-rose-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Area IV -->
+                    <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-900">4. Area IV • Relazioni & Confini Gentili</span>
+                            <button type="button" onclick="setManualTool('toolArea4', 'Traduco il mio codice con le Frasi-Ponte, prendo tempo prima di dire di sì e uso la formula «Sì alla persona, No all\'evento» quando ho la batteria scarica.')" class="no-print text-[11px] bg-white px-2 py-0.5 rounded border border-amber-300 text-amber-800 hover:bg-amber-100">Inserisci modello</button>
+                        </div>
+                        <textarea id="toolArea4" oninput="saveData()" rows="2" placeholder="Quale Frase-Ponte o confine porti con te dai Moduli 10–11?..." class="w-full rounded-xl border border-amber-200 bg-white p-2.5 text-xs text-slate-800 focus:border-amber-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <!-- Area V (Full Width) -->
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-2 md:col-span-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-900">5. Area V • Autostima, Cura di Sé (Sonno/Cibo) & Potenzialità</span>
+                            <button type="button" onclick="setManualTool('toolArea5', 'Il mio valore umano è al 100% anche nei giorni a bassa produttività; accompagno il sonno con la rampa serale, tengo pasti pronti a zero passaggi e coltivo i miei talenti.')" class="no-print text-[11px] bg-white px-2 py-0.5 rounded border border-emerald-300 text-emerald-800 hover:bg-emerald-100">Inserisci modello</button>
+                        </div>
+                        <textarea id="toolArea5" oninput="saveData()" rows="2" placeholder="Qual è l'ancora di cura di sé e autostima che porti con te dai Moduli 12–15?..." class="w-full rounded-xl border border-emerald-200 bg-white p-2.5 text-xs text-slate-800 focus:border-emerald-600 focus:outline-none"></textarea>
+                    </div>
+
+                </div>
+
+                <!-- IL PROTOCOLLO DI "RIPARTENZA GENTILE" PER IL SÉ DEL FUTURO -->
+                <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-envelope-open-text"></i> Lettera al "Me del Futuro" per le Settimane di Sovraccarico
+                        </span>
+                        <button type="button" onclick="setManualTool('futureRestartMessage', '«Caro Me del futuro, se stai leggendo questa nota perché hai avuto due settimane caotiche e hai mollato tutte le abitudini, fermati e fai un respiro: non sei tornato/a al punto di partenza! Metti le cuffie, mangia un pasto pronto, riapri l\'agenda alla pagina di OGGI lasciando bianche quelle vecchie e riparti da un solo micro-passo da 2 minuti.»')" class="no-print text-[11px] bg-white/15 hover:bg-white/25 px-2.5 py-1 rounded-lg text-amber-200">
+                            Usa messaggio pronto
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        Cosa vuoi ricordare a te stesso/a quando, tra qualche mese, capiterà fisiologicamente una settimana di stanchezza o disorganizzazione?
+                    </p>
+                    <textarea id="futureRestartMessage" oninput="saveData()" rows="3" placeholder="Scrivi qui il tuo messaggio di ripartenza senza senso di colpa..." class="w-full rounded-xl bg-slate-800 border border-slate-600 p-3 text-xs md:text-sm text-white focus:border-amber-400 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-between pt-2 no-print">
+                    <button onclick="goToSpace(2)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Indietro
+                    </button>
+                    <button onclick="goToSpace(4)" class="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-6 py-3 rounded-xl text-sm flex items-center gap-2 shadow-sm transition-all">
+                        Genera il Passaporto Finale e PDF <i class="fa-solid fa-passport"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================================================================
+             SPAZIO 4: IL PASSAPORTO FINALE DEL MIO FUNZIONAMENTO ED ESPORTAZIONE PDF
+             ========================================================================= -->
+        <section id="space-4" class="space-section space-y-5">
+            <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6 border-t-4 border-t-emerald-600">
+                
+                <!-- Barra Azioni Esportazione -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-5 no-print">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Tappa Conclusiva • Il Tuo Manuale Personale</span>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-0.5">Il Tuo "Passaporto Finale" e Manuale Completo in PDF</h2>
+                        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Scarica il PDF completo o il Passaporto di Sintesi da tenere sempre a portata di mano nel tempo.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                        <button id="downloadPdfBtn" onclick="exportFullStaticPDF()" class="flex-1 md:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-file-arrow-down text-base"></i> Scarica PDF Completo (Tutte le Sezioni)
+                        </button>
+                        <button id="downloadSummaryOnlyBtn" onclick="downloadDirectPDF()" class="flex-1 md:flex-initial justify-center bg-indigo-700 hover:bg-indigo-800 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all" title="Scarica il Passaporto Finale e la sintesi">
+                            <i class="fa-solid fa-passport"></i> PDF Passaporto + Sintesi
+                        </button>
+                        <button onclick="printCleanReport()" class="flex-1 md:flex-initial justify-center bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-3 rounded-xl text-xs md:text-sm flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-print"></i> Stampa Tutto
+                        </button>
+                        <button onclick="copySummaryToClipboard()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-3 rounded-xl text-xs md:text-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-regular fa-copy"></i> Copia Testo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo opzionale Nome/Iniziali -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 no-print">
+                    <label for="patientNameInput" class="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-indigo-700"></i> Intestazione Passaporto PDF (Nome o Iniziali - opzionale):
+                    </label>
+                    <input type="text" id="patientNameInput" oninput="saveData(); renderSummary();" placeholder="Es. A. B." class="w-full sm:w-64 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:border-indigo-600 focus:outline-none">
+                </div>
+
+                <!-- AREA DOCUMENTO A4 CHE VIENE CONVERTITA IN PDF -->
+                <div id="pdfDocumentArea" class="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6 text-slate-800">
+                    
+                    <!-- Intestazione del Documento PDF -->
+                    <div class="border-b-2 border-indigo-900 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-widest text-indigo-800">Percorso Modulare di Psicoeducazione • Modulo Conclusivo 15</div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Il Mio Manuale di Manutenzione Personale e Punti di Forza</h3>
+                        </div>
+                        <div class="text-xs text-slate-500 sm:text-right">
+                            <div><strong>Nome / Iniziali:</strong> <span id="pdfPatientNameDisplay">Non specificato</span></div>
+                            <div><strong>Data:</strong> <span id="pdfDateDisplay"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- SCHEDA VISIVA: IL PASSAPORTO FINALE DEL MIO FUNZIONAMENTO -->
+                    <div id="finalPassportCard" class="rounded-2xl bg-gradient-to-r from-indigo-950 via-teal-900 to-amber-800 text-white p-5 shadow-md space-y-4">
+                        <!-- Popolata dinamicamente via JS -->
+                    </div>
+
+                    <!-- Contenuto analitico delle 5 Aree e dell'Habitat -->
+                    <div id="summaryPreviewBox" class="space-y-4 text-sm leading-relaxed">
+                        <!-- Popolato via JS -->
+                    </div>
+
+                    <!-- Footer del PDF -->
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Rif. Scientifici: Migliarese et al. (2023) • Sedgwick et al. (2019) • Boot et al. (2017) • Murray et al. (2005)</span>
+                        <span>Manuale personale generato a conclusione del percorso</span>
+                    </div>
+                </div>
+
+                <!-- Area di testo nascosta per copia compatibile con iFrame -->
+                <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+
+                <div class="flex justify-between items-center pt-2 no-print">
+                    <button onclick="goToSpace(3)" class="text-slate-600 hover:text-slate-900 font-medium px-4 py-2 rounded-xl text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Modifica Risposte
+                    </button>
+                    <button onclick="resetAllData()" class="text-rose-600 hover:bg-rose-50 font-medium px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-left"></i> Svuota scheda
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'audhd_homework_15_general_v1';
+
+        let appState = {
+            patientName: '',
+            myStrengths: [],
+            strengthExampleText: '',
+            hyperfocusSafeties: [],
+            specialInterestNote: '',
+            thriveConditions: [],
+            thriveOtherText: '',
+            drainConditions: [],
+            drainOtherText: '',
+            futureHabitatAdjustment: '',
+            toolArea1: '',
+            toolArea2: '',
+            toolArea3: '',
+            toolArea4: '',
+            toolArea5: '',
+            futureRestartMessage: ''
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    appState = Object.assign(appState, JSON.parse(saved));
+                    restoreUIFromState();
+                } catch (e) {
+                    console.error('Errore nel ripristino dei dati locali:', e);
+                }
+            }
+            renderSummary();
+        };
+
+        function goToSpace(spaceNum) {
+            document.querySelectorAll('.space-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`space-${spaceNum}`).classList.add('active');
+
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`nav-space-${i}`);
+                if (i === spaceNum) {
+                    btn.className = 'space-nav-btn bg-indigo-700 text-white font-semibold px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm transition-all';
+                } else {
+                    btn.className = 'space-nav-btn bg-slate-100 text-slate-600 hover:bg-slate-200/80 font-medium px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 transition-all';
+                }
+            }
+
+            if (spaceNum === 4) {
+                renderSummary();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleQuickRecap() {
+            document.getElementById('quickRecapDrawer').classList.toggle('hidden');
+        }
+
+        function toggleChip(btn, stateArrayKey, activeClass) {
+            const text = btn.textContent.trim();
+            const arr = appState[stateArrayKey];
+            const index = arr.indexOf(text);
+
+            if (index > -1) {
+                arr.splice(index, 1);
+                btn.classList.remove('active-strength', 'active-flight', 'active-thrive', 'active-drain');
+            } else {
+                arr.push(text);
+                btn.classList.add(activeClass);
+            }
+            saveData();
+        }
+
+        function setManualTool(inputId, textValue) {
+            document.getElementById(inputId).value = textValue;
+            saveData();
+            showToast('Inserito nel tuo Manuale di Manutenzione!');
+        }
+
+        function saveData() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) appState.patientName = nameInput.value;
+
+            appState.strengthExampleText = document.getElementById('strengthExampleText').value;
+            appState.specialInterestNote = document.getElementById('specialInterestNote').value;
+            appState.thriveOtherText = document.getElementById('thriveOtherText').value;
+            appState.drainOtherText = document.getElementById('drainOtherText').value;
+            appState.futureHabitatAdjustment = document.getElementById('futureHabitatAdjustment').value;
+            appState.toolArea1 = document.getElementById('toolArea1').value;
+            appState.toolArea2 = document.getElementById('toolArea2').value;
+            appState.toolArea3 = document.getElementById('toolArea3').value;
+            appState.toolArea4 = document.getElementById('toolArea4').value;
+            appState.toolArea5 = document.getElementById('toolArea5').value;
+            appState.futureRestartMessage = document.getElementById('futureRestartMessage').value;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                document.getElementById('saveStatusText').textContent = 'Salvato pochi istanti fa';
+            } catch (e) {}
+        }
+
+        function restoreUIFromState() {
+            const nameInput = document.getElementById('patientNameInput');
+            if (nameInput) nameInput.value = appState.patientName || '';
+
+            document.getElementById('strengthExampleText').value = appState.strengthExampleText || '';
+            document.getElementById('specialInterestNote').value = appState.specialInterestNote || '';
+            document.getElementById('thriveOtherText').value = appState.thriveOtherText || '';
+            document.getElementById('drainOtherText').value = appState.drainOtherText || '';
+            document.getElementById('futureHabitatAdjustment').value = appState.futureHabitatAdjustment || '';
+            document.getElementById('toolArea1').value = appState.toolArea1 || '';
+            document.getElementById('toolArea2').value = appState.toolArea2 || '';
+            document.getElementById('toolArea3').value = appState.toolArea3 || '';
+            document.getElementById('toolArea4').value = appState.toolArea4 || '';
+            document.getElementById('toolArea5').value = appState.toolArea5 || '';
+            document.getElementById('futureRestartMessage').value = appState.futureRestartMessage || '';
+
+            restoreChipGroup('strength-identity-chips', appState.myStrengths, 'active-strength');
+            restoreChipGroup('hyperfocus-safety-chips', appState.hyperfocusSafeties, 'active-flight');
+            restoreChipGroup('habitat-thrive-chips', appState.thriveConditions, 'active-thrive');
+            restoreChipGroup('habitat-drain-chips', appState.drainConditions, 'active-drain');
+        }
+
+        function restoreChipGroup(containerId, selectedList, activeClass) {
+            if (!Array.isArray(selectedList)) return;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('button').forEach(btn => {
+                if (selectedList.includes(btn.textContent.trim())) {
+                    btn.classList.add(activeClass);
+                }
+            });
+        }
+
+        function renderSummary() {
+            const passportCard = document.getElementById('finalPassportCard');
+            const box = document.getElementById('summaryPreviewBox');
+            const nameDisplay = document.getElementById('pdfPatientNameDisplay');
+            const dateDisplay = document.getElementById('pdfDateDisplay');
+            const topDateLabel = document.getElementById('printTopDateLabel');
+
+            const formattedDate = new Date().toLocaleDateString('it-IT', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            if (nameDisplay) {
+                nameDisplay.textContent = (appState.patientName && appState.patientName.trim() !== '')
+                    ? appState.patientName.trim()
+                    : 'Non specificato';
+            }
+            if (dateDisplay) dateDisplay.textContent = formattedDate;
+            if (topDateLabel) topDateLabel.textContent = 'Data: ' + formattedDate;
+
+            const strengthsList = appState.myStrengths.length
+                ? appState.myStrengths.join(' • ')
+                : 'Iperfocalizzazione profonda, pensiero divergente creativo, curiosità viva, prontezza nelle emergenze e autenticità.';
+
+            const restartMsg = appState.futureRestartMessage
+                ? escapeHtml(appState.futureRestartMessage)
+                : '«Quando attraversi una settimana caotica non ricominciare a darti la colpa: proteggi i sensi, mangia un pasto pronto, riapri l\'agenda da OGGI e riparti da un solo micro-passo da 2 minuti.»';
+
+            // 1. Popola il Passaporto Finale in cima al PDF
+            passportCard.innerHTML = `
+                <div class="flex items-center justify-between border-b border-white/15 pb-2">
+                    <span class="text-[11px] font-bold uppercase tracking-widest text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-passport"></i> Il Passaporto del Mio Funzionamento e dei Miei Talenti
+                    </span>
+                    <span class="text-[11px] text-teal-100">Percorso Completato (Moduli 1–15)</span>
+                </div>
+                <div class="space-y-3 text-xs">
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-amber-200 uppercase text-[10px] tracking-wider block mb-1"><i class="fa-solid fa-star mr-1"></i> Le Mie Potenzialità Riconosciute:</strong>
+                        <p class="text-white leading-relaxed">${strengthsList}</p>
+                        ${appState.specialInterestNote ? `<p class="text-teal-200 mt-1"><strong>Interessi e Passioni che mi ricaricano:</strong> ${escapeHtml(appState.specialInterestNote)}</p>` : ''}
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/15">
+                        <strong class="text-emerald-200 uppercase text-[10px] tracking-wider block mb-1"><i class="fa-solid fa-envelope-open-text mr-1"></i> Promemoria per il "Me del Futuro" nelle Settimane Difficili:</strong>
+                        <p class="text-white italic leading-relaxed">${restartMsg}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Popola il Report delle 5 Aree e dell'Habitat
+            const safeties = appState.hyperfocusSafeties.length ? appState.hyperfocusSafeties.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const thrives = appState.thriveConditions.length ? appState.thriveConditions.join(' • ') : '<em>Nessun tag selezionato</em>';
+            const drains = appState.drainConditions.length ? appState.drainConditions.join(' • ') : '<em>Nessun tag selezionato</em>';
+
+            box.innerHTML = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-900">1. Episodi di Valore e "Volo Sicuro" nell'Iperfocalizzazione</div>
+                    ${appState.strengthExampleText ? `<p class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 italic">"${escapeHtml(appState.strengthExampleText)}"</p>` : ''}
+                    <p><strong class="text-indigo-800">Paracadute esterni per il mio Hyperfocus:</strong> ${safeties}</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-teal-800">2. Il Mio "Habitat Neuro-Affine" per le Scelte Future</div>
+                    <p><strong class="text-emerald-700">Condizioni in cui fiorisco:</strong> ${thrives} ${appState.thriveOtherText ? `• ${escapeHtml(appState.thriveOtherText)}` : ''}</p>
+                    <p><strong class="text-rose-700">Condizioni da ridurre/negoziare:</strong> ${drains} ${appState.drainOtherText ? `• ${escapeHtml(appState.drainOtherText)}` : ''}</p>
+                    ${appState.futureHabitatAdjustment ? `<p class="text-teal-950 bg-teal-50 p-2.5 rounded-lg border border-teal-200 text-xs"><strong>Aggiustamento concreto per i prossimi mesi:</strong> "${escapeHtml(appState.futureHabitatAdjustment)}"</p>` : ''}
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">3. La Mia Bussola Operativa delle 5 Aree</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-white p-2.5 rounded-lg border border-indigo-200">
+                            <strong class="text-indigo-900 block">Area I (Conoscersi & Menu A/B/C):</strong>
+                            ${appState.toolArea1 ? escapeHtml(appState.toolArea1) : '<em>Lente neurobiologica e una sola priorità alla volta.</em>'}
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-teal-200">
+                            <strong class="text-teal-900 block">Area II (Tempo, Spazio & Avvio):</strong>
+                            ${appState.toolArea2 ? escapeHtml(appState.toolArea2) : '<em>Agenda Unica a vista, micro-stepping da 2 min e segnalibro.</em>'}
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-rose-200">
+                            <strong class="text-rose-900 block">Area III (Sensi, Emozioni & Energia):</strong>
+                            ${appState.toolArea3 ? escapeHtml(appState.toolArea3) : '<em>Protezione in Zona Gialla, pausa dei 10 min e Pacing dei Cucchiai.</em>'}
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-amber-200">
+                            <strong class="text-amber-900 block">Area IV (Relazioni & Confini):</strong>
+                            ${appState.toolArea4 ? escapeHtml(appState.toolArea4) : '<em>Frasi-Ponte contro i malintesi e confine gentile preventivo.</em>'}
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-emerald-200 sm:col-span-2">
+                            <strong class="text-emerald-900 block">Area V (Autostima, Sonno, Cibo & Talenti):</strong>
+                            ${appState.toolArea5 ? escapeHtml(appState.toolArea5) : '<em>Valore umano al 100%, rampa serale, pasti salva-batteria e cura delle passioni.</em>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadDirectPDF() {
+            renderSummary();
+            const element = document.getElementById('pdfDocumentArea');
+            const btn = document.getElementById('downloadSummaryOnlyBtn');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generazione...';
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_15_Passaporto_Finale_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    showToast('PDF Passaporto Finale scaricato con successo!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    window.print();
+                });
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                window.print();
+            }
+        }
+
+        function exportFullStaticPDF() {
+            renderSummary();
+            const btnTop = document.getElementById('btnDownloadFullPdf');
+            const btnStep4 = document.getElementById('downloadPdfBtn');
+            const origTop = btnTop ? btnTop.innerHTML : '';
+            const origStep4 = btnStep4 ? btnStep4.innerHTML : '';
+
+            if (btnTop) {
+                btnTop.disabled = true;
+                btnTop.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creazione PDF...';
+            }
+            if (btnStep4) {
+                btnStep4.disabled = true;
+                btnStep4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Apertura sezioni e creazione PDF...';
+            }
+
+            document.body.classList.add('pdf-export-mode');
+            const element = document.getElementById('mainHomeworkArea');
+
+            const cleanName = (appState.patientName || 'Partecipante').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `Homework_15_Manuale_Completo_${cleanName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.97 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            const restoreButtons = () => {
+                document.body.classList.remove('pdf-export-mode');
+                if (btnTop) { btnTop.disabled = false; btnTop.innerHTML = origTop; }
+                if (btnStep4) { btnStep4.disabled = false; btnStep4.innerHTML = origStep4; }
+            };
+
+            if (typeof html2pdf !== 'undefined') {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreButtons();
+                    showToast('PDF completo con tutte le sezioni aperte scaricato!');
+                }).catch(err => {
+                    console.error('Errore html2pdf:', err);
+                    restoreButtons();
+                    window.print();
+                });
+            } else {
+                restoreButtons();
+                window.print();
+            }
+        }
+
+        function printCleanReport() {
+            renderSummary();
+            window.print();
+        }
+
+        function copySummaryToClipboard() {
+            const lines = [
+                "=== HOMEWORK MODULO 15: MANUALE DI MANUTENZIONE PERSONALE PER IL FUTURO ===",
+                appState.patientName ? "Nome / Iniziali: " + appState.patientName : null,
+                "Data: " + new Date().toLocaleDateString('it-IT'),
+                "",
+                "1. LE MIE POTENZIALITÀ E IL PIANO DI VOLO PER L'HYPERFOCUS",
+                "• Potenzialità riconosciute: " + (appState.myStrengths.join(', ') || '-'),
+                appState.strengthExampleText ? "• Episodio di valore: " + appState.strengthExampleText : null,
+                "• Paracadute per l'Hyperfocus: " + (appState.hyperfocusSafeties.join(', ') || '-'),
+                appState.specialInterestNote ? "• Interessi speciali: " + appState.specialInterestNote : null,
+                "",
+                "2. IL MIO HABITAT NEURO-AFFINE",
+                "• Condizioni che mi fanno fiorire: " + (appState.thriveConditions.join(', ') || '-'),
+                "• Condizioni da ridurre: " + (appState.drainConditions.join(', ') || '-'),
+                appState.futureHabitatAdjustment ? "• Aggiustamento futuro: " + appState.futureHabitatAdjustment : null,
+                "",
+                "3. LA MIA BUSSOLA DELLE 5 AREE",
+                appState.toolArea1 ? "• Area I: " + appState.toolArea1 : null,
+                appState.toolArea2 ? "• Area II: " + appState.toolArea2 : null,
+                appState.toolArea3 ? "• Area III: " + appState.toolArea3 : null,
+                appState.toolArea4 ? "• Area IV: " + appState.toolArea4 : null,
+                appState.toolArea5 ? "• Area V: " + appState.toolArea5 : null,
+                appState.futureRestartMessage ? "• Messaggio al Me del Futuro: " + appState.futureRestartMessage : null
+            ].filter(Boolean).join('\n');
+
+            const hiddenArea = document.getElementById('hiddenClipboardArea');
+            hiddenArea.value = lines;
+            hiddenArea.classList.remove('sr-only');
+            hiddenArea.select();
+            hiddenArea.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showToast('Manuale copiato negli appunti!');
+            } catch (err) {
+                showToast('Usa il pulsante Scarica PDF per salvare il documento.');
+            }
+            hiddenArea.classList.add('sr-only');
+        }
+
+        function resetAllData() {
+            localStorage.removeItem(STORAGE_KEY);
+            appState = {
+                patientName: '',
+                myStrengths: [],
+                strengthExampleText: '',
+                hyperfocusSafeties: [],
+                specialInterestNote: '',
+                thriveConditions: [],
+                thriveOtherText: '',
+                drainConditions: [],
+                drainOtherText: '',
+                futureHabitatAdjustment: '',
+                toolArea1: '',
+                toolArea2: '',
+                toolArea3: '',
+                toolArea4: '',
+                toolArea5: '',
+                futureRestartMessage: ''
+            };
+            document.querySelectorAll('.selectable-chip').forEach(btn => {
+                btn.classList.remove('active-strength', 'active-flight', 'active-thrive', 'active-drain');
+            });
+            restoreUIFromState();
+            renderSummary();
+            goToSpace(1);
+            showToast('Scheda svuotata e pronta per una nuova compilazione.');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>
